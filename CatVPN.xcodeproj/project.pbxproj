@@ -14,6 +14,7 @@
 		FE767F0D2E33863F0003EC3C /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896EC2E322E94009BCE27 /* SystemConfiguration.framework */; };
 		FE767F0E2E3386720003EC3C /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896EE2E322EB0009BCE27 /* libsqlite3.tbd */; };
 		FE767F0F2E33867C0003EC3C /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896F02E322EBA009BCE27 /* libz.tbd */; };
+		FE7E2EC42E37787E00F69A45 /* GameAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE7E2EC32E37787E00F69A45 /* GameAnalytics.xcframework */; };
 		FEC6A4C52E2121A100AE43BF /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEC6A3F52E21107A00AE43BF /* NetworkExtension.framework */; };
 		FEC6A4CD2E2121A100AE43BF /* net2.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FEC6A4C42E2121A100AE43BF /* net2.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -54,6 +55,7 @@
 		FE0896EC2E322E94009BCE27 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		FE0896EE2E322EB0009BCE27 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		FE0896F02E322EBA009BCE27 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		FE7E2EC32E37787E00F69A45 /* GameAnalytics.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GameAnalytics.xcframework; path = "Pods/GA-SDK-IOS/GameAnalytics.xcframework"; sourceTree = "<group>"; };
 		FEC6A3A42E210F5A00AE43BF /* CatVPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatVPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEC6A3F52E21107A00AE43BF /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		FEC6A4C42E2121A100AE43BF /* net2.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = net2.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,6 +102,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FE7E2EC42E37787E00F69A45 /* GameAnalytics.xcframework in Frameworks */,
 				FE767F0F2E33867C0003EC3C /* libz.tbd in Frameworks */,
 				FE767F0E2E3386720003EC3C /* libsqlite3.tbd in Frameworks */,
 				FE767F0D2E33863F0003EC3C /* SystemConfiguration.framework in Frameworks */,
@@ -155,6 +158,7 @@
 		FEC6A3F42E21107A00AE43BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				FE7E2EC32E37787E00F69A45 /* GameAnalytics.xcframework */,
 				FE0896F02E322EBA009BCE27 /* libz.tbd */,
 				FE0896EE2E322EB0009BCE27 /* libsqlite3.tbd */,
 				FE0896EC2E322E94009BCE27 /* SystemConfiguration.framework */,
@@ -501,6 +505,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CatVPN/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CatVPN;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "We hope to obtain your authorization to optimize advertising experience and statistical analysis and will not use it for other purposes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -599,6 +604,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CatVPN/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CatVPN;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "We hope to obtain your authorization to optimize advertising experience and statistical analysis and will not use it for other purposes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -66,12 +66,12 @@ struct PrivacyPopupView: View {
                 VStack(spacing: 24) {
                     // 隐私特性列表
                     VStack(spacing: 16) {
-                        privacyFeatureRow(
-                            icon: "eye.slash.fill",
-                            title: "No Data Collection",
-                            description: "We don't collect, store, or track any of your personal data",
-                            color: .green
-                        )
+//                        privacyFeatureRow(
+//                            icon: "eye.slash.fill",
+//                            title: "No Data Collection",
+//                            description: "We don't collect, store, or track any of your personal data",
+//                            color: .green
+//                        )
                         
                         privacyFeatureRow(
                             icon: "network",

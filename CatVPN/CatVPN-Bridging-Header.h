@@ -8,6 +8,6 @@
 #ifndef CatVPN_Bridging_Header_h
 #define CatVPN_Bridging_Header_h
 
-//#import "GameAnalytics/GameAnalytics.h"
+#import "GameAnalytics/GameAnalytics.h"
 
 #endif /* CatVPN_Bridging_Header_h */

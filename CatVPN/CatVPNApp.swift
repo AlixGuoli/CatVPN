@@ -20,7 +20,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
 //        initAdmob()
 //        initYandex()
-        //initGameAnalytics()
+        initGameAnalytics()
         return true
     }
     
@@ -43,17 +43,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 //        }
 //    }
     
-//    func initGameAnalytics() {
-//        logDebug("initGameAnalytics")
-//        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-//       
-//        // Enable log
-//        GameAnalytics.setEnabledInfoLog(true)
-//        GameAnalytics.setEnabledVerboseLog(true)
-//        GameAnalytics.configureAutoDetectAppVersion(true)
-//        GameAnalytics.configureBuild(version)
-//        GameAnalytics.initialize(withGameKey: gameKey, gameSecret: secretKey)
-//    }
+    func initGameAnalytics() {
+        logDebug("initGameAnalytics")
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+       
+        // Enable log
+        GameAnalytics.setEnabledInfoLog(true)
+        GameAnalytics.setEnabledVerboseLog(true)
+        GameAnalytics.configureAutoDetectAppVersion(true)
+        GameAnalytics.configureBuild(version)
+        GameAnalytics.initialize(withGameKey: gameKey, gameSecret: secretKey)
+    }
 }
 
 @main

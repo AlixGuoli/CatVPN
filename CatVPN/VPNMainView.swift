@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import AppTrackingTransparency
+import AdSupport
 
 struct VPNMainView: View {
     
@@ -104,6 +106,7 @@ struct VPNMainView: View {
         .onAppear {
             startAllAnimations()
             checkPrivacyPopup()
+            requestTrackingAuthorization()
 //            adsManager.loadIntAdmob()
 //            adsManager.loadIntYandex()
         }
@@ -116,6 +119,25 @@ struct VPNMainView: View {
         .overlay(
             showPrivacyPopup ? PrivacyPopupView(isPresented: $showPrivacyPopup) : nil
         )
+    }
+    
+    func requestTrackingAuthorization() {
+        if #available(iOS 14, *) {
+            ATTrackingManager.requestTrackingAuthorization { status in
+                switch status {
+                case .authorized:
+                    logDebug("用户已授权，IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
+                case .denied:
+                    logDebug("用户拒绝了追踪请求")
+                case .notDetermined:
+                    logDebug("用户尚未做出选择")
+                case .restricted:
+                    logDebug("追踪受限")
+                @unknown default:
+                    logDebug("未知状态")
+                }
+            }
+        }
     }
     
     // 启动所有动画
