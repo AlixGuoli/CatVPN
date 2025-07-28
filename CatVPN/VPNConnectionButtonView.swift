@@ -763,7 +763,7 @@ struct VPNConnectionButton: View {
             startAnimations()
         }
         .navigationDestination(isPresented: $showSuccess) {
-            ConnectSuccessView()
+            ConnectSuccessView(status: connectionStatus)
         }
         .onChange(of: connectionStatus) { status in
             updateAnimations(for: status)
