@@ -421,7 +421,7 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
 
 struct VPNConnectionButton: View {
     
-    //@EnvironmentObject var adsManager: AdsUtils
+    @EnvironmentObject var adsManager: AdsUtils
     @State private var showSuccess = false
     
     @EnvironmentObject var mainViewModel: MainViewmodel
@@ -768,7 +768,7 @@ struct VPNConnectionButton: View {
         .onChange(of: connectionStatus) { status in
             updateAnimations(for: status)
             if status == .connected {
-                //adsManager.showIntYandex()
+                adsManager.showIntYandex()
                 showSuccess.toggle()
             }
         }

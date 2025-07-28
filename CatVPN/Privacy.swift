@@ -109,7 +109,6 @@ struct PrivacyGuideView: View {
                 title: "Our Commitment",
                 content: """
                 We are committed to protecting your privacy with:
-                • No-logs policy - We don't track or store your online activities
                 • Military-grade encryption to secure your data
                 • Secure servers located in privacy-friendly countries
                 • Transparent privacy practices and regular security audits

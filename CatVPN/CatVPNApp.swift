@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
-//import GoogleMobileAds
-//import YandexMobileAds
-//
+import GoogleMobileAds
+import YandexMobileAds
+
 class AppDelegate: NSObject, UIApplicationDelegate {
     
     let gameKey = "6314cf102784579085d957185ecdc4d2"
@@ -18,30 +18,30 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
-//        initAdmob()
-//        initYandex()
+        initAdmob()
+        initYandex()
         initGameAnalytics()
         return true
     }
     
-//    func initAdmob() {
-//        MobileAds.shared.start { status in
-//            let adpterStatuses = status.adapterStatusesByClassName
-//            let success = adpterStatuses.values.contains { $0.state == .ready }
-//            
-//            if success {
-//                logDebug("Admob 初始化成功")
-//            } else {
-//                logDebug("Admob 初始化失败")
-//            }
-//        }
-//    }
-//    
-//    func initYandex() {
-//        MobileAds.initializeSDK {
-//            logDebug("Yandex 初始化成功")
-//        }
-//    }
+    func initAdmob() {
+        MobileAds.shared.start { status in
+            let adpterStatuses = status.adapterStatusesByClassName
+            let success = adpterStatuses.values.contains { $0.state == .ready }
+            
+            if success {
+                logDebug("Admob 初始化成功")
+            } else {
+                logDebug("Admob 初始化失败")
+            }
+        }
+    }
+    
+    func initYandex() {
+        MobileAds.initializeSDK {
+            logDebug("Yandex 初始化成功")
+        }
+    }
     
     func initGameAnalytics() {
         logDebug("initGameAnalytics")

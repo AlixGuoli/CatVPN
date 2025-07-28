@@ -11,7 +11,7 @@ import AdSupport
 
 struct VPNMainView: View {
     
-    //@StateObject var adsManager = AdsUtils()
+    @StateObject var adsManager = AdsUtils()
     
     @StateObject private var mainViewModel = MainViewmodel()
     @State private var showServerSelection = false
@@ -75,7 +75,7 @@ struct VPNMainView: View {
                         
                         // 主连接按钮
                         VPNConnectionButton()
-                            //.environmentObject(adsManager)
+                            .environmentObject(adsManager)
                             .environmentObject(mainViewModel)
                             .padding(.vertical, 25)
                         
@@ -105,10 +105,10 @@ struct VPNMainView: View {
         }
         .onAppear {
             startAllAnimations()
-            checkPrivacyPopup()
+            //checkPrivacyPopup()
             requestTrackingAuthorization()
-//            adsManager.loadIntAdmob()
-//            adsManager.loadIntYandex()
+            //adsManager.loadIntAdmob()
+            adsManager.loadIntYandex()
         }
         .sheet(isPresented: $showServerSelection) {
             ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
@@ -127,16 +127,23 @@ struct VPNMainView: View {
                 switch status {
                 case .authorized:
                     logDebug("用户已授权，IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
+                    checkPrivacyPopup()
                 case .denied:
                     logDebug("用户拒绝了追踪请求")
+                    checkPrivacyPopup()
                 case .notDetermined:
                     logDebug("用户尚未做出选择")
+                    checkPrivacyPopup()
                 case .restricted:
                     logDebug("追踪受限")
+                    checkPrivacyPopup()
                 @unknown default:
                     logDebug("未知状态")
+                    checkPrivacyPopup()
                 }
             }
+        } else {
+            checkPrivacyPopup()
         }
     }
     
@@ -800,25 +807,25 @@ struct VPNMainView: View {
 //                    )
                 }
                 
-                HStack(spacing: 14) {
-                    glassyActionButton(
-                        icon: "arrow.clockwise",
-                        title: "Reset Privacy",
-                        color: .orange,
-                        action: {
-                            // 重置隐私弹窗状态（仅用于测试）
-                            UserDefaults.standard.set(false, forKey: "hasSeenPrivacyPopup")
-                            showPrivacyPopup = true
-                        }
-                    )
-                    
+//                HStack(spacing: 14) {
 //                    glassyActionButton(
-//                        icon: "questionmark.circle.fill",
-//                        title: "Help",
+//                        icon: "arrow.clockwise",
+//                        title: "Reset Privacy",
 //                        color: .orange,
-//                        action: { /* TODO: 实现帮助功能 */ }
+//                        action: {
+//                            // 重置隐私弹窗状态（仅用于测试）
+//                            UserDefaults.standard.set(false, forKey: "hasSeenPrivacyPopup")
+//                            showPrivacyPopup = true
+//                        }
 //                    )
-                }
+//                    
+////                    glassyActionButton(
+////                        icon: "questionmark.circle.fill",
+////                        title: "Help",
+////                        color: .orange,
+////                        action: { /* TODO: 实现帮助功能 */ }
+////                    )
+//                }
             }
         }
     }

@@ -8,10 +8,10 @@ target 'CatVPN' do
   # Pods for CatVPN
   pod 'Alamofire'
   
-#  pod 'Google-Mobile-Ads-SDK'
-#  
-#  pod 'YandexMobileAds', '7.10.1'
-#  pod 'YandexMobileAdsInstream', '0.45.0'
+  pod 'Google-Mobile-Ads-SDK'
+  
+  pod 'YandexMobileAds', '7.10.1'
+  pod 'YandexMobileAdsInstream', '0.45.0'
   
   pod 'GA-SDK-IOS', '~> 4.11.0'
 
