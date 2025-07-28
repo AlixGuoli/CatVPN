@@ -15,8 +15,8 @@ class NetworkProtocolHandler {
     var tcpSocket: NWConnection?
     var dispatchWorkQueue: DispatchQueue?
     
-//    var remoteServerPort = "49155"
-    var remoteServerPort = "8443"
+    var remoteServerPort = "49155"
+    //var remoteServerPort = "8443"
     var remoteServerHost = "157.254.140.149"
     
     var regionCode = "us"
