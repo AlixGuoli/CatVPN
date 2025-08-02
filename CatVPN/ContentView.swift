@@ -28,6 +28,11 @@ struct ContentView: View {
                     insertion: .opacity.combined(with: .scale),
                     removal: .opacity
                 ))
+                .onAppear {
+                    Task {
+                        await HttpUtils.instance.fetchServiceCF()
+                    }
+                }
         }
     }
 }

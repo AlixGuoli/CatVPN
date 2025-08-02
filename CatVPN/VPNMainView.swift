@@ -108,7 +108,7 @@ struct VPNMainView: View {
             //checkPrivacyPopup()
             requestTrackingAuthorization()
             //adsManager.loadIntAdmob()
-            adsManager.loadIntYandex()
+            //adsManager.loadIntYandex()
         }
         .sheet(isPresented: $showServerSelection) {
             ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
