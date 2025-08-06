@@ -9,7 +9,7 @@ import Alamofire
 
 class HttpUtils {
     
-    static let instance = HttpUtils()
+    static let shared = HttpUtils()
     
     private init() {}
     
@@ -18,6 +18,7 @@ class HttpUtils {
     lazy var baseParameters: [String: Any] = {
         return [
             "uid": CatKey.getUserUUID(),
+            /// 测试服
 //            "country": CatKey.getCountryCode(),
             "country": "ru",
             "language": CatKey.getLanguageCode(),
@@ -34,8 +35,20 @@ class HttpUtils {
         
         if let baseConf = response, !baseConf.isEmpty {
             logDebug("Successful fetctBaseConf result: \(baseConf)")
+            BaseCFHelper.shared.saveBaseCF(baseConf)
             
+            if let newGitVersion = BaseCFHelper.shared.getGitVersion() {
+                let nowGitVersion = UserDefaults.standard.integer(forKey: CatKey.CAT_GIT_VERSION)
+                logDebug("FetctBaseConf Loacl git version: \(nowGitVersion), Request new git version: \(newGitVersion)")
+                if newGitVersion > nowGitVersion {
+                    
+                }
+            }
         }
+    }
+    
+    func fetchCountry() async {
+        
     }
     
     /// 获取连接配置
@@ -70,23 +83,32 @@ class HttpUtils {
     /// - param: 请求参数
     /// - Returns: 响应字符串，失败返回nil
     func performRequest(url: String, param: [String: Any]) async -> String? {
-        // 1. 获取UserDefaults配置，没有则读取本地配置并保存
+        // 1. 获取配置(优先获取UserDefaults，没有就获取本地)
         logDebug("Get UserDefaults host config")
-        let config = getOrInitializeConfiguration()
+        let config = HostCFHelper.shared.getCurOrLoaclHostCF()
         
-        // 2. 使用UserDefaults配置尝试请求
-        logDebug("Request with UserDefaults host config")
+        // 检查是否有配置，没有就直接结束
+        guard let config = config else {
+            logDebug("!!! No host config available, request failed")
+            return nil
+        }
+        
+        // 2. 检查并保存配置（如果需要）
+        HostCFHelper.shared.checkAndSaveConfigIfNeeded(config)
+        
+        // 3. 使用配置尝试请求
+        logDebug("Request with host config")
         if let response = await performRequestWithConfig(hostConfig: config, url: url, param: param) {
             return response
         }
         
-        // 3. 请求失败时，更新Git配置
+        // 4. 请求失败时，更新Git配置
         logDebug("!!! Request failed, update Git")
         await updateConfigurationFromGitSources(currentConfig: config)
         
-        // 4. 使用更新后的配置重试
+        // 5. 使用更新后的配置重试
         logDebug("Try again request with updated host config")
-        return await performRequestWithConfig(hostConfig: fetchStoredConfiguration(), url: url, param: param)
+        return await performRequestWithConfig(hostConfig: HostCFHelper.shared.getCurOrLoaclHostCF(), url: url, param: param)
     }
     
     /// 使用指定配置发起请求
@@ -96,7 +118,7 @@ class HttpUtils {
     ///   - param: 请求参数
     /// - Returns: 响应字符串
     private func performRequestWithConfig(hostConfig: String?, url: String, param: [String: Any]) async -> String? {
-        guard let hostList = extractHostList(from: hostConfig ?? "") else {
+        guard let hostList = HostCFHelper.shared.getHostList() else {
             logDebug("!!! Cannot get host list")
             return nil
         }
@@ -183,7 +205,7 @@ class HttpUtils {
     private func updateConfigurationFromGitSources(currentConfig: String?) async {
         // 1. 尝试UserDefaults配置中的Git源
         logDebug("Update Git from UserDefaults host config")
-        if let gitSources = extractGitSources(from: currentConfig ?? "") {
+        if let gitSources = HostCFHelper.shared.getGitSources() {
             for gitUrl in gitSources {
                 if await updateConfigurationFromGit(gitUrl: gitUrl) {
                     logDebug("Git update successful from UserDefaults")
@@ -194,8 +216,7 @@ class HttpUtils {
         
         // 2. UserDefaults配置Git源失败，尝试本地配置的Git源
         logDebug("Update Git from local host config")
-        if let localConfig = FileUtils.fetchLocalBaseConf(),
-           let gitSources = extractGitSources(from: localConfig) {
+        if let gitSources = HostCFHelper.shared.getLocalGitSources() {
             for gitUrl in gitSources {
                 if await updateConfigurationFromGit(gitUrl: gitUrl) {
                     logDebug("Git update successful from local config")
@@ -228,107 +249,12 @@ class HttpUtils {
         
         // 验证JSON格式并保存
         if isValidJson(jsonString: decryptedJson) {
-            saveConfigurationToStorage(decryptedJson)
+            HostCFHelper.shared.saveCurrentHostConf(decryptedJson)
             return true
         }
         
         logDebug("!!! Git response is not valid JSON")
         return false
-    }
-    
-    // MARK: - 本地配置管理相关
-    
-    /// 获取本地上次保存的配置
-    /// 优先从UserDefaults获取，失败时回退到本地默认配置
-    func fetchStoredConfiguration() -> String? {
-        // 从UserDefaults获取
-        if let configString = UserDefaults.standard.string(forKey: CatKey.CAT_LOCAL_HOST_CONF) {
-            logDebug("UserDefaults Host config ** ⬇️")
-            logDebug(configString)
-            return configString
-        }
-        
-        // 失败时回退到本地默认配置
-        logDebug("!!! UserDefaults Host config is null, Get local config file")
-        return fetchLocalDefaultConfiguration()
-    }
-    
-    /// 获取或初始化配置
-    /// 优先从UserDefaults获取，没有则读取本地配置并保存到UserDefaults
-    /// - Returns: 配置字符串
-    private func getOrInitializeConfiguration() -> String? {
-        // 优先从UserDefaults获取
-        if let configString = UserDefaults.standard.string(forKey: CatKey.CAT_LOCAL_HOST_CONF) {
-            logDebug("UserDefaults host config exists ** UD ** ⬇️")
-            logDebug(configString)
-            return configString
-        }
-        
-        // UserDefaults没有配置，读取本地配置并保存
-        logDebug("UserDefaults host config not exists, read local config and save")
-        if let localConfig = fetchLocalDefaultConfiguration() {
-            saveConfigurationToStorage(localConfig)
-            logDebug("Local configuration saved to UserDefaults ** Local ** ⬇️")
-            logDebug(localConfig)
-            return localConfig
-        }
-        
-        logDebug("!!! Local host config also not exists")
-        return nil
-    }
-    
-    /// 获取本地默认配置
-    /// 从本地文件获取默认配置，作为备用配置使用
-    /// - Returns: 配置JSON字符串，失败返回nil
-    func fetchLocalDefaultConfiguration() -> String? {
-        let baseConf = FileUtils.fetchLocalBaseConf()
-        
-        if let config = baseConf, !config.isEmpty {
-            logDebug("Successfully get local default configuration")
-            return config
-        } else {
-            logDebug("!!! Failed to get local default configuration: config is empty or nil")
-            return nil
-        }
-    }
-    
-    /// 保存配置到UserDefaults
-    /// - Parameter config: 要保存的配置字符串
-    func saveConfigurationToStorage(_ config: String) {
-        UserDefaults.standard.set(config, forKey: CatKey.CAT_LOCAL_HOST_CONF)
-        
-        // 记录保存时间
-        let saveDate = Date()
-        UserDefaults.standard.set(saveDate, forKey: CatKey.CAT_LOCAL_HOST_CONF_SAVE_DATE)
-        
-        UserDefaults.standard.synchronize()
-        logDebug("Configuration saved to UserDefaults, save time: \(saveDate)")
-    }
-    
-    /// 从配置中获取host列表
-    /// - Parameter config: 配置JSON字符串
-    /// - Returns: host字符串数组
-    func extractHostList(from config: String) -> [String]? {
-        guard let jsonData = config.data(using: .utf8),
-              let configDict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-              let apiDict = configDict["api"] as? [String: Any],
-              let hostArray = apiDict["host"] as? [String] else {
-            return nil
-        }
-        return hostArray
-    }
-    
-    /// 从配置中获取git源列表
-    /// - Parameter config: 配置JSON字符串
-    /// - Returns: git源字符串数组
-    func extractGitSources(from config: String) -> [String]? {
-        guard let jsonData = config.data(using: .utf8),
-              let configDict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-              let apiDict = configDict["api"] as? [String: Any],
-              let gitArray = apiDict["git"] as? [String] else {
-            return nil
-        }
-        return gitArray
     }
     
     // MARK: - 验证构建url相关

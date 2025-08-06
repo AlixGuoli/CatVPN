@@ -13,7 +13,7 @@ struct VPNMainView: View {
     
     @StateObject var adsManager = AdsUtils()
     
-    @StateObject private var mainViewModel = MainViewmodel()
+    @EnvironmentObject var mainViewModel: MainViewmodel
     @State private var showServerSelection = false
     @State private var showPrivacyGuide = false
     @State private var showPrivacyPopup = false
@@ -995,17 +995,3 @@ struct ScaleButtonStyle: ButtonStyle {
         .environmentObject(MainViewmodel()) // 使用环境对象
 }
 
-// 添加一个预览专用的 Mock ViewModel
-#Preview("Mock Preview") {
-    VPNMainView()
-        .onAppear {
-            // 预览时禁用真实的VPN功能
-        }
-}
-
-#if DEBUG
-#Preview("Mock ViewModel") {
-    VPNMainView()
-        .environmentObject(MockMainViewmodel())
-}
-#endif

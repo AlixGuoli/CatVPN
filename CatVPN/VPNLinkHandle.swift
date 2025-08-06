@@ -89,7 +89,7 @@ class VPNConnectionManager{
             }
             if self.connectionManager.connection.status == .disconnected {
                 timer.invalidate()
-//                print("VPN disconnected...")
+                logDebug("VPN disconnected, staring again...")
                 do {
                     try self.connectionManager.connection.startVPNTunnel()
                 } catch {

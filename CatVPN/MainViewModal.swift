@@ -11,11 +11,20 @@ import Alamofire
 
 class MainViewmodel : ObservableObject{
     
+    
     var manager = VPNConnectionManager.instance()
+    
+    private var connectManual: Bool = false
+    
+    @Published var isConnecting: Bool = false
+    
+    @Published var connectionStatus: VPNConnectionStatus = .disconnected
     
     @Published var state: NEVPNStatus = VPNConnectionManager.instance().connectionManager.connection.status {
         didSet {
             guard oldValue != state else { return }
+            // 只在需要时更新 connectionStatus
+            updateConnectionStatusIfNeeded()
         }
     }
     
@@ -71,21 +80,29 @@ class MainViewmodel : ObservableObject{
         }
     }
     
-    // 将NEVPNStatus转换为VPNConnectionStatus以保持UI一致性
-    var connectionStatus: VPNConnectionStatus {
+    private func updateConnectionStatusIfNeeded() {
+        // 只在特定条件下更新UI状态
         switch state {
-        case .disconnected, .invalid:
-            return .disconnected
-        case .connecting:
-            return .connecting
         case .connected:
-            return .connected
-        case .disconnecting:
-            return .connecting // 显示为连接中状态
-        case .reasserting:
-            return .connecting // 显示为连接中状态
+            logDebug("NEVPNStatus: connected")
+            if self.connectManual {
+                checkGG()
+            } else {
+                connectManual = false
+                connectSuccessful()
+            }
+        case .disconnected, .invalid:
+            logDebug("NEVPNStatus: disconnected")
+            connectionStatus = .disconnected
+        case .connecting:
+            logDebug("NEVPNStatus: connecting")
+            connectionStatus = .connecting
+        case .disconnecting, .reasserting:
+            logDebug("NEVPNStatus: disconnecting")
+            connectionStatus = .connecting
         @unknown default:
-            return .failed
+            logDebug("NEVPNStatus: failed")
+            connectionStatus = .failed
         }
     }
     
@@ -103,42 +120,97 @@ class MainViewmodel : ObservableObject{
     
     @objc private func vpnStatusDidChange(_ notification: Notification) {
         state = VPNConnectionManager.instance().connectionManager.connection.status
-        debugPrint("****** NEVPNConnection state : \(state)")
-        debugPrint("****** ConnectionStatus state : \(connectionStatus)")
+        logDebug("****** VpnStatusDidChange NEVPNConnection state : \(state)")
+        logDebug("****** VpnStatusDidChange ConnectionStatus state : \(connectionStatus)")
         // 根据状态变化管理定时器
-        if state == .connected && connectionTimer == nil {
-            startConnectionTimer()
-        } else if state != .connected {
-            stopConnectionTimer()
-            connectionTime = "00:00:00"
-            dataTransferred = "0 MB"
-        }
+        //        if state == .connected && connectionTimer == nil {
+        //            startConnectionTimer()
+        //        } else if state != .connected {
+        //            stopConnectionTimer()
+        //            connectionTime = "00:00:00"
+        //            dataTransferred = "0 MB"
+        //        }
     }
     
     func prepare(){
+        connectManual = true
         manager.loadMAllFromPreferences() { error in
-            print("prepare2")
-            if let error = error {
-//                print(error)
-            }else{
+            logDebug("prepare")
+            if error != nil {
+                logDebug(error ?? "prepare error")
+            } else{
                 self.startConnect()
             }
         }
     }
     
     func startConnect(){
-        manager.enableAndConfigureVPNManager() { error in
-            guard error == nil else {
-                print("startConnect error")
-                print(error)
-                return
-            }
-            self.manager.startVpnConnection() { error in
+        Task {
+            logDebug("prepareServiceCF")
+            try await prepareServiceCF()
+            
+            manager.enableAndConfigureVPNManager() { error in
                 guard error == nil else {
-                    print("startConnect error2")
-                    print(error)
+                    logDebug("startConnect error")
+                    logDebug(error ?? "startConnect error")
                     return
                 }
+                self.manager.startVpnConnection() { error in
+                    guard error == nil else {
+                        logDebug("startConnect error2")
+                        logDebug(error ?? "startConnect error2")
+                        return
+                    }
+                }
+            }
+        }
+    }
+    
+    func prepareServiceCF() async throws {
+        var serviceConfig = await HttpUtils.shared.fetchServiceCF()
+        
+        if serviceConfig == nil {
+            logDebug("Request Service config is nil, Get service config from UserDefaults")
+            serviceConfig = ServiceCFHelper.shared.getCurrentServiceCF()
+            if serviceConfig == nil {
+                logDebug("UserDefaults Service config is nil, Get service config from local file")
+                serviceConfig = FileUtils.readServiceConfFile()
+                logDebug("Use ServiceCF @@ local file ")
+            }
+            logDebug("Use ServiceCF @@ UserDefaults ")
+            ServiceCFHelper.shared.isUseServer = false
+        } else {
+            logDebug("Use ServiceCF @@ requset ")
+            ServiceCFHelper.shared.nowServiceCF = serviceConfig
+            ServiceCFHelper.shared.isUseServer = true
+        }
+        logDebug("Decryption Service Config")
+        serviceConfig = FileUtils.decodeSafetyData(serviceConfig ?? "")
+        processNetworkConfigData(rawInput: serviceConfig, validSource: ServiceCFHelper.shared.isUseServer)
+        try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: serviceConfig ?? "")
+    }
+    
+    func processNetworkConfigData(rawInput: String?, validSource: Bool) {
+        if let jsonData = rawInput?.data(using: .utf8) {
+            do {
+                if let json = try JSONSerialization.jsonObject(with: jsonData, options: .allowFragments) as? [String: Any],
+                   let outbounds = json["outbounds"] as? [[String: Any]] {
+                    for outbound in outbounds {
+                        if let settings = outbound["settings"] as? [String: Any],
+                           let vnexts = settings["vnext"] as? [[String: Any]] {
+                            for vnext in vnexts {
+                                if let address = vnext["address"] as? String {
+                                    if validSource{
+                                        ServiceCFHelper.shared.serverIp = address
+                                    }else{
+                                        ServiceCFHelper.shared.serverIp = "f\(address)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch {
             }
         }
     }
@@ -164,11 +236,11 @@ class MainViewmodel : ObservableObject{
         case .invalid, .disconnected:
             // 先切换到连接中状态，2秒后实际开始连接
             self.state = .connecting
-           
-            // 延迟2秒后再执行
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                self.prepare()
-            }
+            self.prepare()
+            //            // 延迟2秒后再执行
+            //            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            //                self.prepare()
+            //            }
         default:
             break
         }
@@ -273,90 +345,63 @@ class MainViewmodel : ObservableObject{
         }
     }
     
-    func checkNet(){
+    func connectSuccessful() {
+        connectionStatus = .connected
+        logDebug("Connect Successful")
+        let helper = ServiceCFHelper.shared
+        if helper.isUseServer {
+            if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
+                logDebug("Save service config to UserDefaults")
+                UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
+            }
+        }
+        
+    }
+    
+    func connectFailed() {
+        logDebug("Connect Failed")
+        stopConnect()
+    }
+    
+    func checkGG() {
+        Task {
+            let connectionStatus = await CatKey.shared.validateConnectionStatus()
+            if connectionStatus {
+                logDebug("Successfully to test Google")
+                connectSuccessful()
+            } else {
+                logDebug("Failed to test Google")
+                connectFailed()
+            }
+        }
+    }
+    
+    func checkNet(completion: @escaping (Bool) -> Void) {
         let netWorkManager = NetworkReachabilityManager()
         netWorkManager?.startListening { status in
-            
             switch status {
             case .notReachable:
-                print("network is not reachable")
+                logDebug("network is not reachable")
             case .unknown :
-                print("It is unknown whether the network is reachable")
+                logDebug("It is unknown whether the network is reachable")
             case .reachable(.ethernetOrWiFi):
-                print("network reachable over the WiFi or Ethernet connection")
+                logDebug("network reachable over the WiFi or Ethernet connection")
+                self.requestBaseConf(completion: completion)
             case .reachable(.cellular):
-                print("network reachable over the cellular connection")
+                logDebug("network reachable over the cellular connection")
+                self.requestBaseConf(completion: completion)
             }
             
         }
     }
-}
-
-// 预览专用的 Mock ViewModel
-#if DEBUG
-class MockMainViewmodel: ObservableObject {
-    @Published var state: NEVPNStatus = .disconnected
-    @Published var selectedServer: VPNServer = VPNServer.availableServers[0]
-    @Published var connectionTime: String = "00:00:00"
-    @Published var dataTransferred: String = "0 MB"
-    @Published var uploadSpeed: String = "0 KB/s"
-    @Published var downloadSpeed: String = "0 KB/s"
     
-    var buttonText: String {
-        switch state {
-        case .disconnected, .invalid:
-            return "Start"
-        case .connecting:
-            return "Connecting"
-        case .connected:
-            return "Stop"
-        case .disconnecting:
-            return "Disconnecting"
-        case .reasserting:
-            return "Reasserting"
-        @unknown default:
-            return "Unknown"
+    func requestBaseConf(completion: @escaping (Bool) -> Void) {
+        Task {
+            logDebug("Start to request Base Config")
+            await HttpUtils.shared.fetchBaseConf()
+            logDebug("Over to request Base Config")
+            
+            completion(true)
         }
-    }
-    
-    var statusText: String {
-        switch state {
-        case .disconnected:
-            return "Disconnected"
-        case .connecting:
-            return "Connecting"
-        case .connected:
-            return "Connected"
-        case .disconnecting:
-            return "Disconnecting"
-        case .invalid:
-            return "Invalid"
-        case .reasserting:
-            return "Reasserting"
-        @unknown default:
-            return "Unknown"
-        }
-    }
-    
-    var connectionStatus: VPNConnectionStatus {
-        switch state {
-        case .disconnected, .invalid:
-            return .disconnected
-        case .connecting:
-            return .connecting
-        case .connected:
-            return .connected
-        case .disconnecting:
-            return .connecting
-        case .reasserting:
-            return .connecting
-        @unknown default:
-            return .failed
-        }
-    }
-    
-    init() {
-        // Mock 初始化，不依赖 NetworkExtension
     }
 }
-#endif

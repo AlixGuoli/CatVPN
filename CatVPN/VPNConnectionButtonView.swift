@@ -424,7 +424,7 @@ struct VPNConnectionButton: View {
     @EnvironmentObject var adsManager: AdsUtils
     @State private var showSuccess = false
     
-    @EnvironmentObject var mainViewModel: MainViewmodel
+    @EnvironmentObject var vm: MainViewmodel
     
     @State private var animationScale: CGFloat = 1.0
     @State private var rippleAnimation: Bool = false
@@ -434,27 +434,27 @@ struct VPNConnectionButton: View {
     @State private var isVideoReady: Bool = false
     @State private var frogBounceAnimation: Bool = false
     
-    // 将NEVPNStatus转换为VPNConnectionStatus以保持UI一致性
-    private var connectionStatus: VPNConnectionStatus {
-        switch mainViewModel.state {
-        case .disconnected, .invalid:
-            return .disconnected
-        case .connecting:
-            return .connecting
-        case .connected:
-            return .connected
-        case .disconnecting:
-            return .connecting // 显示为连接中状态
-        case .reasserting:
-            return .connecting // 显示为连接中状态
-        @unknown default:
-            return .failed
-        }
-    }
+//    // 将NEVPNStatus转换为VPNConnectionStatus以保持UI一致性
+//    private var connectionStatus: VPNConnectionStatus {
+//        switch mainViewModel.state {
+//        case .disconnected, .invalid:
+//            return .disconnected
+//        case .connecting:
+//            return .connecting
+//        case .connected:
+//            return .connected
+//        case .disconnecting:
+//            return .connecting // 显示为连接中状态
+//        case .reasserting:
+//            return .connecting // 显示为连接中状态
+//        @unknown default:
+//            return .failed
+//        }
+//    }
     
     // 青蛙主题颜色
     private var frogThemeColor: Color {
-        switch connectionStatus {
+        switch vm.connectionStatus {
         case .disconnected, .failed:
             return Color.green
         case .connecting:
@@ -467,7 +467,7 @@ struct VPNConnectionButton: View {
     var body: some View {
         ZStack {
             // 水波纹效果背景层 - 青蛙主题
-            if connectionStatus == .connecting || connectionStatus == .connected {
+            if vm.connectionStatus == .connecting || vm.connectionStatus == .connected {
                 // 连续的水波纹
                 ForEach(0..<4, id: \.self) { index in
                     Circle()
@@ -580,12 +580,12 @@ struct VPNConnectionButton: View {
                     }
                     
                     // 重置视频状态
-                    if connectionStatus == .disconnected || connectionStatus == .failed {
+                    if vm.connectionStatus == .disconnected || vm.connectionStatus == .failed {
                         isVideoReady = false
                     }
                     
                     // 使用MainViewmodel的真实VPN连接方法
-                    mainViewModel.handleButtonAction()
+                    vm.handleButtonAction()
                     
                 }) {
                     ZStack {
@@ -651,7 +651,7 @@ struct VPNConnectionButton: View {
                             
                             // 根据连接状态显示青蛙内容
                             Group {
-                                if connectionStatus == .connecting || connectionStatus == .connected {
+                                if vm.connectionStatus == .connecting || vm.connectionStatus == .connected {
                                     // 连接中和连接成功显示视频
                                     ZStack {
                                         // Loading提示 - 只在视频未准备好时显示
@@ -678,7 +678,7 @@ struct VPNConnectionButton: View {
                                         AlphaVideoPlayerView(
                                             videoName: "frog",
                                             videoExtension: "mov",
-                                            delayLoop: connectionStatus == .connecting,
+                                            delayLoop: vm.connectionStatus == .connecting,
                                             onVideoReady: {
                                                 print("🐸 按钮中的视频准备就绪")
                                                 withAnimation(.easeOut(duration: 0.3)) {
@@ -729,10 +729,10 @@ struct VPNConnectionButton: View {
                 }
                 .frame(width: 160, height: 160)
                 .scaleEffect(animationScale)
-                .disabled(connectionStatus == .connecting)
+                .disabled(vm.connectionStatus == .connecting)
                 
                 // 连接成功时的额外光晕效果 - 青蛙主题
-                if connectionStatus == .connected {
+                if vm.connectionStatus == .connected {
                     Circle()
                         .fill(
                             RadialGradient(
@@ -763,12 +763,13 @@ struct VPNConnectionButton: View {
             startAnimations()
         }
         .navigationDestination(isPresented: $showSuccess) {
-            ConnectSuccessView(status: connectionStatus)
+            ConnectSuccessView(status: vm.connectionStatus)
         }
-        .onChange(of: connectionStatus) { status in
+        .onChange(of: vm.connectionStatus) { status in
             updateAnimations(for: status)
             if status == .connected {
-                adsManager.showIntYandex()
+                //adsManager.showIntYandex()
+                logDebug("~~~~~ View connectionStatus: \(vm.connectionStatus)")
                 showSuccess.toggle()
             }
         }
@@ -782,7 +783,7 @@ struct VPNConnectionButton: View {
         }
         
         // 根据连接状态启动相应动画
-        updateAnimations(for: connectionStatus)
+        updateAnimations(for: vm.connectionStatus)
     }
     
     private func updateAnimations(for status: VPNConnectionStatus) {
@@ -812,7 +813,7 @@ struct VPNConnectionButton: View {
     }
     
     private var statusText: String {
-        switch connectionStatus {
+        switch vm.connectionStatus {
         case .disconnected:
             return "click connect 🐸"
         case .connecting:

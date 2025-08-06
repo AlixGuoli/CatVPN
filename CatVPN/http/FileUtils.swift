@@ -12,29 +12,57 @@ class FileUtils {
     static let aesKey = "f92mUj0K1uBnMlXGFQKrYP07Emgc4yFmWYS8WRgy4IY="
     
     // 从本地文件获取默认配置（默认配置永远保留）
-    static func fetchLocalBaseConf() -> String? {
-        let localConf = readBaseConfFile()
+    static func fetchLocalHostConf() -> String? {
+        let localConf = readHostConfFile()
         if let decryptedJson = decodeSafetyData(localConf ?? "") {
-            logDebug("Local Host config \(decryptedJson)")
+            //logDebug("Local Host config \(decryptedJson)")
             return decryptedJson
         }
         return nil
     }
     
-    // 读取本地baseConf.local文件内容
-    static func readBaseConfFile() -> String? {
-        guard let bundlePath = Bundle.main.path(forResource: "baseConf", ofType: "local") else {
-            logDebug("No find the file: baseConf.local")
+    // 从本地文件获取默认连接服务配置（默认配置永远保留）
+    static func fetchLocalServiceConf() -> String? {
+        let localConf = readServiceConfFile()
+        if let decryptedJson = decodeSafetyData(localConf ?? "") {
+            logDebug("Local Service config \(decryptedJson)")
+            return decryptedJson
+        }
+        return nil
+    }
+    
+    // 读取本地hostConf.local文件内容
+    static func readHostConfFile() -> String? {
+        guard let bundlePath = Bundle.main.path(forResource: "hostConf", ofType: "local") else {
+            logDebug("No find the file: hostConf.local")
             return nil
         }
         
         do {
             let fileContent = try String(contentsOfFile: bundlePath, encoding: .utf8)
-            logDebug("Read success baseConf.local文件")
+            logDebug("Read successful hostConf.local")
             logDebug("File content: \(fileContent)")
             return fileContent
         } catch {
-            logDebug("读取baseConf.local文件失败: \(error.localizedDescription)")
+            logDebug("Read hostConf.local error: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    // 读取本地serviceConf.local文件内容
+    static func readServiceConfFile() -> String? {
+        guard let bundlePath = Bundle.main.path(forResource: "serviceConf", ofType: "local") else {
+            logDebug("No find the file: serviceConf.local")
+            return nil
+        }
+        
+        do {
+            let fileContent = try String(contentsOfFile: bundlePath, encoding: .utf8)
+            logDebug("Read successful serviceConf.local")
+            logDebug("File content: \(fileContent)")
+            return fileContent
+        } catch {
+            logDebug("Read serviceConf.local error: \(error.localizedDescription)")
             return nil
         }
     }

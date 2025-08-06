@@ -4,18 +4,31 @@ import NetworkExtension
 import os
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
-    private var networkHandler : NetworkProtocolHandler? = nil
     
-    static var country = Locale.current.regionCode?.lowercased() ?? "Unknown"
+    private var netManager: NetManager? = nil
+    
+    //private var networkHandler : NetworkProtocolHandler? = nil
+    //static var country = Locale.current.regionCode?.lowercased() ?? "Unknown"
     
     override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
-        os_log("hellovpn startTunnel: %{public}@", log: OSLog.default, type: .error, "setupConfuseTCPConnection")
-        startSecureTunnelManager()
+        logOS("PacketTunnelProvider startTunnel...")
+        //startSecureTunnelManager()
+        if !isMyConnect() {
+            let error = NSError(domain: "com.CatVPN.CatVPN", code: 1, userInfo: ["timeout": "timeout11"])
+            self.cancelTunnelWithError(error)
+            logOS("isMyConnect false")
+            return
+        }
+        logOS("isMyConnect true")
+        connect()
         completionHandler(nil)
     }
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
-        networkHandler?.terminatePacketTunnelConnection()
+        /// Nuts
+        //networkHandler?.terminatePacketTunnelConnection()
+        logOS("PacketTunnelProvider stopTunnel...")
+        netManager?.terminateTunnelConnection()
         completionHandler()
     }
     
@@ -34,15 +47,54 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func wake() {
         // 从睡眠中唤醒
     }
-    func startSecureTunnelManager(){
-        if networkHandler == nil{
-            networkHandler = NetworkProtocolHandler(packetFlow: packetFlow)
+    
+    /// Nuts
+//    func startSecureTunnelManager(){
+//        if networkHandler == nil{
+//            networkHandler = NetworkProtocolHandler(packetFlow: packetFlow)
+//        }
+//        networkHandler?.networkConfigurationHandler = { [weak self] settings, completion in
+//            self?.setTunnelNetworkSettings(settings, completionHandler: completion)
+//        }
+//        networkHandler?.initializeConnectionSequence()
+//    }
+    
+    func isMyConnect() -> Bool {
+        if let userDefaults = UserDefaults(suiteName: ServiceDefaults.GroupId) {
+            if let startDate = userDefaults.object(forKey: ServiceDefaults.GroupTime) as? Date {
+                let currentDate = Date()
+                let timeInterval = currentDate.timeIntervalSince(startDate)
+                if timeInterval < 10 {
+                    logOS("PacketTunnelProvider less 10s")
+                    //os_log("PacketTunnelProvider less 10s.", log: OSLog.default, type: .error)
+                    return true
+                }
+            }
         }
-        networkHandler?.networkConfigurationHandler = { [weak self] settings, completion in
+        return false
+    }
+    
+    func connect() {
+        if netManager == nil {
+            netManager = NetManager()
+        }
+        
+        netManager?.applyNetworkSettings = { [weak self] settings, completion in
             self?.setTunnelNetworkSettings(settings, completionHandler: completion)
         }
-        networkHandler?.initializeConnectionSequence()
+        
+        Task {
+            do {
+                logOS("connTunnelConnection")
+                try await netManager?.connTunnelConnection()
+            } catch {
+                logOS("connTunnelConnection error")
+            }
+        }
     }
+    
 }
+
+
 
 
