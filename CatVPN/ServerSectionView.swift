@@ -13,12 +13,14 @@ struct ServerSelectionView: View {
     @State private var searchText = ""
     @State private var floatingAnimation = false
     @State private var pulseAnimation = false
+    @State private var isLoading = true  // 添加loading状态
     
     var filteredServers: [VPNServer] {
+        let servers = mainViewModel.availableServers
         if searchText.isEmpty {
-            return VPNServer.availableServers
+            return servers
         } else {
-            return VPNServer.availableServers.filter { server in
+            return servers.filter { server in
                 server.name.localizedCaseInsensitiveContains(searchText) ||
                 server.country.localizedCaseInsensitiveContains(searchText)
             }
@@ -45,26 +47,31 @@ struct ServerSelectionView: View {
                     // 动态背景
                     dynamicBackground
                     
-                    VStack(spacing: 0) {
-                        // 毛玻璃搜索栏
-                        glassySearchBar
-                        
-                        // 服务器列表
-                        ScrollView {
-                            LazyVStack(spacing: 16) {
-                                ForEach(filteredServers) { server in
-                                    GlassyServerRowView(
-                                        server: server,
-                                        isSelected: server.id == mainViewModel.selectedServer.id,
-                                        onSelect: {
-                                            selectServer(server)
-                                        }
-                                    )
+                    if isLoading {
+                        // Loading 视图
+                        loadingView
+                    } else {
+                        VStack(spacing: 0) {
+                            // 毛玻璃搜索栏
+                            glassySearchBar
+                            
+                            // 服务器列表
+                            ScrollView {
+                                LazyVStack(spacing: 16) {
+                                    ForEach(filteredServers) { server in
+                                        GlassyServerRowView(
+                                            server: server,
+                                            isSelected: server.id == mainViewModel.selectedServer.id,
+                                            onSelect: {
+                                                selectServer(server)
+                                            }
+                                        )
+                                    }
                                 }
+                                .padding(.horizontal, 20)
+                                .padding(.top, 20)
+                                .padding(.bottom, 40)
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
-                            .padding(.bottom, 40)
                         }
                     }
                 }
@@ -78,6 +85,19 @@ struct ServerSelectionView: View {
         }
         .onAppear {
             startAnimations()
+            
+            // 获取服务器列表
+            Task {
+                isLoading = true
+                
+                // 延迟3秒，展示loading效果
+                //try? await Task.sleep(nanoseconds: 3_000_000_000) // 3秒
+                
+                await mainViewModel.fetchServers()
+                await MainActor.run {
+                    isLoading = false
+                }
+            }
         }
     }
     
@@ -256,6 +276,44 @@ struct ServerSelectionView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             isPresented = false
         }
+    }
+    
+    // Loading 视图
+    private var loadingView: some View {
+        VStack(spacing: 20) {
+            // 旋转的圆圈
+            Circle()
+                .trim(from: 0, to: 0.7)
+                .stroke(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.green,
+                            Color.mint.opacity(0.8)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                )
+                .frame(width: 50, height: 50)
+                .rotationEffect(.degrees(pulseAnimation ? 360 : 0))
+                .animation(
+                    Animation.linear(duration: 1.0)
+                        .repeatForever(autoreverses: false),
+                    value: pulseAnimation
+                )
+            
+            Text("loading...")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.secondary)
+                .opacity(pulseAnimation ? 0.6 : 1.0)
+                .animation(
+                    Animation.easeInOut(duration: 1.0)
+                        .repeatForever(autoreverses: true),
+                    value: pulseAnimation
+                )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

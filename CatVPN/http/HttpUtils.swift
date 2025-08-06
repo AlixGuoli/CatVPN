@@ -47,14 +47,41 @@ class HttpUtils {
         }
     }
     
-    func fetchCountry() async {
+    /// 获取国家列表
+    func fetchCountry() async -> String? {
+        logDebug("Start request fetchCountry")
         
+        let response = await performRequest(url: "/getGroupList", param: baseParameters)
+        
+        if let result = response, !result.isEmpty {
+            logDebug("Successful fetchCountry result: \(result)")
+            return result
+        } else {
+            logDebug("!!! fetchCountry request failed")
+            return nil
+        }
     }
     
     /// 获取连接配置
     func fetchServiceCF() async -> String? {
         logDebug("Start request fetchServiceCF")
-        let newPram: [String: Any] = ["group": -1, "vip": 0]
+        let currentServerID = ServerCFHelper.shared.currentServerID
+        logDebug("Current Server ID: \(currentServerID)")
+        
+        // 打印当前选择的国家服务器
+        if currentServerID == -1 {
+            logDebug("Current selected server: Auto (ID: -1)")
+        } else {
+            // 从可用的服务器列表中查找当前选择的服务器
+            let availableServers = ServerCFHelper.shared.getDefaultServers()
+            if let selectedServer = availableServers.first(where: { $0.id == currentServerID }) {
+                logDebug("Current selected server: \(selectedServer.name) (ID: \(selectedServer.id))")
+            } else {
+                logDebug("Current selected server: Unknown (ID: \(currentServerID))")
+            }
+        }
+        
+        let newPram: [String: Any] = ["group": currentServerID, "vip": 0]
         
         // 合并基本参数和新参数
         var allParams = baseParameters

@@ -9,8 +9,7 @@ import Foundation
 import NetworkExtension
 import Alamofire
 
-class MainViewmodel : ObservableObject{
-    
+class MainViewmodel: ObservableObject {
     
     var manager = VPNConnectionManager.instance()
     
@@ -28,8 +27,11 @@ class MainViewmodel : ObservableObject{
         }
     }
     
+    // 添加动态服务器列表
+    @Published var availableServers: [VPNServer] = []
+    
     // 新增属性以支持UI显示
-    @Published var selectedServer: VPNServer = VPNServer.availableServers[0]
+    @Published var selectedServer: VPNServer = VPNServer(id: -1, name: "Auto", country: "AUTO", flagEmoji: "⚡️", ping: Int.random(in: 10...30))
     @Published var connectionTime: String = "00:00:00"
     @Published var dataTransferred: String = "0 MB"
     @Published var uploadSpeed: String = "0 KB/s"
@@ -110,6 +112,12 @@ class MainViewmodel : ObservableObject{
         self.state = manager.connectionManager.connection.status
         NotificationCenter.default.addObserver(self, selector: #selector(vpnStatusDidChange(_:)), name: .NEVPNStatusDidChange, object: nil)
         startSpeedTimer()
+        
+        // 初始化时使用默认服务器列表
+        self.availableServers = ServerCFHelper.shared.getDefaultServers()
+        
+        // 从UserDefaults恢复之前选择的服务器，而不是硬编码为Auto
+        self.selectedServer = ServerCFHelper.shared.getCurrentSelectedServer(from: availableServers)
     }
     
     deinit{
@@ -246,11 +254,6 @@ class MainViewmodel : ObservableObject{
         }
     }
     
-    // 选择服务器
-    func selectServer(_ server: VPNServer) {
-        selectedServer = server
-    }
-    
     // 连接定时器管理
     private func startConnectionTimer() {
         startTime = Date()
@@ -346,16 +349,17 @@ class MainViewmodel : ObservableObject{
     }
     
     func connectSuccessful() {
-        connectionStatus = .connected
-        logDebug("Connect Successful")
-        let helper = ServiceCFHelper.shared
-        if helper.isUseServer {
-            if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
-                logDebug("Save service config to UserDefaults")
-                UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
+        DispatchQueue.main.async {
+            self.connectionStatus = .connected
+            logDebug("Connect Successful")
+            let helper = ServiceCFHelper.shared
+            if helper.isUseServer {
+                if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
+                    logDebug("Save service config to UserDefaults")
+                    UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
+                }
             }
         }
-        
     }
     
     func connectFailed() {
@@ -403,5 +407,22 @@ class MainViewmodel : ObservableObject{
             
             completion(true)
         }
+    }
+    
+    // MARK: - 服务器管理
+    
+    /// 获取服务器列表
+    func fetchServers() async {
+        let servers = await ServerCFHelper.shared.fetchServers()
+        await MainActor.run {
+            self.availableServers = servers
+            self.selectedServer = ServerCFHelper.shared.getCurrentSelectedServer(from: servers)
+        }
+    }
+    
+    // 选择服务器
+    func selectServer(_ server: VPNServer) {
+        selectedServer = server
+        ServerCFHelper.shared.saveSelectedServer(server)
     }
 }

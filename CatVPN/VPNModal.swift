@@ -45,21 +45,18 @@ enum VPNConnectionStatus {
 
 // VPN服务器模型
 struct VPNServer: Identifiable, Hashable {
-    let id = UUID()
+    let id: Int
     let name: String
     let country: String
     let flagEmoji: String
     let ping: Int
     
     static let availableServers = [
-        VPNServer(name: "United States", country: "US", flagEmoji: "🇺🇸", ping: 25),
-        VPNServer(name: "Japan", country: "JP", flagEmoji: "🇯🇵", ping: 18),
-        VPNServer(name: "Singapore", country: "SG", flagEmoji: "🇸🇬", ping: 12),
-        VPNServer(name: "South Korea", country: "KR", flagEmoji: "🇰🇷", ping: 15),
-        VPNServer(name: "Canada", country: "CA", flagEmoji: "🇨🇦", ping: 30),
-        VPNServer(name: "United Kingdom", country: "UK", flagEmoji: "🇬🇧", ping: 35),
-        VPNServer(name: "France", country: "FR", flagEmoji: "🇫🇷", ping: 28),
-        VPNServer(name: "Germany", country: "DE", flagEmoji: "🇩🇪", ping: 22)
+        VPNServer(id: -1, name: "Auto", country: "AUTO", flagEmoji: "⚡️", ping: Int.random(in: 10...30)),
+        VPNServer(id: 104, name: "Germany", country: "DE", flagEmoji: "🇩🇪", ping: Int.random(in: 15...35)),
+        VPNServer(id: 105, name: "United States", country: "US", flagEmoji: "🇺🇸", ping: Int.random(in: 20...40)),
+        VPNServer(id: 102, name: "United Kingdom", country: "GB", flagEmoji: "🇬🇧", ping: Int.random(in: 25...45)),
+        VPNServer(id: 106, name: "Netherlands", country: "NL", flagEmoji: "🇳🇱", ping: Int.random(in: 12...30))
     ]
 }
 
