@@ -216,8 +216,8 @@ class BaseCFHelper {
         let baseConfig = UserDefaults.standard.string(forKey: CatKey.CAT_BASE_CONF)
         
         if let config = baseConfig, !config.isEmpty {
-            logDebug("UserDefaults Base config ** ⬇️")
-            logDebug(config)
+//            logDebug("UserDefaults Base config ** ⬇️")
+//            logDebug(config)
             return config
         } else {
             logDebug("!!! UserDefaults Base config is null")

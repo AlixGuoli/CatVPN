@@ -82,32 +82,6 @@ class MainViewmodel: ObservableObject {
         }
     }
     
-    private func updateConnectionStatusIfNeeded() {
-        // 只在特定条件下更新UI状态
-        switch state {
-        case .connected:
-            logDebug("NEVPNStatus: connected")
-            if self.connectManual {
-                checkGG()
-            } else {
-                connectManual = false
-                connectSuccessful()
-            }
-        case .disconnected, .invalid:
-            logDebug("NEVPNStatus: disconnected")
-            connectionStatus = .disconnected
-        case .connecting:
-            logDebug("NEVPNStatus: connecting")
-            connectionStatus = .connecting
-        case .disconnecting, .reasserting:
-            logDebug("NEVPNStatus: disconnecting")
-            connectionStatus = .connecting
-        @unknown default:
-            logDebug("NEVPNStatus: failed")
-            connectionStatus = .failed
-        }
-    }
-    
     init() {
         self.state = manager.connectionManager.connection.status
         NotificationCenter.default.addObserver(self, selector: #selector(vpnStatusDidChange(_:)), name: .NEVPNStatusDidChange, object: nil)
@@ -131,13 +105,38 @@ class MainViewmodel: ObservableObject {
         logDebug("****** VpnStatusDidChange NEVPNConnection state : \(state)")
         logDebug("****** VpnStatusDidChange ConnectionStatus state : \(connectionStatus)")
         // 根据状态变化管理定时器
-        //        if state == .connected && connectionTimer == nil {
-        //            startConnectionTimer()
-        //        } else if state != .connected {
-        //            stopConnectionTimer()
-        //            connectionTime = "00:00:00"
-        //            dataTransferred = "0 MB"
-        //        }
+//        if state == .connected && connectionTimer == nil {
+//            startConnectionTimer()
+//        } else if state != .connected {
+//            stopConnectionTimer()
+//        }
+    }
+    
+    private func updateConnectionStatusIfNeeded() {
+        // 只在特定条件下更新UI状态
+        switch state {
+        case .connected:
+            logDebug("NEVPNStatus: connected")
+            if self.connectManual {
+                checkGG()
+            } else {
+                connectManual = false
+                connectSuccessful()
+            }
+        case .disconnected, .invalid:
+            logDebug("NEVPNStatus: disconnected")
+            connectionStatus = .disconnected
+            stopConnectionTimer()
+        case .connecting:
+            logDebug("NEVPNStatus: connecting")
+            connectionStatus = .connecting
+        case .disconnecting, .reasserting:
+            logDebug("NEVPNStatus: disconnecting")
+            connectionStatus = .connecting
+        @unknown default:
+            logDebug("NEVPNStatus: failed")
+            connectionStatus = .failed
+        }
     }
     
     func prepare(){
@@ -153,6 +152,7 @@ class MainViewmodel: ObservableObject {
     }
     
     func startConnect(){
+        self.connectionStatus = .connecting
         Task {
             logDebug("prepareServiceCF")
             try await prepareServiceCF()
@@ -242,13 +242,7 @@ class MainViewmodel: ObservableObject {
         case .connected:
             stopConnect()
         case .invalid, .disconnected:
-            // 先切换到连接中状态，2秒后实际开始连接
-            self.state = .connecting
             self.prepare()
-            //            // 延迟2秒后再执行
-            //            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            //                self.prepare()
-            //            }
         default:
             break
         }
@@ -263,6 +257,8 @@ class MainViewmodel: ObservableObject {
     }
     
     private func stopConnectionTimer() {
+        connectionTime = "00:00:00"
+        dataTransferred = "0 MB"
         connectionTimer?.invalidate()
         connectionTimer = nil
         startTime = nil
@@ -349,6 +345,7 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectSuccessful() {
+        startConnectionTimer()
         DispatchQueue.main.async {
             self.connectionStatus = .connected
             logDebug("Connect Successful")

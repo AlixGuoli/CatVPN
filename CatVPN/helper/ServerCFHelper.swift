@@ -34,16 +34,18 @@ class ServerCFHelper {
     /// 获取服务器列表
     func fetchServers() async -> [VPNServer] {
         logDebug("Start to fetch servers")
-        let countryData = await HttpUtils.shared.fetchCountry()
-        
-        if let data = countryData {
-            let servers = parseServerData(from: data)
-            logDebug("Successfully fetched \(servers.count) servers from API")
-            return servers
-        } else {
-            logDebug("Failed to fetch servers, using default servers")
-            return VPNServer.availableServers
-        }
+        logDebug("Use local default servers")
+        return VPNServer.availableServers
+//        let countryData = await HttpUtils.shared.fetchCountry()
+//        
+//        if let data = countryData {
+//            let servers = parseServerData(from: data)
+//            logDebug("Successfully fetched \(servers.count) servers from API")
+//            return servers
+//        } else {
+//            logDebug("Failed to fetch servers, using default servers")
+//            return VPNServer.availableServers
+//        }
     }
     
     /// 解析服务器数据
@@ -70,7 +72,7 @@ class ServerCFHelper {
                 name: name,
                 country: country,
                 flagEmoji: getFlagEmoji(for: country),
-                ping: Int.random(in: 10...50)  // 随机ping值
+                ping: Int.random(in: 10...30)  // 随机ping值
             )
             servers.append(server)
         }

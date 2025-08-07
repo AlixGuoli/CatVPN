@@ -41,8 +41,30 @@ class HttpUtils {
                 let nowGitVersion = UserDefaults.standard.integer(forKey: CatKey.CAT_GIT_VERSION)
                 logDebug("FetctBaseConf Loacl git version: \(nowGitVersion), Request new git version: \(newGitVersion)")
                 if newGitVersion > nowGitVersion {
+                    // 更新Git
+                    logDebug("Loacl git version is old, update Git")
+                    let updateSuccess = await updateConfigurationFromGitSources()
                     
+                    // 如果Git更新成功，更新UserDefaults中的版本号
+                    if updateSuccess {
+                        UserDefaults.standard.set(newGitVersion, forKey: CatKey.CAT_GIT_VERSION)
+                        UserDefaults.standard.synchronize()
+                        logDebug("Git update successful, updated CAT_GIT_VERSION to: \(newGitVersion)")
+                    } else {
+                        logDebug("Git update failed, CAT_GIT_VERSION not updated")
+                    }
                 }
+                
+                let adIsOff = BaseCFHelper.shared.getAdsOff()
+                let adType = BaseCFHelper.shared.getAdsType()
+                let tgLink = BaseCFHelper.shared.getDynamicTgLink()
+                let hotCode = BaseCFHelper.shared.getHotcode()
+                
+                logDebug("FetctBaseConf result ** ⬇️")
+                logDebug("adIsOff: \(String(describing: adIsOff))")
+                logDebug("adType: \(String(describing: adType))")
+                logDebug("tgLink: \(String(describing: tgLink))")
+                logDebug("hotCode: \(String(describing: hotCode))")
             }
         }
     }
@@ -65,22 +87,11 @@ class HttpUtils {
     /// 获取连接配置
     func fetchServiceCF() async -> String? {
         logDebug("Start request fetchServiceCF")
-        let currentServerID = ServerCFHelper.shared.currentServerID
+        var currentServerID = ServerCFHelper.shared.currentServerID
         logDebug("Current Server ID: \(currentServerID)")
-        
-        // 打印当前选择的国家服务器
-        if currentServerID == -1 {
-            logDebug("Current selected server: Auto (ID: -1)")
-        } else {
-            // 从可用的服务器列表中查找当前选择的服务器
-            let availableServers = ServerCFHelper.shared.getDefaultServers()
-            if let selectedServer = availableServers.first(where: { $0.id == currentServerID }) {
-                logDebug("Current selected server: \(selectedServer.name) (ID: \(selectedServer.id))")
-            } else {
-                logDebug("Current selected server: Unknown (ID: \(currentServerID))")
-            }
-        }
-        
+        logDebug("Use default server: -1")
+        currentServerID = -1
+
         let newPram: [String: Any] = ["group": currentServerID, "vip": 0]
         
         // 合并基本参数和新参数
@@ -131,7 +142,13 @@ class HttpUtils {
         
         // 4. 请求失败时，更新Git配置
         logDebug("!!! Request failed, update Git")
-        await updateConfigurationFromGitSources(currentConfig: config)
+        let gitUpdateSuccess = await updateConfigurationFromGitSources()
+        
+        // 如果Git更新失败，直接结束
+        if !gitUpdateSuccess {
+            logDebug("!!! Git update failed, request terminated")
+            return nil
+        }
         
         // 5. 使用更新后的配置重试
         logDebug("Try again request with updated host config")
@@ -228,15 +245,14 @@ class HttpUtils {
     
     /// 从Git源更新配置
     /// 先用UserDefaults配置中的Git源，失败再用本地配置中的Git源
-    /// - Parameter currentConfig: 当前配置字符串
-    private func updateConfigurationFromGitSources(currentConfig: String?) async {
+    private func updateConfigurationFromGitSources() async -> Bool {
         // 1. 尝试UserDefaults配置中的Git源
         logDebug("Update Git from UserDefaults host config")
         if let gitSources = HostCFHelper.shared.getGitSources() {
             for gitUrl in gitSources {
                 if await updateConfigurationFromGit(gitUrl: gitUrl) {
                     logDebug("Git update successful from UserDefaults")
-                    return
+                    return true
                 }
             }
         }
@@ -247,12 +263,13 @@ class HttpUtils {
             for gitUrl in gitSources {
                 if await updateConfigurationFromGit(gitUrl: gitUrl) {
                     logDebug("Git update successful from local config")
-                    return
+                    return true
                 }
             }
         }
         
         logDebug("!!! All Git sources update failed")
+        return false
     }
     
     /// 从单个Git源更新配置

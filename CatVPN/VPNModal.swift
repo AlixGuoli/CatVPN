@@ -53,9 +53,9 @@ struct VPNServer: Identifiable, Hashable {
     
     static let availableServers = [
         VPNServer(id: -1, name: "Auto", country: "AUTO", flagEmoji: "⚡️", ping: Int.random(in: 10...30)),
-        VPNServer(id: 104, name: "Germany", country: "DE", flagEmoji: "🇩🇪", ping: Int.random(in: 15...35)),
-        VPNServer(id: 105, name: "United States", country: "US", flagEmoji: "🇺🇸", ping: Int.random(in: 20...40)),
-        VPNServer(id: 102, name: "United Kingdom", country: "GB", flagEmoji: "🇬🇧", ping: Int.random(in: 25...45)),
+        VPNServer(id: 104, name: "Germany", country: "DE", flagEmoji: "🇩🇪", ping: Int.random(in: 8...30)),
+        VPNServer(id: 105, name: "United States", country: "US", flagEmoji: "🇺🇸", ping: Int.random(in: 9...40)),
+        VPNServer(id: 102, name: "United Kingdom", country: "GB", flagEmoji: "🇬🇧", ping: Int.random(in: 13...45)),
         VPNServer(id: 106, name: "Netherlands", country: "NL", flagEmoji: "🇳🇱", ping: Int.random(in: 12...30))
     ]
 }
