@@ -109,6 +109,20 @@ class HttpUtils {
         }
     }
     
+    func fetchAds() async {
+        logDebug("Start request fetchAds")
+        
+        let response = await performRequest(url: "/getAds", param: baseParameters)
+        
+        if let result = response, !result.isEmpty {
+            logDebug("Successful fetchAds result: \(result)")
+            //return result
+        } else {
+            logDebug("!!! fetchAds request failed")
+            //return nil
+        }
+    }
+    
     // MARK: - 请求相关
     
     /// 主请求方法

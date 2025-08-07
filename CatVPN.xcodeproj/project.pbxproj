@@ -69,7 +69,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				http/ServiceDefaults.swift,
-				LogUtils.swift,
+				utils/LogUtils.swift,
 			);
 			target = FEC6A4C32E2121A100AE43BF /* net2 */;
 		};

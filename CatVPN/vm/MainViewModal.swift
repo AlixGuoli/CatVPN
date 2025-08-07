@@ -402,6 +402,10 @@ class MainViewmodel: ObservableObject {
             await HttpUtils.shared.fetchBaseConf()
             logDebug("Over to request Base Config")
             
+            logDebug("Start to request Ads")
+            await HttpUtils.shared.fetchAds()
+            logDebug("Over to request Ads")
+            
             completion(true)
         }
     }

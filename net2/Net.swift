@@ -14,7 +14,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         logOS("PacketTunnelProvider startTunnel...")
         //startSecureTunnelManager()
         if !isMyConnect() {
-            let error = NSError(domain: "com.CatVPN.CatVPN", code: 1, userInfo: ["timeout": "timeout11"])
+            let error = NSError(domain: "com.CatVPN.CatVPN", code: 1, userInfo: ["timeout": "timeout error"])
             self.cancelTunnelWithError(error)
             logOS("isMyConnect false")
             return
