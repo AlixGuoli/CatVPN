@@ -14,8 +14,42 @@ class AdCFHelper {
         initializeDefaultValues()
     }
     
-    // MARK: - 获取广告配置保存时间
+    // MARK: - 获取保存的广告配置
     
+    func getYandexBannerKey() -> String {
+        /// 测试服
+        return "demo-banner-yandex;ss;demo-banner-yandex"
+        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_BANNER) ?? "demo-banner-yandex;demo-banner-yandex"
+    }
+    
+    func getYandexIntKey() -> String {
+        /// 测试服
+        return "demo-interstitial-yandex;demo-interstitial-yandex"
+        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_INT) ?? "demo-interstitial-yandex;demo-interstitial-yandex"
+    }
+    
+    func getAdmobIntKey() -> String {
+        /// 测试服
+        return "ca-app-pub-3940256099942544/4411468910"
+        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_ADMOB_INT) ?? "ca-app-pub-3940256099942544/4411468910"
+    }
+    
+    func getPenetrate() -> Int {
+        return UserDefaults.standard.integer(forKey: AdDefaults.CAT_AD_KEY_PENETRATE)
+    }
+    
+    func getClickDelay() -> Int {
+        return UserDefaults.standard.integer(forKey: AdDefaults.CAT_AD_KEY_CLICK_DELAY)
+    }
+    
+    func getAdsOff() -> Bool {
+        return UserDefaults.standard.bool(forKey: AdDefaults.CAT_AD_IS_OFF)
+    }
+    
+    func getAdsType() -> String? {
+        return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_TYPE)
+    }
+ 
     func getAdConfigSaveDate() -> Date? {
         return UserDefaults.standard.object(forKey: AdDefaults.CAT_AD_KEY_SAVE_DATE) as? Date
     }
@@ -127,42 +161,6 @@ class AdCFHelper {
             UserDefaults.standard.set(adsType, forKey: AdDefaults.CAT_AD_TYPE)
             logDebug("AdCFHelper saved adsType: \(adsType)")
         }
-    }
-    
-    // MARK: - 获取保存的广告配置
-    
-    func getYandexBannerKey() -> String {
-        /// 测试服
-        return "ss;ss;demo-banner-yandex"
-        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_BANNER) ?? "demo-banner-yandex;demo-banner-yandex"
-    }
-    
-    func getYandexIntKey() -> String {
-        /// 测试服
-        return "ss;demo-interstitial-yandex;demo-interstitial-yandex"
-        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_INT) ?? "demo-interstitial-yandex;demo-interstitial-yandex"
-    }
-    
-    func getAdmobIntKey() -> String {
-        /// 测试服
-        return "ca-app-pub-3940256099942544/4411468910"
-        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_ADMOB_INT) ?? "ca-app-pub-3940256099942544/4411468910"
-    }
-    
-    func getPenetrate() -> Int {
-        return UserDefaults.standard.integer(forKey: AdDefaults.CAT_AD_KEY_PENETRATE)
-    }
-    
-    func getClickDelay() -> Int {
-        return UserDefaults.standard.integer(forKey: AdDefaults.CAT_AD_KEY_CLICK_DELAY)
-    }
-    
-    func getAdsOff() -> Bool {
-        return UserDefaults.standard.bool(forKey: AdDefaults.CAT_AD_IS_OFF)
-    }
-    
-    func getAdsType() -> String? {
-        return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_TYPE)
     }
     
     // MARK: - 初始化默认值（只在第一次调用）

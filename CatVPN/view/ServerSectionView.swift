@@ -41,48 +41,47 @@ struct ServerSelectionView: View {
     }
     
     var body: some View {
-        NavigationView {
-            GeometryReader { geometry in
-                ZStack {
-                    // 动态背景
-                    dynamicBackground
-                    
-                    if isLoading {
-                        // Loading 视图
-                        loadingView
-                    } else {
-                        VStack(spacing: 0) {
-                            // 毛玻璃搜索栏
-                            glassySearchBar
-                            
-                            // 服务器列表
-                            ScrollView {
-                                LazyVStack(spacing: 16) {
-                                    ForEach(filteredServers) { server in
-                                        GlassyServerRowView(
-                                            server: server,
-                                            isSelected: server.id == mainViewModel.selectedServer.id,
-                                            onSelect: {
-                                                selectServer(server)
-                                            }
-                                        )
-                                    }
+        GeometryReader { geometry in
+            ZStack {
+                // 动态背景
+                dynamicBackground
+                
+                if isLoading {
+                    // Loading 视图
+                    loadingView
+                } else {
+                    VStack(spacing: 0) {
+                        // 毛玻璃搜索栏
+                        glassySearchBar
+                        
+                        // 服务器列表
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(filteredServers) { server in
+                                    GlassyServerRowView(
+                                        server: server,
+                                        isSelected: server.id == mainViewModel.selectedServer.id,
+                                        onSelect: {
+                                            selectServer(server)
+                                        }
+                                    )
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.top, 20)
-                                .padding(.bottom, 40)
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 40)
                         }
                     }
                 }
             }
-            .navigationTitle("Select Server")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(
-                leading: glassyCancelButton,
-                trailing: glassyDoneButton
-            )
         }
+        .navigationTitle("Select Server")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .navigationBarItems(
+            leading: glassyCancelButton,
+            trailing: glassyDoneButton
+        )
         .onAppear {
             startAnimations()
             

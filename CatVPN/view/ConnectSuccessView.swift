@@ -48,6 +48,9 @@ struct ConnectSuccessView: View {
             }
         }
         .navigationBarBackButtonHidden()
+        .onAppear {
+            ADSCenter.shared.prepareAllAd(moment: AdMoment.foreground)
+        }
     }
     
     private var btnClose: some View {

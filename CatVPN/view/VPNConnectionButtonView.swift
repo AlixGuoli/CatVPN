@@ -422,7 +422,6 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
 struct VPNConnectionButton: View {
     
     @EnvironmentObject var adsManager: AdsUtils
-    @State private var showSuccess = false
     
     @EnvironmentObject var vm: MainViewmodel
     
@@ -433,24 +432,6 @@ struct VPNConnectionButton: View {
     @State private var liquidAnimation: Bool = false
     @State private var isVideoReady: Bool = false
     @State private var frogBounceAnimation: Bool = false
-    
-//    // 将NEVPNStatus转换为VPNConnectionStatus以保持UI一致性
-//    private var connectionStatus: VPNConnectionStatus {
-//        switch mainViewModel.state {
-//        case .disconnected, .invalid:
-//            return .disconnected
-//        case .connecting:
-//            return .connecting
-//        case .connected:
-//            return .connected
-//        case .disconnecting:
-//            return .connecting // 显示为连接中状态
-//        case .reasserting:
-//            return .connecting // 显示为连接中状态
-//        @unknown default:
-//            return .failed
-//        }
-//    }
     
     // 青蛙主题颜色
     private var frogThemeColor: Color {
@@ -762,16 +743,8 @@ struct VPNConnectionButton: View {
         .onAppear {
             startAnimations()
         }
-        .navigationDestination(isPresented: $showSuccess) {
-            ConnectSuccessView(status: vm.connectionStatus)
-        }
         .onChange(of: vm.connectionStatus) { status in
             updateAnimations(for: status)
-            if status == .connected {
-                //adsManager.showIntYandex()
-                logDebug("~~~~~ View connectionStatus: \(vm.connectionStatus)")
-                showSuccess.toggle()
-            }
         }
     }
     

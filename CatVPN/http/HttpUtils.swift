@@ -69,8 +69,6 @@ class HttpUtils {
                 // 保存广告开关设置
                 AdCFHelper.shared.saveAdsOff(adIsOff)
                 AdCFHelper.shared.saveAdsType(adType)
-                
-                //YaAdController.instance.setAdsEnabled(adIsOff, admobTypeString: adType)
             }
         }
     }

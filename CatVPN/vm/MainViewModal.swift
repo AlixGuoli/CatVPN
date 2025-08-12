@@ -15,6 +15,8 @@ class MainViewmodel: ObservableObject {
     
     private var connectManual: Bool = false
     
+    @Published var isShowDisconnect: Bool = false
+    
     @Published var isConnecting: Bool = false
     
     @Published var connectionStatus: VPNConnectionStatus = .disconnected {
@@ -246,8 +248,15 @@ class MainViewmodel: ObservableObject {
     func handleButtonAction() {
         switch state {
         case .connected:
-            stopConnect()
+            //stopConnect()
+            isShowDisconnect = true
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+            }
         case .invalid, .disconnected:
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+            }
             self.prepare()
         default:
             break
@@ -351,9 +360,9 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectSuccessful() {
-        startConnectionTimer()
         DispatchQueue.main.async {
             self.connectionStatus = .connected
+            self.startConnectionTimer()
             logDebug("Connect Successful")
             let helper = ServiceCFHelper.shared
             if helper.isUseServer {
@@ -424,7 +433,7 @@ class MainViewmodel: ObservableObject {
         logDebug("Over to request Base Config")
         
         // 2. 同时进行：加载广告 + 请求广告接口（不等待广告配置完成）
-        //requestAdsInBackground()
+        requestAdsInBackground()
         
         // 3. 优化广告加载逻辑：优先等待 Banner，如果 Banner 成功则直接返回
         logDebug("Start to load Yandex Ad")
@@ -522,5 +531,50 @@ class MainViewmodel: ObservableObject {
     func selectServer(_ server: VPNServer) {
         selectedServer = server
         ServerCFHelper.shared.saveSelectedServer(server)
+    }
+    
+    // MARK: - 配置更新检查
+    
+    /// 检查并更新配置（仅在后台切前台时调用）
+    func checkAndUpdateConfigsIfNeeded() {
+        logDebug("Checking config update times...")
+        
+        let now = Date()
+        
+        // 检查 baseconf 配置更新时间（6小时）
+        if let baseconfUpdateTime = UserDefaults.standard.object(forKey: CatKey.CAT_BASE_CONF_SAVE_DATE) as? Date {
+            let baseconfTimeInterval = now.timeIntervalSince(baseconfUpdateTime)
+            let baseconfHours = baseconfTimeInterval / 3600
+            
+            logDebug("Baseconf last update: \(baseconfHours) hours ago")
+            
+            if baseconfHours >= 6.0 {
+                logDebug("Baseconf expired (>=6h), updating...")
+                Task {
+                    await HttpUtils.shared.fetchBaseConf()
+                }
+            }
+        } else {
+            logDebug("No baseconf update time found, updating...")
+            Task {
+                await HttpUtils.shared.fetchBaseConf()
+            }
+        }
+        
+        // 检查 ads 配置更新时间（4小时）
+        if let adsUpdateTime = UserDefaults.standard.object(forKey: AdDefaults.CAT_AD_KEY_SAVE_DATE) as? Date {
+            let adsTimeInterval = now.timeIntervalSince(adsUpdateTime)
+            let adsHours = adsTimeInterval / 3600
+            
+            logDebug("Ads last update: \(adsHours) hours ago")
+            
+            if adsHours >= 4.0 {
+                logDebug("Ads expired (>=4h), updating...")
+                requestAdsInBackground()
+            }
+        } else {
+            logDebug("No ads update time found, updating...")
+            requestAdsInBackground()
+        }
     }
 }

@@ -83,9 +83,9 @@ class ADSCenter {
     
     // MARK: - 广告加载管理
     
-    func prepareAllAd(scene: String? = nil) {
-        logDebug("ADSCenter loadAllAds")
-        guard isAdsOpen else { 
+    func prepareAllAd(moment: String? = nil) {
+        logDebug("ADSCenter loadAllAds ** moment: \(String(describing: moment))")
+        guard isAdsOpen else {
             logDebug("ADSCenter loadAllAds - ads disabled")
             return 
         }

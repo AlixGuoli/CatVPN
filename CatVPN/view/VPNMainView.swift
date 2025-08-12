@@ -54,71 +54,82 @@ struct VPNMainView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
+        NavigationStack {
             ZStack {
-                // 增强的动态背景，包含水的效果
-                enhancedDynamicBackground
-                
-                // 水波纹效果层
-                waterRippleLayer
-                
-                // 液体流动效果
-                liquidFlowLayer
-                
-                ScrollView {
-                    VStack(spacing: 25) {
-                        // 网络质量指示器 - 毛玻璃效果
-                        glassyNetworkQualityIndicator
+                GeometryReader { geometry in
+                    ZStack {
+                        // 增强的动态背景，包含水的效果
+                        enhancedDynamicBackground
                         
-                        // 顶部状态栏 - 毛玻璃效果
-                        glassyStatusHeaderView
+                        // 水波纹效果层
+                        waterRippleLayer
                         
-                        // 主连接按钮
-                        VPNConnectionButton()
-                            .environmentObject(adsManager)
-                            .environmentObject(mainViewModel)
-                            .padding(.vertical, 25)
-                        
-                        // 服务器信息卡片 - 毛玻璃效果
-                        glassyServerInfoCard
-                        
-                        // 连接统计信息
-                        if mainViewModel.connectionStatus == .connected {
-                            glassyConnectionStatsView
+                        // 液体流动效果
+                        liquidFlowLayer
+
+                        ScrollView {
+                            VStack(spacing: 25) {
+                                // 网络质量指示器 - 毛玻璃效果
+                                glassyNetworkQualityIndicator
+                                
+                                // 顶部状态栏 - 毛玻璃效果
+                                glassyStatusHeaderView
+                                
+                                // 主连接按钮
+                                VPNConnectionButton()
+                                    .environmentObject(adsManager)
+                                    .environmentObject(mainViewModel)
+                                    .padding(.vertical, 25)
+                                
+                                // 服务器信息卡片 - 毛玻璃效果
+                                glassyServerInfoCard
+                                
+                                // 连接统计信息
+                                if mainViewModel.connectionStatus == .connected {
+                                    glassyConnectionStatsView
+                                }
+                                
+                                // 最近活动卡片 - 毛玻璃效果
+                                glassyRecentActivityCard
+                                
+                                // 装饰分隔符
+                                decorativeDivider
+                                
+                                // 快速操作按钮 - 毛玻璃效果
+                                glassyQuickActionsView
+                                
+                                Spacer(minLength: 120)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 15)
                         }
-                        
-                        // 最近活动卡片 - 毛玻璃效果
-                        glassyRecentActivityCard
-                        
-                        // 装饰分隔符
-                        decorativeDivider
-                        
-                        // 快速操作按钮 - 毛玻璃效果
-                        glassyQuickActionsView
-                        
-                        Spacer(minLength: 120)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 15)
                 }
+                .onAppear {
+                    startAllAnimations()
+                    requestTrackingAuthorization()
+                    ADSCenter.shared.prepareAllAd()
+                }
+                .onChange(of: mainViewModel.connectionStatus) { status in
+                    if status == .connected {
+                        logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
+                        showSuccess.toggle()
+                    }
+                }
+                .navigationDestination(isPresented: $showSuccess) {
+                    ConnectSuccessView(status: mainViewModel.connectionStatus)
+                }
+                .navigationDestination(isPresented: $showServerSelection) {
+                    ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
+                }
+                .navigationDestination(isPresented: $showPrivacyGuide) {
+                    PrivacyGuideView()
+                }
+                .overlay(
+                    showPrivacyPopup ? PrivacyPopupView(isPresented: $showPrivacyPopup) : nil
+                )
             }
         }
-        .onAppear {
-            startAllAnimations()
-            //checkPrivacyPopup()
-            requestTrackingAuthorization()
-            //adsManager.loadIntAdmob()
-            //adsManager.loadIntYandex()
-        }
-        .sheet(isPresented: $showServerSelection) {
-            ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
-        }
-        .sheet(isPresented: $showPrivacyGuide) {
-            PrivacyGuideView()
-        }
-        .overlay(
-            showPrivacyPopup ? PrivacyPopupView(isPresented: $showPrivacyPopup) : nil
-        )
     }
     
     func requestTrackingAuthorization() {
