@@ -122,7 +122,7 @@ class AdmobCenter: NSObject {
 extension AdmobCenter: FullScreenContentDelegate {
     
     func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
-        logDebug("Admob ads will Show")
+        logDebug("Admob ads Show success")
         ADSCenter.shared.isShowingAd = true
         displayingAd = currentAd
         currentAd = nil
@@ -130,7 +130,7 @@ extension AdmobCenter: FullScreenContentDelegate {
     }
     
     func adDidRecordImpression(_ ad: any FullScreenPresentingAd) {
-        logDebug("Admob ads is Show")
+        logDebug("Admob ads is Showing")
     }
     
     func adDidRecordClick(_ ad: any FullScreenPresentingAd) {

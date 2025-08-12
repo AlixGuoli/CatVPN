@@ -189,7 +189,7 @@ struct ConnectSuccessView: View {
     func getStatusText(status: VPNConnectionStatus) -> String {
         switch status {
         case .disconnected:
-            return "Disconnect successfully!"
+            return "Disconnected!"
         case .connecting:
             return "Connecting..."
         case .connected:

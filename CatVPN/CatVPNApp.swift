@@ -205,7 +205,7 @@ struct CatVPNApp: App {
             // 按优先级展示广告，广告展示成功，立即关闭 Splash 页面
             if adCenter.isAdmobReady() {
                 logDebug("SplashScreen ** Showing Admob ad from splash")
-                adCenter.showAdmobIntFromRoot(scene: "splash_ad")
+                adCenter.showAdmobIntFromRoot(moment: AdMoment.foreground)
                 // 广告展示成功，立即关闭 Splash 页面
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     showSplashOnForeground = false

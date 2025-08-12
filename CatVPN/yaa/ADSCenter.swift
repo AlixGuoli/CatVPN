@@ -170,9 +170,9 @@ class ADSCenter {
         }
     }
     
-    func showAdmobIntFromRoot(scene: String?) {
+    func showAdmobIntFromRoot(moment: String?) {
         if let rootVC = getRootViewController() {
-            showAdmobInt(from: rootVC, scene: scene)
+            showAdmobInt(from: rootVC, scene: moment)
         }
     }
     

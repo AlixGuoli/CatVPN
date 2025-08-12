@@ -23,7 +23,8 @@ struct VPNMainView: View {
     @State private var rippleAnimation = false
     @State private var liquidAnimation = false
     
-    @State private var showSuccess = false
+    @State private var showResult = false
+    @State private var resultStatus: VPNConnectionStatus = .connected
     
     // 背景球体的固定位置数据 - 使用相对于屏幕的百分比位置
     private var backgroundCircles: [BackgroundCircle] {
@@ -105,29 +106,83 @@ struct VPNMainView: View {
                         }
                     }
                 }
-                .onAppear {
-                    startAllAnimations()
-                    requestTrackingAuthorization()
-                    ADSCenter.shared.prepareAllAd()
+                
+                if mainViewModel.isShowDisconnect {
+                    DisconnectConfirmView(
+                        onConfirm: {
+                            mainViewModel.isShowDisconnect = false
+                            showAd(moment: AdMoment.disconnect)
+                            resultStatus = .disconnected
+                            showResult.toggle()
+                            
+                            if ADSCenter.shared.isAllAdReady() {
+                                logDebug("Delay 3s *** stopConnect")
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    logDebug("Delay 3s finish *** stopConnect")
+                                    mainViewModel.stopConnect()
+                                }
+                            } else {
+                                logDebug("Now *** stopConnect")
+                                mainViewModel.stopConnect()
+                            }
+                        },
+                        onCancel: {
+                            mainViewModel.isShowDisconnect = false
+                        }
+                    )
                 }
-                .onChange(of: mainViewModel.connectionStatus) { status in
-                    if status == .connected {
-                        logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
-                        showSuccess.toggle()
-                    }
+            }
+            .onAppear {
+                startAllAnimations()
+                requestTrackingAuthorization()
+                ADSCenter.shared.prepareAllAd(moment: AdMoment.foreground)
+            }
+            .onChange(of: mainViewModel.connectionStatus) { status in
+                if status == .connected {
+                    logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
+                    resultStatus = .connected
+                    showResult.toggle()
+                    showAd(moment: AdMoment.connect)
+                } else if status == .failed {
+                    logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
+                    resultStatus = .failed
+                    showResult.toggle()
                 }
-                .navigationDestination(isPresented: $showSuccess) {
-                    ConnectSuccessView(status: mainViewModel.connectionStatus)
+            }
+            .navigationDestination(isPresented: $showResult) {
+                ConnectSuccessView(status: resultStatus)
+            }
+            .navigationDestination(isPresented: $showServerSelection) {
+                ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
+            }
+            .navigationDestination(isPresented: $showPrivacyGuide) {
+                PrivacyGuideView()
+            }
+            .overlay(
+                showPrivacyPopup ? PrivacyPopupView(isPresented: $showPrivacyPopup) : nil
+            )
+        }
+    }
+    
+    private func showAd(moment: String? = nil) {
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            let adCenter = ADSCenter.shared
+            // Admob > Yandex Banner > Yandex Int
+            if adCenter.isAllAdReady() {
+                if adCenter.isAdmobReady() {
+                    logDebug("MainView ** Showing Admob ad from MainView")
+                    adCenter.showAdmobIntFromRoot(moment: moment)
+                   
+                } else if adCenter.isYanBannerReady() {
+                    logDebug("MainView ** Showing Yandex Banner ad from MainView")
+                    adCenter.showYanBannerFromRoot()
+                    
+                } else if adCenter.isYanIntReady() {
+                    logDebug("MainView ** Showing Yandex Int ad from MainView")
+                    adCenter.showYanIntFromRoot()
                 }
-                .navigationDestination(isPresented: $showServerSelection) {
-                    ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
-                }
-                .navigationDestination(isPresented: $showPrivacyGuide) {
-                    PrivacyGuideView()
-                }
-                .overlay(
-                    showPrivacyPopup ? PrivacyPopupView(isPresented: $showPrivacyPopup) : nil
-                )
+            } else {
+                logDebug("MainView ** No ads available, will close at natural 3s timeout")
             }
         }
     }
