@@ -18,9 +18,9 @@ class HttpUtils {
     lazy var baseParameters: [String: Any] = {
         return [
             "uid": CatKey.getUserUUID(),
+            "country": CatKey.getCountryCode(),
             /// 测试服
-//            "country": CatKey.getCountryCode(),
-            "country": "ru",
+            //"country": "ru",
             "language": CatKey.getLanguageCode(),
             "pk": CatKey.getBundleID(),
             "version": CatKey.getAppVersion()
@@ -65,7 +65,56 @@ class HttpUtils {
                 logDebug("adType: \(String(describing: adType))")
                 logDebug("tgLink: \(String(describing: tgLink))")
                 logDebug("hotCode: \(String(describing: hotCode))")
+                
+                // 保存广告开关设置
+                AdCFHelper.shared.saveAdsOff(adIsOff)
+                AdCFHelper.shared.saveAdsType(adType)
+                
+                //YaAdController.instance.setAdsEnabled(adIsOff, admobTypeString: adType)
             }
+        }
+    }
+    
+    /// 获取广告配置
+    func fetchAds() async {
+        logDebug("Start request fetchAds")
+        
+        let response = await performRequest(url: "/getAds", param: baseParameters)
+        
+        if let result = response, !result.isEmpty {
+            logDebug("Successful fetchAds result: \(result)")
+            
+            // 解析配置
+            if let config = AdCFHelper.shared.extractAdConfig(from: result),
+               let adMixed = AdCFHelper.shared.extractAdMixed(from: config) {
+                
+                // 提取并保存 Yandex Banner 配置
+                if let bannerConfig = AdCFHelper.shared.extractYandexBannerConfig(from: adMixed) {
+                    AdCFHelper.shared.saveYandexBannerKey(bannerConfig.key)
+                    AdCFHelper.shared.savePenetrateSettings(penetrate: bannerConfig.penetrate, clickDelay: bannerConfig.clickDelay)
+                }
+                
+                // 提取并保存 Yandex Int 配置
+                if let intKey = AdCFHelper.shared.extractYandexIntConfig(from: adMixed) {
+                    AdCFHelper.shared.saveYandexIntKey(intKey)
+                }
+                
+                // 提取并保存 AdMob Int 配置
+                if let admobKey = AdCFHelper.shared.extractAdmobIntConfig(from: adMixed) {
+                    AdCFHelper.shared.saveAdmobIntKey(admobKey)
+                }
+                
+                // 保存配置时间
+                AdCFHelper.shared.saveAdConfigDate()
+                
+                logDebug("Ads Config save success")
+                
+            } else {
+                logDebug("!!! Ads Config save failed")
+            }
+            
+        } else {
+            logDebug("!!! fetchAds request failed")
         }
     }
     
@@ -106,20 +155,6 @@ class HttpUtils {
         } else {
             logDebug("!!! fetchServiceCF request failed")
             return nil
-        }
-    }
-    
-    func fetchAds() async {
-        logDebug("Start request fetchAds")
-        
-        let response = await performRequest(url: "/getAds", param: baseParameters)
-        
-        if let result = response, !result.isEmpty {
-            logDebug("Successful fetchAds result: \(result)")
-            //return result
-        } else {
-            logDebug("!!! fetchAds request failed")
-            //return nil
         }
     }
     

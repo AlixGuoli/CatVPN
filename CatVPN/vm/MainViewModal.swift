@@ -17,7 +17,13 @@ class MainViewmodel: ObservableObject {
     
     @Published var isConnecting: Bool = false
     
-    @Published var connectionStatus: VPNConnectionStatus = .disconnected
+    @Published var connectionStatus: VPNConnectionStatus = .disconnected {
+        didSet {
+            // 同步到GlobalStatus
+            GlobalStatus.shared.connectStatus = connectionStatus
+            logDebug("######## GlobalStatus connectStatus: \(GlobalStatus.shared.connectStatus)")
+        }
+    }
     
     @Published var state: NEVPNStatus = VPNConnectionManager.instance().connectionManager.connection.status {
         didSet {
@@ -369,6 +375,8 @@ class MainViewmodel: ObservableObject {
             let connectionStatus = await CatKey.shared.validateConnectionStatus()
             if connectionStatus {
                 logDebug("Successfully to test Google")
+                // load ad
+                GlobalStatus.shared.connectStatus = .connected
                 connectSuccessful()
             } else {
                 logDebug("Failed to test Google")
@@ -377,9 +385,12 @@ class MainViewmodel: ObservableObject {
         }
     }
     
+    var netWorkManager = NetworkReachabilityManager()
     func checkNet(completion: @escaping (Bool) -> Void) {
-        let netWorkManager = NetworkReachabilityManager()
-        netWorkManager?.startListening { status in
+        netWorkManager?.startListening {[weak self] status in
+            
+            guard let self = self else { return }
+            
             switch status {
             case .notReachable:
                 logDebug("network is not reachable")
@@ -398,15 +409,101 @@ class MainViewmodel: ObservableObject {
     
     func requestBaseConf(completion: @escaping (Bool) -> Void) {
         Task {
-            logDebug("Start to request Base Config")
-            await HttpUtils.shared.fetchBaseConf()
-            logDebug("Over to request Base Config")
-            
+            let success = await performInitialization()
+            DispatchQueue.main.async {
+                completion(success)
+            }
+            netWorkManager = nil
+        }
+    }
+    
+    func performInitialization() async -> Bool {
+        // 1. 先获取 BaseConf（必须等待完成）
+        logDebug("Start to request Base Config")
+        await HttpUtils.shared.fetchBaseConf()
+        logDebug("Over to request Base Config")
+        
+        // 2. 同时进行：加载广告 + 请求广告接口（不等待广告配置完成）
+        //requestAdsInBackground()
+        
+        // 3. 优化广告加载逻辑：优先等待 Banner，如果 Banner 成功则直接返回
+        logDebug("Start to load Yandex Ad")
+        let result = await loadAdsWithPriority()
+        
+        logDebug("Over to load Yandex Ad with result: \(result)")
+        return result
+    }
+    
+    func loadAdsWithPriority() async -> Bool {
+        // 同时开始加载两个广告
+        async let bannerAd = loadBannerAd()
+        async let interstitialAd = loadInterstitialAd()
+        
+        // 先等待 Banner 的结果
+        let bannerSuccess = await bannerAd
+        if bannerSuccess {
+            // Banner 加载成功，直接返回
+            logDebug("Banner ad loaded successfully ** return now")
+            return true
+        } else {
+            // Banner 加载失败，等待 Interstitial 的结果
+            logDebug("Banner ad failed, waiting for Interstitial result")
+            let interstitialSuccess = await interstitialAd
+            return interstitialSuccess
+        }
+    }
+    
+    func loadBannerAd() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                var hasResumed = false
+                
+                ADSCenter.shared.prepareYanBanner {
+                    if !hasResumed {
+                        hasResumed = true
+                        logDebug("Splash Yandex Banner ad loaded successfully")
+                        continuation.resume(returning: true)
+                    }
+                } onAdFailed: {
+                    if !hasResumed {
+                        hasResumed = true
+                        logDebug("Splash Yandex Banner ad load failed")
+                        continuation.resume(returning: false)
+                    }
+                }
+            }
+        }
+    }
+    
+    func loadInterstitialAd() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                var hasResumed = false
+                
+                ADSCenter.shared.prepareYanInt {
+                    if !hasResumed {
+                        hasResumed = true
+                        logDebug("Splash Yandex Interstitial ad loaded successfully")
+                        continuation.resume(returning: true)
+                    }
+                } onAdFailed: {
+                    if !hasResumed {
+                        hasResumed = true
+                        logDebug("Splash Yandex Interstitial ad load failed")
+                        continuation.resume(returning: false)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - 广告配置管理
+    
+    func requestAdsInBackground() {
+        Task {
             logDebug("Start to request Ads")
             await HttpUtils.shared.fetchAds()
             logDebug("Over to request Ads")
-            
-            completion(true)
         }
     }
     

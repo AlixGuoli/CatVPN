@@ -19,12 +19,11 @@ struct ContentView: View {
                 .onAppear {
                     // 启动配置检查
                     vm.checkNet { success in
-                        logDebug("Configuration check completed: \(success)")
-                        // 配置检查完成，进入主页
-                        DispatchQueue.main.async {
-                            withAnimation(.easeInOut(duration: 0.8)) {
-                                showSplashScreen = false
-                            }
+                        logDebug("SplashScreen check completed: \(success)")
+                        if success {
+                            // 配置检查完成，进入主页
+                            showSplashAd()
+                            jump()
                         }
                     }
                     
@@ -32,9 +31,7 @@ struct ContentView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 20.0) {
                         if showSplashScreen {
                             logDebug("Splash screen timeout (20s), entering main view")
-                            withAnimation(.easeInOut(duration: 0.8)) {
-                                showSplashScreen = false
-                            }
+                            jump()
                         }
                     }
                 }
@@ -46,6 +43,24 @@ struct ContentView: View {
                     insertion: .opacity.combined(with: .scale),
                     removal: .opacity
                 ))
+        }
+    }
+    
+    func jump() {
+        withAnimation(.easeInOut(duration: 0.8)) {
+            showSplashScreen = false
+        }
+    }
+    
+    func showSplashAd() {
+        let adCenter = ADSCenter.shared
+        logDebug("Splash start to show ad")
+        if adCenter.isYanBannerReady() {
+            logDebug("Yandex Banner is Ready ** Show Banner")
+            adCenter.showYanBannerFromRoot()
+        } else if adCenter.isYanIntReady() {
+            logDebug("Yandex Banner is not Ready ** Show Int")
+            adCenter.showYanIntFromRoot()
         }
     }
 }
