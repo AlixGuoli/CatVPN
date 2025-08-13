@@ -3,9 +3,11 @@
 import SwiftUI
 
 struct PrivacyPopupView: View {
+    @EnvironmentObject var vm: MainViewmodel
     @Binding var isPresented: Bool
     @State private var pulseAnimation = false
     @State private var scaleAnimation = false
+    var onDismiss: (() -> Void)?
     
     var body: some View {
         ZStack {
@@ -252,6 +254,11 @@ struct PrivacyPopupView: View {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             isPresented = false
+            // 标记已看过隐私弹窗
+            UserDefaults.standard.set(true, forKey: "hasSeenPrivacyPopup")
+            vm.isPrivacyAgreed = true
+            // 调用关闭回调
+            onDismiss?()
         }
     }
 }

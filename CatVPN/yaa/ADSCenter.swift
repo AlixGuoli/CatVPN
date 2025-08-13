@@ -18,19 +18,21 @@ class ADSCenter {
     
     var isShowingAd = false
     var isVip = false
-    var isAdsOff: Bool = true
-    var adType : [String] = []
 
     private var isAdsOpen: Bool {
         if isVip {
             logDebug("isAdsOpen: false. It's Vip")
             return false
         }
+        let isAdsOff = AdCFHelper.shared.getAdsOff()
+        let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
         logDebug("isAdsOff: \(isAdsOff)")
+        logDebug("adType: \(adType)")
         return !isAdsOff
     }
 
     private var isYandexOpen: Bool {
+        let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
         if adType.contains("y"){
             return true
         }
@@ -39,6 +41,7 @@ class ADSCenter {
     }
 
     private var isAdmobOpen: Bool {
+        let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
         if adType.contains("a"){
             if GlobalStatus.shared.connectStatus == .connected {
                 return true
@@ -50,8 +53,6 @@ class ADSCenter {
     
     private init() {
         isVip = UserDefaults.standard.bool(forKey: AdDefaults.CAT_IS_VIP)
-        isAdsOff = UserDefaults.standard.bool(forKey: AdDefaults.CAT_AD_IS_OFF)
-        adType = UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_TYPE)?.components(separatedBy: ";") ?? []
     }
 
     func isYanBannerReady() -> Bool {

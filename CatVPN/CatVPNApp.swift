@@ -151,6 +151,13 @@ struct CatVPNApp: App {
             // 检查并更新配置（如果需要）
             vm.checkAndUpdateConfigsIfNeeded()
             
+            // 检查隐私状态
+            guard vm.isPrivacyAgreed else {
+                logDebug("SplashScreen ** Privacy not agreed, skip showing splash ads")
+                wasInBackground = false
+                return
+            }
+            
             // 检查连接状态
             if GlobalStatus.shared.connectStatus == .connecting {
                 logDebug("SplashScreen ** Returning from background, but VPN is connecting, skip splash screen")
@@ -186,6 +193,12 @@ struct CatVPNApp: App {
     // MARK: - 启动相关方法
     
     private func showSplashAd() {
+        // 只有在隐私同意后才展示启动页广告
+        guard vm.isPrivacyAgreed else {
+            logDebug("SplashScreen ** Privacy not agreed, skip showing splash ads")
+            return
+        }
+        
         let adCenter = ADSCenter.shared
         logDebug("SplashScreen ** Start to show ad")
         if adCenter.isYanBannerReady() {
@@ -198,6 +211,12 @@ struct CatVPNApp: App {
     }
     
     private func showBackgroundAd() {
+        // 只有在隐私同意后才展示后台返回广告
+        guard vm.isPrivacyAgreed else {
+            logDebug("SplashScreen ** Privacy not agreed, skip showing background ads")
+            return
+        }
+        
         let adCenter = ADSCenter.shared
         
         // 检查是否有广告可以展示，优先级顺序：Admob > Yandex Banner > Yandex Int

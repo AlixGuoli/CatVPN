@@ -58,13 +58,11 @@ class HttpUtils {
                 let adIsOff = BaseCFHelper.shared.getAdsOff()
                 let adType = BaseCFHelper.shared.getAdsType()
                 let tgLink = BaseCFHelper.shared.getDynamicTgLink()
-                let hotCode = BaseCFHelper.shared.getHotcode()
                 
                 logDebug("FetctBaseConf result ** ⬇️")
                 logDebug("adIsOff: \(String(describing: adIsOff))")
                 logDebug("adType: \(String(describing: adType))")
                 logDebug("tgLink: \(String(describing: tgLink))")
-                logDebug("hotCode: \(String(describing: hotCode))")
                 
                 // 保存广告开关设置
                 AdCFHelper.shared.saveAdsOff(adIsOff)

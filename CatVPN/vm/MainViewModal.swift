@@ -16,6 +16,7 @@ class MainViewmodel: ObservableObject {
     private var connectManual: Bool = false
     
     @Published var isShowDisconnect: Bool = false
+    @Published var isPrivacyAgreed: Bool = false
     
     @Published var isConnecting: Bool = false
     
@@ -100,12 +101,23 @@ class MainViewmodel: ObservableObject {
         
         // 从UserDefaults恢复之前选择的服务器，而不是硬编码为Auto
         self.selectedServer = ServerCFHelper.shared.getCurrentSelectedServer(from: availableServers)
+        
+        // 检查隐私状态
+        checkPrivacyStatus()
     }
     
     deinit{
         NotificationCenter.default.removeObserver(self)
         stopConnectionTimer()
         stopSpeedTimer()
+    }
+    
+    // MARK: - 隐私状态管理
+    
+    private func checkPrivacyStatus() {
+        let hasSeenPrivacyPopup = UserDefaults.standard.bool(forKey: "hasSeenPrivacyPopup")
+        isPrivacyAgreed = hasSeenPrivacyPopup
+        logDebug("Privacy status - hasSeenPopup: \(hasSeenPrivacyPopup), isAgreed: \(isPrivacyAgreed)")
     }
     
     @objc private func vpnStatusDidChange(_ notification: Notification) {

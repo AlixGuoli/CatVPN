@@ -134,7 +134,7 @@ struct VPNMainView: View {
             }
             .onAppear {
                 startAllAnimations()
-                requestTrackingAuthorization()
+                checkPrivacyPopup()
                 ADSCenter.shared.prepareAllAd(moment: AdMoment.foreground)
             }
             .onChange(of: mainViewModel.connectionStatus) { status in
@@ -159,8 +159,14 @@ struct VPNMainView: View {
                 PrivacyGuideView()
             }
             .overlay(
-                showPrivacyPopup ? PrivacyPopupView(isPresented: $showPrivacyPopup) : nil
+                showPrivacyPopup ?
+                PrivacyPopupView(isPresented: $showPrivacyPopup) {
+                    mainViewModel.isPrivacyAgreed = true
+                    // 隐私弹窗关闭后，请求追踪权限
+                    requestTrackingAuthorization()
+                }.environmentObject(mainViewModel) : nil
             )
+
         }
     }
     
@@ -187,29 +193,33 @@ struct VPNMainView: View {
         }
     }
     
+    // 检查是否需要显示隐私弹窗
+    private func checkPrivacyPopup() {
+        let hasSeenPrivacyPopup = UserDefaults.standard.bool(forKey: "hasSeenPrivacyPopup")
+        if !hasSeenPrivacyPopup {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                showPrivacyPopup = true
+            }
+        }
+    }
+    
     func requestTrackingAuthorization() {
         if #available(iOS 14, *) {
             ATTrackingManager.requestTrackingAuthorization { status in
+                // 不管结果如何，都不处理，只是请求权限
                 switch status {
                 case .authorized:
                     logDebug("用户已授权，IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
-                    checkPrivacyPopup()
                 case .denied:
                     logDebug("用户拒绝了追踪请求")
-                    checkPrivacyPopup()
                 case .notDetermined:
                     logDebug("用户尚未做出选择")
-                    checkPrivacyPopup()
                 case .restricted:
                     logDebug("追踪受限")
-                    checkPrivacyPopup()
                 @unknown default:
                     logDebug("未知状态")
-                    checkPrivacyPopup()
                 }
             }
-        } else {
-            checkPrivacyPopup()
         }
     }
     
@@ -242,16 +252,7 @@ struct VPNMainView: View {
         }
     }
     
-    // 检查是否需要显示隐私弹窗
-    private func checkPrivacyPopup() {
-        let hasSeenPrivacyPopup = UserDefaults.standard.bool(forKey: "hasSeenPrivacyPopup")
-        if !hasSeenPrivacyPopup {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                showPrivacyPopup = true
-                UserDefaults.standard.set(true, forKey: "hasSeenPrivacyPopup")
-            }
-        }
-    }
+
     
     // 增强的动态背景
     private var enhancedDynamicBackground: some View {
@@ -536,9 +537,11 @@ struct VPNMainView: View {
     // 毛玻璃效果的服务器信息卡片
     private var glassyServerInfoCard: some View {
         Button(action: {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-            impactFeedback.impactOccurred()
-            showServerSelection = true
+            if mainViewModel.connectionStatus != .connecting {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                showServerSelection = true
+            }
         }) {
             HStack {
                 HStack(spacing: 16) {
@@ -898,9 +901,11 @@ struct VPNMainView: View {
 
     private func glassyActionButton(icon: String, title: String, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-            impactFeedback.impactOccurred()
-            action()
+            if mainViewModel.connectionStatus != .connecting {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                action()
+            }
         }) {
             VStack(spacing: 12) {
                 ZStack {
