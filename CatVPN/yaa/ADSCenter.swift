@@ -96,7 +96,7 @@ class ADSCenter {
         }
         
         if isAdmobOpen {
-            admobCenter.beginAdLoading()
+            admobCenter.beginAdLoading(moment: moment)
         }
     }
     
@@ -130,12 +130,12 @@ class ADSCenter {
         }
     }
     
-    func prepareAdmobInt(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
+    func prepareAdmobInt(moment: String? = nil, onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
         logDebug("ADSCenter load Admob Int")
         if isAdsOpen && isAdmobOpen {
             admobCenter.onAdReady = onAdReady
             admobCenter.onAdFailed = onAdFailed
-            admobCenter.beginAdLoading()
+            admobCenter.beginAdLoading(moment: moment)
         } else {
             onAdReady?()
         }
@@ -152,8 +152,8 @@ class ADSCenter {
         yanBannerCenter.presentAd(from: viewController)
     }
     
-    func showAdmobInt(from viewController: UIViewController, scene: String?) {
-        admobCenter.presentAd(from: viewController, moment: scene)
+    func showAdmobInt(from viewController: UIViewController, moment: String?) {
+        admobCenter.presentAd(from: viewController, moment: moment)
     }
     
     // MARK: - 便捷展示方法
@@ -172,7 +172,7 @@ class ADSCenter {
     
     func showAdmobIntFromRoot(moment: String?) {
         if let rootVC = getRootViewController() {
-            showAdmobInt(from: rootVC, scene: moment)
+            showAdmobInt(from: rootVC, moment: moment)
         }
     }
     

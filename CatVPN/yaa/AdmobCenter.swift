@@ -36,7 +36,7 @@ class AdmobCenter: NSObject {
         }
         let adKeyId = currentAd.adUnitID
         currentAd.present(from: controller)
-        //ServerLog.shared.logAdShow(key: currentId, scene: scene)
+        ReportCat.shared.reportAd(moment: ReportCat.E_AD_SHOW, key: adKeyId, adMoment: moment)
     }
     
     func isReady() -> Bool {
@@ -87,12 +87,13 @@ class AdmobCenter: NSObject {
         
         let adKey = adKeyList[index]
         logDebug("Admob ads Int loadAdRecursively ** Start ** adkey: \(adKey) (index: \(index))")
-        
         do {
+            ReportCat.shared.reportAd(moment: ReportCat.E_AD_START, adMoment: moment)
             currentAd = try await InterstitialAd.load(with: adKey, request: Request())
             currentAd?.fullScreenContentDelegate = self
             isLoadingAd = false
             onAdReady?()
+            ReportCat.shared.reportAd(moment: ReportCat.E_AD_SUCCESS, key: adKey, adMoment: moment)
             logDebug("Admob ads Int loadAdRecursively ** Success AdKey: \(adKey)")
         } catch {
             logDebug("!!! Admob ads Int loadAdRecursively failed adKey: \(adKey) error: \(error.localizedDescription)")
@@ -126,7 +127,7 @@ extension AdmobCenter: FullScreenContentDelegate {
         ADSCenter.shared.isShowingAd = true
         displayingAd = currentAd
         currentAd = nil
-        reloadAd(moment: LogScene.closead)
+        reloadAd(moment: AdMoment.closead)
     }
     
     func adDidRecordImpression(_ ad: any FullScreenPresentingAd) {

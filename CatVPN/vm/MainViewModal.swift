@@ -160,6 +160,8 @@ class MainViewmodel: ObservableObject {
     }
     
     func startConnect(){
+        ServiceCFHelper.shared.connectid = ReportCat.generateRandomId()
+        ReportCat.shared.reportConnect(moment: ReportCat.E_START, sid: ServiceCFHelper.shared.connectid)
         self.connectionStatus = .connecting
         Task {
             logDebug("prepareServiceCF")
@@ -195,39 +197,39 @@ class MainViewmodel: ObservableObject {
             }
             logDebug("Use ServiceCF @@ UserDefaults ")
             ServiceCFHelper.shared.isUseServer = false
+            ReportCat.shared.reportStatus(success: false)
         } else {
             logDebug("Use ServiceCF @@ requset ")
             ServiceCFHelper.shared.nowServiceCF = serviceConfig
             ServiceCFHelper.shared.isUseServer = true
+            ReportCat.shared.reportStatus(success: true)
         }
         logDebug("Decryption Service Config")
         serviceConfig = FileUtils.decodeSafetyData(serviceConfig ?? "")
-        processNetworkConfigData(rawInput: serviceConfig, validSource: ServiceCFHelper.shared.isUseServer)
+        parseNetConfig(input: serviceConfig, isValid: ServiceCFHelper.shared.isUseServer)
         try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: serviceConfig ?? "")
     }
     
-    func processNetworkConfigData(rawInput: String?, validSource: Bool) {
-        if let jsonData = rawInput?.data(using: .utf8) {
-            do {
-                if let json = try JSONSerialization.jsonObject(with: jsonData, options: .allowFragments) as? [String: Any],
-                   let outbounds = json["outbounds"] as? [[String: Any]] {
-                    for outbound in outbounds {
-                        if let settings = outbound["settings"] as? [String: Any],
-                           let vnexts = settings["vnext"] as? [[String: Any]] {
-                            for vnext in vnexts {
-                                if let address = vnext["address"] as? String {
-                                    if validSource{
-                                        ServiceCFHelper.shared.serverIp = address
-                                    }else{
-                                        ServiceCFHelper.shared.serverIp = "f\(address)"
-                                    }
-                                }
-                            }
-                        }
+    func parseNetConfig(input: String?, isValid: Bool) {
+        guard let data = input?.data(using: .utf8) else { return }
+        
+        do {
+            let parsed = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
+            let bounds = parsed?["outbounds"] as? [[String: Any]]
+            
+            bounds?.forEach { bound in
+                let config = bound["settings"] as? [String: Any]
+                let nodes = config?["vnext"] as? [[String: Any]]
+                
+                nodes?.forEach { node in
+                    if let ip = node["address"] as? String {
+                        let finalIp = isValid ? ip : "f\(ip)"
+                        ServiceCFHelper.shared.serverIp = finalIp
                     }
                 }
-            } catch {
             }
+        } catch {
+            logDebug("Parse network config failed: \(error)")
         }
     }
     
@@ -360,6 +362,11 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectSuccessful() {
+        ReportCat.shared.reportConnect(
+            moment: ReportCat.E_SUCCESS,
+            ip: ServiceCFHelper.shared.serverIp,
+            sid: ServiceCFHelper.shared.connectid
+        )
         DispatchQueue.main.async {
             self.connectionStatus = .connected
             self.startConnectionTimer()
@@ -377,6 +384,11 @@ class MainViewmodel: ObservableObject {
     func connectFailed() {
         logDebug("Connect Failed")
         stopConnect()
+        ReportCat.shared.reportConnect(
+            moment: ReportCat.E_FAIL,
+            ip: ServiceCFHelper.shared.serverIp,
+            sid: ServiceCFHelper.shared.connectid
+        )
     }
     
     func checkGG() {
@@ -384,12 +396,53 @@ class MainViewmodel: ObservableObject {
             let connectionStatus = await CatKey.shared.validateConnectionStatus()
             if connectionStatus {
                 logDebug("Successfully to test Google")
-                // load ad
-                GlobalStatus.shared.connectStatus = .connected
-                connectSuccessful()
+                await prepareAndNotify()
             } else {
                 logDebug("Failed to test Google")
                 connectFailed()
+            }
+        }
+    }
+    
+    private func prepareAndNotify() async {
+        // 设置状态
+        GlobalStatus.shared.connectStatus = .connected
+        
+        let start = Date()
+        logDebug("Start to load Admob ** Start Time: \(start)")
+        
+        var done = false
+        let limit: TimeInterval = 15.0
+        
+        // 设置超时任务
+        let task = DispatchWorkItem { [weak self] in
+            guard let self = self, !done else { return }
+            done = true
+            let timeoutTime = Date()
+            logDebug("Admob load 超时: \(timeoutTime)，耗时: \(timeoutTime.timeIntervalSince(start))")
+            self.connectSuccessful()
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + limit, execute: task)
+        
+        // 加载广告
+        ADSCenter.shared.prepareAdmobInt(moment: AdMoment.connect) {
+            // 成功处理
+            if !done {
+                done = true
+                task.cancel()
+                let end = Date()
+                logDebug("Admob load success: \(end)，耗时: \(end.timeIntervalSince(start))")
+                self.connectSuccessful()
+            }
+        } onAdFailed: {
+            // 失败处理
+            if !done {
+                done = true
+                task.cancel()
+                let end = Date()
+                logDebug("Admob load failed: \(end)，耗时: \(end.timeIntervalSince(start))")
+                self.connectSuccessful()
             }
         }
     }
