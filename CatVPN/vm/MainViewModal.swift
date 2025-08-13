@@ -15,6 +15,9 @@ class MainViewmodel: ObservableObject {
     
     private var connectManual: Bool = false
     
+    @Published var showResult = false
+    @Published var resultStatus: VPNConnectionStatus = .disconnected
+    
     @Published var isShowDisconnect: Bool = false
     @Published var isPrivacyAgreed: Bool = false
     
@@ -120,16 +123,18 @@ class MainViewmodel: ObservableObject {
         logDebug("Privacy status - hasSeenPopup: \(hasSeenPrivacyPopup), isAgreed: \(isPrivacyAgreed)")
     }
     
+    func regainVPN() {
+        manager.loadMAllFromPreferences { error in
+            if error != nil {
+                
+            }
+        }
+    }
+    
     @objc private func vpnStatusDidChange(_ notification: Notification) {
         state = VPNConnectionManager.instance().connectionManager.connection.status
         logDebug("****** VpnStatusDidChange NEVPNConnection state : \(state)")
         logDebug("****** VpnStatusDidChange ConnectionStatus state : \(connectionStatus)")
-        // 根据状态变化管理定时器
-//        if state == .connected && connectionTimer == nil {
-//            startConnectionTimer()
-//        } else if state != .connected {
-//            stopConnectionTimer()
-//        }
     }
     
     private func updateConnectionStatusIfNeeded() {
@@ -141,7 +146,8 @@ class MainViewmodel: ObservableObject {
                 checkGG()
             } else {
                 connectManual = false
-                connectSuccessful()
+                connectionStatus = .connected
+                startConnectionTimer()
             }
         case .disconnected, .invalid:
             logDebug("NEVPNStatus: disconnected")
@@ -260,21 +266,34 @@ class MainViewmodel: ObservableObject {
     }
     
     func handleButtonAction() {
-        switch state {
-        case .connected:
-            //stopConnect()
-            isShowDisconnect = true
-            DispatchQueue.main.asyncAfter(deadline: .now()) {
-                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
-            }
-        case .invalid, .disconnected:
+        switch connectionStatus {
+        case .disconnected:
             DispatchQueue.main.asyncAfter(deadline: .now()) {
                 ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
             }
             self.prepare()
+        case .connected:
+            isShowDisconnect = true
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+            }
         default:
             break
         }
+//        switch state {
+//        case .connected:
+//            isShowDisconnect = true
+//            DispatchQueue.main.asyncAfter(deadline: .now()) {
+//                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+//            }
+//        case .invalid, .disconnected:
+//            DispatchQueue.main.asyncAfter(deadline: .now()) {
+//                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+//            }
+//            self.prepare()
+//        default:
+//            break
+//        }
     }
     
     // 连接定时器管理
@@ -380,6 +399,8 @@ class MainViewmodel: ObservableObject {
             sid: ServiceCFHelper.shared.connectid
         )
         DispatchQueue.main.async {
+            self.resultStatus = .connected
+            self.showResult = true
             self.connectionStatus = .connected
             self.startConnectionTimer()
             logDebug("Connect Successful")
@@ -396,6 +417,8 @@ class MainViewmodel: ObservableObject {
     func connectFailed() {
         logDebug("Connect Failed")
         stopConnect()
+        self.resultStatus = .failed
+        self.showResult = true
         ReportCat.shared.reportConnect(
             moment: ReportCat.E_FAIL,
             ip: ServiceCFHelper.shared.serverIp,

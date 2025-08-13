@@ -23,9 +23,6 @@ struct VPNMainView: View {
     @State private var rippleAnimation = false
     @State private var liquidAnimation = false
     
-    @State private var showResult = false
-    @State private var resultStatus: VPNConnectionStatus = .connected
-    
     // 背景球体的固定位置数据 - 使用相对于屏幕的百分比位置
     private var backgroundCircles: [BackgroundCircle] {
         let screenWidth = UIScreen.main.bounds.width
@@ -111,9 +108,9 @@ struct VPNMainView: View {
                     DisconnectConfirmView(
                         onConfirm: {
                             mainViewModel.isShowDisconnect = false
-                            showAd(moment: AdMoment.disconnect)
-                            resultStatus = .disconnected
-                            showResult.toggle()
+                            //showAd(moment: AdMoment.disconnect)
+                            mainViewModel.resultStatus = .disconnected
+                            mainViewModel.showResult = true
                             
                             if ADSCenter.shared.isAllAdReady() {
                                 logDebug("Delay 3s *** stopConnect")
@@ -133,24 +130,27 @@ struct VPNMainView: View {
                 }
             }
             .onAppear {
+                if mainViewModel.isPrivacyAgreed {
+                    mainViewModel.regainVPN()
+                }
                 startAllAnimations()
                 checkPrivacyPopup()
                 ADSCenter.shared.prepareAllAd(moment: AdMoment.foreground)
             }
-            .onChange(of: mainViewModel.connectionStatus) { status in
-                if status == .connected {
-                    logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
-                    resultStatus = .connected
-                    showResult.toggle()
-                    showAd(moment: AdMoment.connect)
-                } else if status == .failed {
-                    logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
-                    resultStatus = .failed
-                    showResult.toggle()
+            .onChange(of: mainViewModel.connectionStatus) { newValue in
+                logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
+            }
+            .onChange(of: mainViewModel.showResult) { newValue in
+                if newValue {
+                    if mainViewModel.resultStatus == .connected {
+                        showAd(moment: AdMoment.connect)
+                    } else if mainViewModel.resultStatus == .disconnected {
+                        showAd(moment: AdMoment.disconnect)
+                    }
                 }
             }
-            .navigationDestination(isPresented: $showResult) {
-                ConnectSuccessView(status: resultStatus)
+            .navigationDestination(isPresented: $mainViewModel.showResult) {
+                ConnectSuccessView(status: mainViewModel.resultStatus)
             }
             .navigationDestination(isPresented: $showServerSelection) {
                 ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
