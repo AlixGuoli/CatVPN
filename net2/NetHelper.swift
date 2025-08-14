@@ -17,11 +17,11 @@ class NetHelper {
     static func getDirConfig() -> String{
         logOS("Getting directory configuration...")
         
-        let userDefaults = UserDefaults(suiteName: ServiceDefaults.GroupId)
-        let configDancyData = userDefaults?.string(forKey: ServiceDefaults.GroupConfig) ?? ""
+        let userDefaults = UserDefaults(suiteName: ServiceDefaults.targetGroup)
+        let configDancyData = userDefaults?.string(forKey: ServiceDefaults.targetConfig) ?? ""
         logOS("Config data length: \(configDancyData.count) chars")
         
-        let filePath = NetHelper.getFile(withName: "config", data: (configDancyData.data(using: .utf8)))
+        let filePath = NetHelper.getFile(withName: "NetConfig", data: (configDancyData.data(using: .utf8)))
         logOS("Config file path: \(filePath.path)")
         
         let dirConfigJson = """
@@ -42,7 +42,7 @@ class NetHelper {
         let decodedData = decodedConfig?.data(using: .utf8)
         logOS("Decoded config data length: \(decodedData?.count ?? 0) bytes")
         
-        let url = NetHelper.getFile(withName: "TunConfig", data: decodedData)
+        let url = NetHelper.getFile(withName: "SocksConfig", data: decodedData)
         logOS("SOCKS config file path: \(url.path())")
         
         return url.path()

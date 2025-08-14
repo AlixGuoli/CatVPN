@@ -8,10 +8,9 @@ class ServiceCFHelper {
     
     /// 加密的服务配置
     var nowServiceCF: String? = nil
-    var serverIp: String? = nil
-    var connectid: String? = nil
-    var isUseServer = true
-    var stopByHome: Bool = false
+    var ipService: String? = nil
+    var idConnect: String? = nil
+    var isFromRequest = true
     
     
     /// 获取 UserDefaults 域名配置

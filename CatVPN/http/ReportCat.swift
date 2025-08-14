@@ -173,7 +173,7 @@ class ReportCat {
     /// 获取当前连接的IP
     private func getIP() -> String {
         if GlobalStatus.shared.connectStatus == .connected {
-            let ip = ServiceCFHelper.shared.serverIp
+            let ip = ServiceCFHelper.shared.ipService
             return (ip?.isEmpty == false) ? ip! : "0.0.0.0"
         } else {
             return "local"

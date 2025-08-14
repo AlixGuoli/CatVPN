@@ -60,8 +60,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 //    }
     
     func isMyConnect() -> Bool {
-        if let userDefaults = UserDefaults(suiteName: ServiceDefaults.GroupId) {
-            if let startDate = userDefaults.object(forKey: ServiceDefaults.GroupTime) as? Date {
+        if let userDefaults = UserDefaults(suiteName: ServiceDefaults.targetGroup) {
+            if let startDate = userDefaults.object(forKey: ServiceDefaults.targetDate) as? Date {
                 let currentDate = Date()
                 let timeInterval = currentDate.timeIntervalSince(startDate)
                 if timeInterval < 10 {

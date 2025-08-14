@@ -68,8 +68,8 @@
 		FE7E2F432E3DFA0600F69A45 /* Exceptions for "CatVPN" folder in "net2" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				http/ServiceDefaults.swift,
 				utils/LogUtils.swift,
+				utils/ServiceDefaults.swift,
 			);
 			target = FEC6A4C32E2121A100AE43BF /* net2 */;
 		};

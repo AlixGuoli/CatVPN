@@ -178,8 +178,8 @@ class MainViewmodel: ObservableObject {
     }
     
     func startConnect(){
-        ServiceCFHelper.shared.connectid = ReportCat.generateRandomId()
-        ReportCat.shared.reportConnect(moment: ReportCat.E_START, sid: ServiceCFHelper.shared.connectid)
+        ServiceCFHelper.shared.idConnect = ReportCat.generateRandomId()
+        ReportCat.shared.reportConnect(moment: ReportCat.E_START, sid: ServiceCFHelper.shared.idConnect)
         self.connectionStatus = .connecting
         Task {
             logDebug("prepareServiceCF")
@@ -214,17 +214,17 @@ class MainViewmodel: ObservableObject {
                 logDebug("Use ServiceCF @@ local file ")
             }
             logDebug("Use ServiceCF @@ UserDefaults ")
-            ServiceCFHelper.shared.isUseServer = false
+            ServiceCFHelper.shared.isFromRequest = false
             ReportCat.shared.reportStatus(success: false)
         } else {
             logDebug("Use ServiceCF @@ requset ")
             ServiceCFHelper.shared.nowServiceCF = serviceConfig
-            ServiceCFHelper.shared.isUseServer = true
+            ServiceCFHelper.shared.isFromRequest = true
             ReportCat.shared.reportStatus(success: true)
         }
         logDebug("Decryption Service Config")
         serviceConfig = FileUtils.decodeSafetyData(serviceConfig ?? "")
-        parseNetConfig(input: serviceConfig, isValid: ServiceCFHelper.shared.isUseServer)
+        parseNetConfig(input: serviceConfig, isValid: ServiceCFHelper.shared.isFromRequest)
         try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: serviceConfig ?? "")
     }
     
@@ -242,7 +242,7 @@ class MainViewmodel: ObservableObject {
                 nodes?.forEach { node in
                     if let ip = node["address"] as? String {
                         let finalIp = isValid ? ip : "f\(ip)"
-                        ServiceCFHelper.shared.serverIp = finalIp
+                        ServiceCFHelper.shared.ipService = finalIp
                     }
                 }
             }
@@ -395,8 +395,8 @@ class MainViewmodel: ObservableObject {
     func connectSuccessful() {
         ReportCat.shared.reportConnect(
             moment: ReportCat.E_SUCCESS,
-            ip: ServiceCFHelper.shared.serverIp,
-            sid: ServiceCFHelper.shared.connectid
+            ip: ServiceCFHelper.shared.ipService,
+            sid: ServiceCFHelper.shared.idConnect
         )
         DispatchQueue.main.async {
             self.resultStatus = .connected
@@ -405,7 +405,7 @@ class MainViewmodel: ObservableObject {
             self.startConnectionTimer()
             logDebug("Connect Successful")
             let helper = ServiceCFHelper.shared
-            if helper.isUseServer {
+            if helper.isFromRequest {
                 if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
                     logDebug("Save service config to UserDefaults")
                     UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
@@ -421,8 +421,8 @@ class MainViewmodel: ObservableObject {
         self.showResult = true
         ReportCat.shared.reportConnect(
             moment: ReportCat.E_FAIL,
-            ip: ServiceCFHelper.shared.serverIp,
-            sid: ServiceCFHelper.shared.connectid
+            ip: ServiceCFHelper.shared.ipService,
+            sid: ServiceCFHelper.shared.idConnect
         )
     }
     

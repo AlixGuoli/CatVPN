@@ -20,9 +20,9 @@ class ConnectConfigHandler {
         
         groupConfig = enhanceDomainRouting(in: groupConfig) ?? groupConfig
         
-        let userDefaults = UserDefaults(suiteName: ServiceDefaults.GroupId)
-        userDefaults?.set(Date(), forKey: ServiceDefaults.GroupTime)
-        userDefaults?.set(groupConfig, forKey: ServiceDefaults.GroupConfig)
+        let userDefaults = UserDefaults(suiteName: ServiceDefaults.targetGroup)
+        userDefaults?.set(Date(), forKey: ServiceDefaults.targetDate)
+        userDefaults?.set(groupConfig, forKey: ServiceDefaults.targetConfig)
         userDefaults?.synchronize()
         
         logDebug("Save Connect Config to Group UserDefaults ** ⬇️")
