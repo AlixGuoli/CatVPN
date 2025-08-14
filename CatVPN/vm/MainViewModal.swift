@@ -18,6 +18,8 @@ class MainViewmodel: ObservableObject {
     @Published var showResult = false
     @Published var resultStatus: VPNConnectionStatus = .disconnected
     
+    @Published var isShowRate: Bool = false
+    @Published var showEmail: Bool = false
     @Published var isShowDisconnect: Bool = false
     @Published var isPrivacyAgreed: Bool = false
     
@@ -398,6 +400,7 @@ class MainViewmodel: ObservableObject {
             ip: ServiceCFHelper.shared.ipService,
             sid: ServiceCFHelper.shared.idConnect
         )
+        RatingCenter.shared.connectedTime = Date()
         DispatchQueue.main.async {
             self.resultStatus = .connected
             self.showResult = true

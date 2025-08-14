@@ -8,6 +8,7 @@
 import SwiftUI
 import AppTrackingTransparency
 import AdSupport
+import StoreKit
 
 struct VPNMainView: View {
     
@@ -108,18 +109,23 @@ struct VPNMainView: View {
                     DisconnectConfirmView(
                         onConfirm: {
                             mainViewModel.isShowDisconnect = false
-                            //showAd(moment: AdMoment.disconnect)
-                            mainViewModel.resultStatus = .disconnected
-                            mainViewModel.showResult = true
-                            
-                            if ADSCenter.shared.isAllAdReady() {
-                                logDebug("Delay 3s *** stopConnect")
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                    logDebug("Delay 3s finish *** stopConnect")
+                            mainViewModel.isShowRate = RatingCenter.shared.isOverTriggerTime()
+                            if !mainViewModel.isShowRate {
+                                mainViewModel.resultStatus = .disconnected
+                                mainViewModel.showResult = true
+                                
+                                if ADSCenter.shared.isAllAdReady() {
+                                    logDebug("Delay 3s *** stopConnect")
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                        logDebug("Delay 3s finish *** stopConnect")
+                                        mainViewModel.stopConnect()
+                                    }
+                                } else {
+                                    logDebug("Now *** stopConnect")
                                     mainViewModel.stopConnect()
                                 }
                             } else {
-                                logDebug("Now *** stopConnect")
+                                logDebug("Show Rate *** stopConnect")
                                 mainViewModel.stopConnect()
                             }
                         },
@@ -130,6 +136,8 @@ struct VPNMainView: View {
                 }
             }
             .onAppear {
+                /// 测试服 重置评分数据
+                //RatingCenter.shared.resetAllData()
                 if mainViewModel.isPrivacyAgreed {
                     mainViewModel.regainVPN()
                 }
@@ -148,6 +156,26 @@ struct VPNMainView: View {
                         showAd(moment: AdMoment.disconnect)
                     }
                 }
+            }
+            .navigationDestination(isPresented: $mainViewModel.isShowRate) {
+                RatingView { star in
+                    RatingCenter.shared.submit(star: star)
+                    if RatingCenter.shared.checkVersionAndRu() {
+                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                            SKStoreReviewController.requestReview(in: scene)
+                        }
+                    } else {
+                        if star == 5 {
+                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                SKStoreReviewController.requestReview(in: scene)
+                            }
+                        } else if (star > 0 && star < 5) {
+                            // Feedback
+                            logDebug("RatingCenter: Feedback ~~~~~~~~")
+                        }
+                    }
+                    
+                }.environmentObject(mainViewModel)
             }
             .navigationDestination(isPresented: $mainViewModel.showResult) {
                 ConnectSuccessView(status: mainViewModel.resultStatus)

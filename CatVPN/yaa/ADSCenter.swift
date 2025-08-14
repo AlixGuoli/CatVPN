@@ -20,6 +20,9 @@ class ADSCenter {
     var isVip = false
 
     private var isAdsOpen: Bool {
+        // 测试服
+        //return false
+        
         if isVip {
             logDebug("isAdsOpen: false. It's Vip")
             return false

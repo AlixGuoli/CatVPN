@@ -19,8 +19,6 @@ class HttpUtils {
         return [
             "uid": CatKey.getUserUUID(),
             "country": CatKey.getCountryCode(),
-            /// 测试服
-            //"country": "ru",
             "language": CatKey.getLanguageCode(),
             "pk": CatKey.getBundleID(),
             "version": CatKey.getAppVersion()
