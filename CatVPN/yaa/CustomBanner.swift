@@ -10,127 +10,144 @@ import UIKit
 
 class CustomBanner: UIViewController {
     
-    private var remainingSeconds = 6
-    private let skipButtonContainer = UIView()
-    private let skipButtonLabel = UILabel()
-    private var hasAdBeenClicked = false
-    private var isClickDelayed = false
-    private var isClickPenetrated = false
+    private var countdownTimer = 6
+    private let skipContainer = UIView()
+    private let skipLabel = UILabel()
+    private var adClicked = false
+    private var delayEnabled = false
+    private var penetrationEnabled = false
     
     var onDismiss: (() -> Void)?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupAdManager()
-        setupUserInterface()
-        setupNotificationObservers()
-        startTimer()
+        configureAdSystem()
+        createInterface()
+        registerNotifications()
+        initializeCountdown()
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
     
-    // MARK: - 广告管理器配置
+    // MARK: - 广告系统配置
     
-    private func setupAdManager() {
+    private func configureAdSystem() {
         ADSCenter.shared.isShowingAd = true
         
-        let randomDelayValue = Int.random(in: 1...100)
-        let randomPenetrationValue = Int.random(in: 1...100)
-        isClickPenetrated = AdCFHelper.shared.getPenetrate() >= randomPenetrationValue
-        isClickDelayed = AdCFHelper.shared.getClickDelay() >= randomDelayValue
+        let delayThreshold = Int.random(in: 1...100)
+        let penetrationThreshold = Int.random(in: 1...100)
         
-        if let bannerView = ADSCenter.shared.getYanBannerAd() {
-            setupBannerView(bannerView)
-        } else {
-            closeAd()
+        penetrationEnabled = AdCFHelper.shared.getPenetrate() >= penetrationThreshold
+        delayEnabled = AdCFHelper.shared.getClickDelay() >= delayThreshold
+        
+        guard let bannerView = ADSCenter.shared.getYanBannerAd() else {
+            dismissAd()
+            return
         }
+        
+        attachBanner(bannerView)
     }
     
-    private func setupBannerView(_ bannerView: UIView) {
+    private func attachBanner(_ bannerView: UIView) {
         view.addSubview(bannerView)
         bannerView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
+        
+        let constraints = [
             bannerView.topAnchor.constraint(equalTo: view.topAnchor),
             bannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bannerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        ]
+        NSLayoutConstraint.activate(constraints)
         
         ADSCenter.shared.yanBannerCenter.onAdClicked = { [weak self] in
-            self?.hasAdBeenClicked = true
+            self?.adClicked = true
         }
     }
     
-    // MARK: - 用户界面配置
+    // MARK: - 界面创建
     
-    private func setupUserInterface() {
+    private func createInterface() {
         view.backgroundColor = .white
-        
-        skipButtonContainer.translatesAutoresizingMaskIntoConstraints = false
-        skipButtonContainer.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        skipButtonContainer.layer.cornerRadius = 10
-        view.addSubview(skipButtonContainer)
-        
-        skipButtonLabel.textAlignment = .center
-        skipButtonLabel.textColor = .white
-        skipButtonLabel.font = UIFont(name: "PingFangSC-Regular", size: 14)
-        skipButtonLabel.text = String(format: "Skip_Ad_Time".localstr(), remainingSeconds)
-        skipButtonLabel.isUserInteractionEnabled = !isClickPenetrated
-        skipButtonContainer.isUserInteractionEnabled = !isClickPenetrated
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleSkipButtonTap))
-        skipButtonLabel.addGestureRecognizer(tapGesture)
-        
-        setupSkipButtonLayout()
+        setupSkipButton()
+        configureSkipButton()
+        positionSkipButton()
     }
     
-    private func setupSkipButtonLayout() {
-        skipButtonContainer.addSubview(skipButtonLabel)
-        skipButtonLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            skipButtonContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 80),
-            skipButtonContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            
-            skipButtonLabel.topAnchor.constraint(equalTo: skipButtonContainer.topAnchor, constant: 4),
-            skipButtonLabel.leadingAnchor.constraint(equalTo: skipButtonContainer.leadingAnchor, constant: 10),
-            skipButtonLabel.bottomAnchor.constraint(equalTo: skipButtonContainer.bottomAnchor, constant: -4),
-            skipButtonLabel.trailingAnchor.constraint(equalTo: skipButtonContainer.trailingAnchor, constant: -10),
-            skipButtonLabel.heightAnchor.constraint(equalToConstant: 30)
-        ])
+    private func setupSkipButton() {
+        skipContainer.translatesAutoresizingMaskIntoConstraints = false
+        skipContainer.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        skipContainer.layer.cornerRadius = 10
+        view.addSubview(skipContainer)
     }
     
-    // MARK: - 通知观察者配置
+    private func configureSkipButton() {
+        skipLabel.textAlignment = .center
+        skipLabel.textColor = .white
+        skipLabel.font = UIFont(name: "PingFangSC-Regular", size: 14)
+        skipLabel.text = String(format: "Skip_Ad_Time".localstr(), countdownTimer)
+        
+        let interactionEnabled = !penetrationEnabled
+        skipLabel.isUserInteractionEnabled = interactionEnabled
+        skipContainer.isUserInteractionEnabled = interactionEnabled
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(skipButtonTapped))
+        skipLabel.addGestureRecognizer(tapGesture)
+    }
     
-    private func setupNotificationObservers() {
+    private func positionSkipButton() {
+        skipContainer.addSubview(skipLabel)
+        skipLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let containerConstraints = [
+            skipContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 80),
+            skipContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+        ]
+        
+        let labelConstraints = [
+            skipLabel.topAnchor.constraint(equalTo: skipContainer.topAnchor, constant: 4),
+            skipLabel.leadingAnchor.constraint(equalTo: skipContainer.leadingAnchor, constant: 10),
+            skipLabel.bottomAnchor.constraint(equalTo: skipContainer.bottomAnchor, constant: -4),
+            skipLabel.trailingAnchor.constraint(equalTo: skipContainer.trailingAnchor, constant: -10),
+            skipLabel.heightAnchor.constraint(equalToConstant: 30)
+        ]
+        
+        NSLayoutConstraint.activate(containerConstraints + labelConstraints)
+    }
+    
+    // MARK: - 通知注册
+    
+    private func registerNotifications() {
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleAppForeground),
+            selector: #selector(appWillEnterForeground),
             name: UIApplication.willEnterForegroundNotification,
             object: nil
         )
     }
     
-    @objc private func handleAppForeground() {
-        if hasAdBeenClicked {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.closeAd()
-            }
+    @objc private func appWillEnterForeground() {
+        guard adClicked else { return }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.dismissAd()
         }
     }
     
-    // MARK: - 用户交互处理
+    // MARK: - 用户交互
     
-    @objc private func handleSkipButtonTap() {
-        if remainingSeconds <= 1 {
-            closeAd()
+    @objc private func skipButtonTapped() {
+        let canSkip = countdownTimer <= 1
+        if canSkip {
+            dismissAd()
         }
     }
     
     // MARK: - 广告关闭
     
-    private func closeAd() {
+    private func dismissAd() {
         dismiss(animated: true) {
             ADSCenter.shared.isShowingAd = false
             self.onDismiss?()
@@ -138,33 +155,45 @@ class CustomBanner: UIViewController {
         }
     }
     
-    // MARK: - 定时器管理
+    // MARK: - 倒计时管理
     
-    private func startTimer() {
+    private func initializeCountdown() {
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             guard let self = self else { return }
             
-            if self.remainingSeconds > 0 {
-                self.remainingSeconds -= 1
-                self.updateSkipButtonText()
-            } else {
-                self.skipButtonLabel.isUserInteractionEnabled = true
-                self.skipButtonContainer.isUserInteractionEnabled = true
-                self.updateSkipButtonText()
-                timer.invalidate()
-            }
+            self.processCountdownTick(timer)
         }
     }
     
-    private func updateSkipButtonText() {
-        if remainingSeconds <= 0 {
-            if !isClickDelayed || !isClickPenetrated {
-                skipButtonLabel.isUserInteractionEnabled = true
-                skipButtonContainer.isUserInteractionEnabled = true
-            }
-            skipButtonLabel.text = "Skip_Ad".localstr()
+    private func processCountdownTick(_ timer: Timer) {
+        let hasTimeRemaining = countdownTimer > 0
+        
+        if hasTimeRemaining {
+            countdownTimer -= 1
+            refreshSkipButtonText()
         } else {
-            skipButtonLabel.text = String(format: "Skip_Ad_Time".localstr(), remainingSeconds)
+            enableSkipButton()
+            refreshSkipButtonText()
+            timer.invalidate()
+        }
+    }
+    
+    private func enableSkipButton() {
+        let shouldEnable = !delayEnabled || !penetrationEnabled
+        
+        if shouldEnable {
+            skipLabel.isUserInteractionEnabled = true
+            skipContainer.isUserInteractionEnabled = true
+        }
+    }
+    
+    private func refreshSkipButtonText() {
+        let timeExpired = countdownTimer <= 0
+        
+        if timeExpired {
+            skipLabel.text = "Skip_Ad".localstr()
+        } else {
+            skipLabel.text = String(format: "Skip_Ad_Time".localstr(), countdownTimer)
         }
     }
 } 
