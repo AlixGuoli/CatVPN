@@ -1,0 +1,20 @@
+// 通用
+"Cancel" = "取消";
+"Done" = "完成";
+
+// 语言选择页面
+"Language" = "语言";
+"Select Language" = "选择语言";
+"Choose your preferred language" = "选择您偏好的语言";
+"Switching language..." = "正在切换语言...";
+
+// 快速操作
+"Quick Actions" = "快速操作";
+"Servers" = "服务器";
+"Privacy Guide" = "隐私指南";
+"Settings" = "设置";
+
+// 启动页
+"VPN Shield" = "VPN 护盾";
+"Secure connection, enjoy the network smoothly" = "安全连接，畅享网络";
+"Initializing..." = "正在初始化...";

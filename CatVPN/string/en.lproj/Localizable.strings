@@ -1,0 +1,27 @@
+/* 
+  Localizable.strings
+  CatVPN
+
+  Created by Stephen Schaaf on 2025/8/14.
+  
+*/
+
+// 语言选择页面
+"Language" = "Language";
+"Select Language" = "Select Language";
+"Choose your preferred language" = "Choose your preferred language";
+"Cancel" = "Cancel";
+"Done" = "Done";
+"Switching language..." = "Switching language...";
+
+// 快速操作按钮
+"Quick Actions" = "Quick Actions";
+"Servers" = "Servers";
+"Privacy Guide" = "Privacy Guide";
+"Language" = "Language";
+"Settings" = "Settings";
+
+// 启动页
+"VPN Shield" = "VPN Shield";
+"Secure connection, enjoy the network smoothly" = "Secure connection, enjoy the network smoothly";
+"Initializing..." = "Initializing...";

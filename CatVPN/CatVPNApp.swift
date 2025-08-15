@@ -18,6 +18,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
+        // 初始化语言
+        _ = LanguageCenter.shared
+        
         initAdmob()
         initYandex()
         initGameAnalytics()
@@ -72,6 +75,7 @@ struct CatVPNApp: App {
             ZStack {
                 VPNMainView()
                     .environmentObject(vm)
+                    .localview()   // 确保整个应用都能响应语言变化
                 // 启动阶段覆盖页
                 if isAppStarted {
                     SplashScreenView()

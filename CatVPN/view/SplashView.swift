@@ -82,6 +82,7 @@ struct SplashScreenView: View {
         .onAppear {
             startSplashAnimations()
         }
+        .localview()  // 确保启动页也能响应语言变化
     }
     
     // 启动所有动画
@@ -318,7 +319,7 @@ struct SplashScreenView: View {
     // 标题部分
     private var titleSection: some View {
         VStack(spacing: 12) {
-            Text("VPN Shield")
+            Text("VPN Shield".localstr())
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundStyle(
@@ -330,8 +331,9 @@ struct SplashScreenView: View {
                 )
                 .opacity(titleOpacity)
             
-            Text("Secure connection, enjoy the network smoothly")
+            Text("Secure connection, enjoy the network smoothly".localstr())
                 .font(.headline)
+                .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .opacity(titleOpacity * 0.8)
         }
@@ -357,7 +359,7 @@ struct SplashScreenView: View {
             }
             .opacity(titleOpacity)
             
-            Text("Initializing...")
+            Text("Initializing...".localstr())
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .opacity(titleOpacity * 0.6)

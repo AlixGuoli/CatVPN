@@ -24,6 +24,8 @@ struct VPNMainView: View {
     @State private var rippleAnimation = false
     @State private var liquidAnimation = false
     
+    @State private var showLanguageSelection = false
+    
     // 背景球体的固定位置数据 - 使用相对于屏幕的百分比位置
     private var backgroundCircles: [BackgroundCircle] {
         let screenWidth = UIScreen.main.bounds.width
@@ -185,6 +187,9 @@ struct VPNMainView: View {
             }
             .navigationDestination(isPresented: $showPrivacyGuide) {
                 PrivacyGuideView()
+            }
+            .navigationDestination(isPresented: $showLanguageSelection) {
+                LanguageSelectionView(isPresented: $showLanguageSelection)
             }
             .overlay(
                 showPrivacyPopup ?
@@ -869,7 +874,7 @@ struct VPNMainView: View {
     private var glassyQuickActionsView: some View {
         VStack(spacing: 20) {
             HStack {
-                Text("Quick Actions")
+                Text("Quick Actions".localstr())
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -884,25 +889,35 @@ struct VPNMainView: View {
             VStack(spacing: 14) {
                 HStack(spacing: 14) {
                     glassyActionButton(
-                        icon: "server.rack",
-                        title: "Servers",
-                        color: .green,
-                        action: { showServerSelection = true }
+                        icon: "globe",
+                        title: "Language".localstr(),
+                        color: .blue,
+                        action: { showLanguageSelection = true }
                     )
                     
                     glassyActionButton(
                         icon: "doc.text.fill",
-                        title: "Privacy Guide",
+                        title: "Privacy Guide".localstr(),
                         color: .purple,
                         action: { showPrivacyGuide = true }
                     )
+                }
+                
+//                HStack(spacing: 14) {
+//                    glassyActionButton(
+//                        icon: "server.rack",
+//                        title: "Servers".localstr(),
+//                        color: .green,
+//                        action: { showServerSelection = true }
+//                    )
+//                    
 //                    glassyActionButton(
 //                        icon: "gearshape.fill",
-//                        title: "Settings",
+//                        title: "Settings".localstr(),
 //                        color: .gray,
 //                        action: { /* TODO: 实现设置功能 */ }
 //                    )
-                }
+//                }
                 
 //                HStack(spacing: 14) {
 //                    glassyActionButton(
