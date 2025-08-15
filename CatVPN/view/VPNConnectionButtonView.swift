@@ -788,13 +788,13 @@ struct VPNConnectionButton: View {
     private var statusText: String {
         switch vm.connectionStatus {
         case .disconnected:
-            return "click connect 🐸"
+            return "VPN_Button_Click_Connect".localstr() + " 🐸"
         case .connecting:
-            return "connecting... 🐸💫"
+            return "VPN_Button_Connecting".localstr() + " 🐸💫"
         case .connected:
-            return "Connected 🐸✨"
+            return "VPN_Button_Connected".localstr() + " 🐸✨"
         case .failed:
-            return "connection failed 🐸😔"
+            return "VPN_Button_Connection_Failed".localstr() + " 🐸😔"
         }
     }
 }

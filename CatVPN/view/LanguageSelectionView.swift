@@ -20,8 +20,7 @@ struct LanguageSelectionView: View {
         .english,
         .russian,
         .german,
-        .french,
-        .chinese
+        .french
     ]
     
     // 背景装饰圆圈
@@ -99,6 +98,7 @@ struct LanguageSelectionView: View {
             startAnimations()
             loadCurrentLanguage()
         }
+        .localview()  // 确保语言选择页面也能响应语言变化
     }
     
     // 启动动画
@@ -272,7 +272,6 @@ enum Language: String, CaseIterable {
     case russian = "ru"
     case german = "de"
     case french = "fr"
-    case chinese = "zh-Hans"
     
     var displayName: String {
         switch self {
@@ -284,8 +283,6 @@ enum Language: String, CaseIterable {
             return "Deutsch"
         case .french:
             return "Français"
-        case .chinese:
-            return "中文"
         }
     }
     
@@ -299,8 +296,6 @@ enum Language: String, CaseIterable {
             return "🇩🇪"
         case .french:
             return "🇫🇷"
-        case .chinese:
-            return "🇨🇳"
         }
     }
 }

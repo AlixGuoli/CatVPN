@@ -63,36 +63,36 @@ class MainViewmodel: ObservableObject {
     var buttonText: String {
         switch state {
         case .disconnected, .invalid:
-            return "Start"
+            return "Start".localstr()
         case .connecting:
-            return "Connecting"
+            return "Connecting".localstr()
         case .connected:
-            return "Stop"
+            return "Stop".localstr()
         case .disconnecting:
-            return "Disconnecting"
+            return "Disconnecting".localstr()
         case .reasserting:
-            return "Reasserting"
+            return "Reasserting".localstr()
         @unknown default:
-            return "Unknown"
+            return "Unknown".localstr()
         }
     }
     
     var statusText: String {
         switch state {
         case .disconnected:
-            return "Disconnected"
+            return "Disconnected".localstr()
         case .connecting:
-            return "Connecting"
+            return "Connecting".localstr()
         case .connected:
-            return "Connected"
+            return "Connected".localstr()
         case .disconnecting:
-            return "Disconnecting"
+            return "Disconnecting".localstr()
         case .invalid:
-            return "Invalid"
+            return "Invalid".localstr()
         case .reasserting:
-            return "Reasserting"
+            return "Reasserting".localstr()
         @unknown default:
-            return "Unknown"
+            return "Unknown".localstr()
         }
     }
     

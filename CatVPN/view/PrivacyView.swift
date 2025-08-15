@@ -50,12 +50,12 @@ struct PrivacyPopupView: View {
                     }
                     
                     VStack(spacing: 12) {
-                        Text("Privacy First")
+                        Text("Privacy_First".localstr())
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
                         
-                        Text("Your privacy is our priority")
+                        Text("Privacy_Priority".localstr())
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .fontWeight(.medium)
@@ -77,15 +77,15 @@ struct PrivacyPopupView: View {
                         
                         privacyFeatureRow(
                             icon: "network",
-                            title: "Proxy Only",
-                            description: "VPN connection is used solely for secure proxy purposes",
+                            title: "Proxy_Only".localstr(),
+                            description: "Proxy_Description".localstr(),
                             color: .mint
                         )
                         
                         privacyFeatureRow(
                             icon: "lock.shield.fill",
-                            title: "Anonymous",
-                            description: "Your browsing activity remains completely anonymous",
+                            title: "Anonymous".localstr(),
+                            description: "Anonymous_Description".localstr(),
                             color: .cyan
                         )
                     }
@@ -108,7 +108,7 @@ struct PrivacyPopupView: View {
                             .frame(height: 1)
                             .padding(.horizontal, 20)
                         
-                        Text("By using this app, you agree to our privacy-focused approach. We believe in complete transparency about our data practices.")
+                        Text("Privacy_Agreement".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -127,7 +127,7 @@ struct PrivacyPopupView: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.title3)
                             
-                            Text("I Understand")
+                            Text("I_Understand".localstr())
                                 .font(.headline)
                                 .fontWeight(.semibold)
                         }

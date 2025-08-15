@@ -12,7 +12,7 @@ class LanguageCenter: ObservableObject {
     static let shared = LanguageCenter()
     
     @Published var currentLanguage: String = ""
-    private let supportedLanguages = ["en", "ru", "de", "fr", "zh-Hans"]
+    private let supportedLanguages = ["en", "ru", "de", "fr"]
     
     private init() {
         loadSavedLanguage()

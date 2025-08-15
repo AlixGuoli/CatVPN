@@ -32,7 +32,7 @@ struct DisconnectConfirmView: View {
                     .frame(width: 66, height: 66)
                 
                 // 确认文本
-                Text("Are you sure you want to disconnect?")
+                Text("Disconnect_Confirm_Message".localstr())
                     .font(.system(size: 16))
                     .fontWeight(.medium)
                     .multilineTextAlignment(.center)
@@ -136,7 +136,7 @@ struct DisconnectConfirmView: View {
         Button(action: {
             onCancel()
         }) {
-            Text("Cancel")
+            Text("Cancel".localstr())
                 .font(.system(size: 18))
                 .fontWeight(.semibold)
                 .foregroundColor(.gray)
@@ -180,7 +180,7 @@ struct DisconnectConfirmView: View {
         Button(action: {
             onConfirm()
         }) {
-            Text("Yes")
+            Text("Yes".localstr())
                 .font(.system(size: 18))
                 .fontWeight(.semibold)
                 .foregroundColor(.white)

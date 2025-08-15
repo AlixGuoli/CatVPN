@@ -75,7 +75,7 @@ struct ServerSelectionView: View {
                 }
             }
         }
-        .navigationTitle("Select Server")
+        .navigationTitle("Select Server".localstr())
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
         .navigationBarItems(
@@ -171,7 +171,7 @@ struct ServerSelectionView: View {
                 .foregroundColor(.secondary)
                 .font(.system(size: 16, weight: .medium))
             
-            TextField("Search servers...", text: $searchText)
+            TextField("Search servers...".localstr(), text: $searchText)
                 .textFieldStyle(PlainTextFieldStyle())
                 .font(.system(size: 16, weight: .medium))
             
@@ -225,7 +225,7 @@ struct ServerSelectionView: View {
     
     // 毛玻璃取消按钮
     private var glassyCancelButton: some View {
-        Button("Cancel") {
+        Button("Cancel".localstr()) {
             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.impactOccurred()
             isPresented = false
@@ -245,7 +245,7 @@ struct ServerSelectionView: View {
     
     // 毛玻璃完成按钮
     private var glassyDoneButton: some View {
-        Button("Done") {
+        Button("Done".localstr()) {
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.impactOccurred()
             isPresented = false
@@ -302,7 +302,7 @@ struct ServerSelectionView: View {
                     value: pulseAnimation
                 )
             
-            Text("loading...")
+            Text("loading...".localstr())
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.secondary)
                 .opacity(pulseAnimation ? 0.6 : 1.0)

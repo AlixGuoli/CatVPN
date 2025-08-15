@@ -19,16 +19,16 @@ struct RatingView: View {
     private func getButtonText() -> String {
         // 如果不是俄罗斯地区，都显示 Rate Us
         if RatingCenter.shared.checkVersionAndRu() {
-            return "Rate Us"
+            return "Rate_Us".localstr()
         }
         
         // 如果是俄罗斯地区，根据评分显示不同文字
         if selectedRating == 5 {
-            return "Rate Us"
+            return "Rate_Us".localstr()
         } else if selectedRating > 0 {
-            return "Feedback"
+            return "Feedback".localstr()
         } else {
-            return "Rate Us"
+            return "Rate_Us".localstr()
         }
     }
     
@@ -52,7 +52,7 @@ struct RatingView: View {
                 btnTopClose
                 
                 // 标题
-                Text("Evaluate Connection Quality")
+                Text("Evaluate_Connection_Quality".localstr())
                     .font(.title)
                     .fontWeight(.semibold)
                     .foregroundColor(.textGreen)
@@ -69,13 +69,13 @@ struct RatingView: View {
                 // 毛玻璃评分卡片
                 VStack(spacing: 30) {
                     // 评分描述
-                    Text("Great")
+                    Text("Great".localstr())
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.textGreen)
                     
                     // 反馈说明文字
-                    Text("Your feedback and support help us improve constantly.")
+                    Text("Rating_Feedback_Description".localstr())
                         .font(.subheadline)
                         .multilineTextAlignment(.center)
                         .lineLimit(nil)
@@ -181,7 +181,7 @@ struct RatingView: View {
         Button(action: {
             dismiss()
         }) {
-            Text("Close")
+            Text("Close".localstr())
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)

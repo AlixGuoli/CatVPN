@@ -26,7 +26,7 @@ struct PrivacyGuideView: View {
                 }
                 .background(Color(.systemGroupedBackground))
             }
-            .navigationTitle("Privacy Guide")
+            .navigationTitle("Privacy Guide".localstr())
             .navigationBarTitleDisplayMode(.large)
         }
     }
@@ -82,37 +82,22 @@ struct PrivacyGuideView: View {
         VStack(spacing: 20) {
             privacyCard(
                 icon: "shield.lefthalf.filled",
-                title: "Why Privacy Matters",
-                content: """
-                In today's digital world, your online privacy is more important than ever. Every website you visit, every search you make, and every app you use can potentially collect your personal data.
-                
-                A VPN (Virtual Private Network) is one of the most effective tools to protect your privacy and secure your internet connection.
-                """,
+                title: "Privacy_Matters_Title".localstr(),
+                content: "Privacy_Matters_Content".localstr(),
                 color: .blue
             )
             
             privacyCard(
                 icon: "eye.slash.fill",
-                title: "What We Protect",
-                content: """
-                • Your IP address and location
-                • Your browsing history and online activities
-                • Your personal data from hackers and snoopers
-                • Your connection on public Wi-Fi networks
-                • Your access to geo-restricted content
-                """,
+                title: "What_We_Protect_Title".localstr(),
+                content: "What_We_Protect_Content".localstr(),
                 color: .green
             )
             
             privacyCard(
                 icon: "lock.shield.fill",
-                title: "Our Commitment",
-                content: """
-                We are committed to protecting your privacy with:
-                • Military-grade encryption to secure your data
-                • Secure servers located in privacy-friendly countries
-                • Transparent privacy practices and regular security audits
-                """,
+                title: "Our_Commitment_Title".localstr(),
+                content: "Our_Commitment_Content".localstr(),
                 color: .purple
             )
         }
@@ -123,45 +108,22 @@ struct PrivacyGuideView: View {
         VStack(spacing: 20) {
             privacyCard(
                 icon: "network",
-                title: "How VPN Works",
-                content: """
-                A VPN creates a secure, encrypted tunnel between your device and our servers. Here's what happens:
-                
-                1. Your device connects to our VPN server
-                2. All your internet traffic is encrypted
-                3. Your real IP address is hidden
-                4. Websites see our server's IP, not yours
-                5. Your ISP can't see what websites you visit
-                """,
+                title: "How_VPN_Works_Title".localstr(),
+                content: "How_VPN_Works_Content".localstr(),
                 color: .blue
             )
             
             privacyCard(
                 icon: "key.fill",
-                title: "Encryption Explained",
-                content: """
-                We use AES-256 encryption, the same standard used by:
-                • Government agencies
-                • Banks and financial institutions
-                • Military organizations
-                
-                This encryption is so strong that it would take billions of years for a computer to crack it using brute force methods.
-                """,
+                title: "Encryption_Explained_Title".localstr(),
+                content: "Encryption_Explained_Content".localstr(),
                 color: .orange
             )
             
             privacyCard(
                 icon: "globe",
-                title: "Server Locations",
-                content: """
-                Our servers are strategically located around the world to provide:
-                • Fast connection speeds
-                • Access to geo-restricted content
-                • Protection under privacy-friendly laws
-                • Redundancy and reliability
-                
-                Choose servers closer to your location for better speeds, or farther away for enhanced privacy.
-                """,
+                title: "Server_Locations_Title".localstr(),
+                content: "Server_Locations_Content".localstr(),
                 color: .green
             )
         }
@@ -172,52 +134,22 @@ struct PrivacyGuideView: View {
         VStack(spacing: 20) {
             privacyCard(
                 icon: "doc.text.fill",
-                title: "No-Logs Policy",
-                content: """
-                We strictly follow a no-logs policy, which means:
-                
-                ✅ We DON'T log:
-                • Your browsing history
-                • Your real IP address
-                • Your DNS queries
-                • Your connection timestamps
-                • Any content of your communications
-                
-                ❌ We only keep minimal data for service operation:
-                • Aggregated bandwidth usage (not linked to users)
-                • Server performance metrics
-                • Payment information (processed by third parties)
-                """,
+                title: "No_Logs_Policy_Title".localstr(),
+                content: "No_Logs_Policy_Content".localstr(),
                 color: .blue
             )
             
             privacyCard(
                 icon: "creditcard.fill",
-                title: "Payment Privacy",
-                content: """
-                Your payment information is handled securely:
-                
-                • We accept anonymous payment methods
-                • Credit card processing is handled by certified payment processors
-                • We don't store your payment details on our servers
-                • You can use cryptocurrency for maximum anonymity
-                • Account creation requires minimal personal information
-                """,
+                title: "Payment_Privacy_Title".localstr(),
+                content: "Payment_Privacy_Content".localstr(),
                 color: .green
             )
             
             privacyCard(
                 icon: "externaldrive.fill",
-                title: "Data Storage",
-                content: """
-                All our servers operate on RAM-only systems:
-                
-                • No data is written to hard drives
-                • All data is wiped when servers restart
-                • Physical server security in certified data centers
-                • Regular security audits by independent firms
-                • Compliance with international privacy standards
-                """,
+                title: "Data_Storage_Title".localstr(),
+                content: "Data_Storage_Content".localstr(),
                 color: .purple
             )
         }
@@ -228,60 +160,22 @@ struct PrivacyGuideView: View {
         VStack(spacing: 20) {
             privacyCard(
                 icon: "wifi",
-                title: "Public Wi-Fi Safety",
-                content: """
-                Public Wi-Fi networks are convenient but dangerous:
-                
-                🚨 Risks:
-                • Hackers can intercept your data
-                • Fake hotspots can steal your information
-                • Man-in-the-middle attacks
-                • Malware distribution
-                
-                ✅ VPN Protection:
-                • Encrypts all your traffic
-                • Prevents data interception
-                • Hides your activity from network operators
-                • Secures your connection on any network
-                """,
+                title: "Public_WiFi_Safety_Title".localstr(),
+                content: "Public_WiFi_Safety_Content".localstr(),
                 color: .red
             )
             
             privacyCard(
                 icon: "eye.slash",
-                title: "ISP Tracking Prevention",
-                content: """
-                Your Internet Service Provider (ISP) can see:
-                • Every website you visit
-                • How long you spend on each site
-                • Your download and upload activities
-                • Your online habits and interests
-                
-                With a VPN:
-                • Your ISP only sees encrypted traffic to our servers
-                • Your browsing history remains private
-                • No throttling based on content type
-                • Protection from ISP data selling
-                """,
+                title: "ISP_Tracking_Prevention_Title".localstr(),
+                content: "ISP_Tracking_Prevention_Content".localstr(),
                 color: .orange
             )
             
             privacyCard(
                 icon: "location.slash",
-                title: "Location Privacy",
-                content: """
-                Your IP address reveals:
-                • Your approximate physical location
-                • Your internet service provider
-                • Your timezone and region
-                • Potentially your identity
-                
-                VPN benefits:
-                • Masks your real location
-                • Prevents geo-tracking
-                • Bypasses location-based restrictions
-                • Enables access to global content
-                """,
+                title: "Location_Privacy_Title".localstr(),
+                content: "Location_Privacy_Content".localstr(),
                 color: .blue
             )
         }
@@ -292,67 +186,22 @@ struct PrivacyGuideView: View {
         VStack(spacing: 20) {
             privacyCard(
                 icon: "checkmark.shield.fill",
-                title: "VPN Best Practices",
-                content: """
-                🔹 Always connect before browsing
-                • Turn on VPN before opening any apps
-                • Use auto-connect for trusted networks
-                • Enable kill switch to prevent leaks
-                
-                🔹 Choose the right server
-                • Nearby servers for speed
-                • Distant servers for privacy
-                • Specific countries for content access
-                
-                🔹 Keep your VPN updated
-                • Install updates promptly
-                • Use the latest app version
-                • Report any issues immediately
-                """,
+                title: "VPN_Best_Practices_Title".localstr(),
+                content: "VPN_Best_Practices_Content".localstr(),
                 color: .green
             )
             
             privacyCard(
                 icon: "person.crop.circle.badge.exclamationmark",
-                title: "Additional Privacy Tips",
-                content: """
-                🔒 Use strong, unique passwords
-                • Enable two-factor authentication
-                • Use a password manager
-                • Regularly update your passwords
-                
-                🔒 Browser privacy
-                • Use private/incognito mode
-                • Clear cookies and cache regularly
-                • Disable location services
-                • Use privacy-focused browsers
-                
-                🔒 Social media safety
-                • Review privacy settings
-                • Limit personal information sharing
-                • Be cautious with public posts
-                • Use privacy-focused alternatives
-                """,
+                title: "Additional_Privacy_Tips_Title".localstr(),
+                content: "Additional_Privacy_Tips_Content".localstr(),
                 color: .purple
             )
             
             privacyCard(
                 icon: "exclamationmark.triangle.fill",
-                title: "What VPN Cannot Do",
-                content: """
-                🚫 VPN limitations:
-                • Cannot protect against malware
-                • Doesn't prevent phishing attacks
-                • Cannot secure compromised accounts
-                • Doesn't make illegal activities legal
-                
-                🛡️ Additional protection needed:
-                • Use antivirus software
-                • Keep software updated
-                • Be cautious with email links
-                • Verify website authenticity
-                • Use secure messaging apps
-                """,
+                title: "What_VPN_Cannot_Do_Title".localstr(),
+                content: "What_VPN_Cannot_Do_Content".localstr(),
                 color: .orange
             )
         }
@@ -400,15 +249,15 @@ enum PrivacySection: CaseIterable {
     var title: String {
         switch self {
         case .overview:
-            return "Overview"
+            return "Overview".localstr()
         case .vpnBasics:
-            return "VPN Basics"
+            return "VPN_Basics".localstr()
         case .dataProtection:
-            return "Data Protection"
+            return "Data_Protection".localstr()
         case .onlineSafety:
-            return "Online Safety"
+            return "Online_Safety".localstr()
         case .bestPractices:
-            return "Best Practices"
+            return "Best_Practices".localstr()
         }
     }
 }

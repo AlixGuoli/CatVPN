@@ -401,7 +401,7 @@ struct VPNMainView: View {
     private var glassyStatusHeaderView: some View {
         HStack {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Connection Status")
+                Text("Connection Status".localstr())
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fontWeight(.medium)
@@ -444,13 +444,13 @@ struct VPNMainView: View {
                         .font(.caption)
                         .foregroundColor(mainViewModel.connectionStatus == .connected ? .green : .orange)
                     
-                    Text("Your IP")
+                    Text("Your IP".localstr())
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .fontWeight(.medium)
                 }
                 
-                Text(mainViewModel.connectionStatus == .connected ? "Protected" : "Exposed")
+                Text(mainViewModel.connectionStatus == .connected ? "Protected".localstr() : "Exposed".localstr())
                     .font(.subheadline)
                     .fontWeight(.bold)
                     .padding(.horizontal, 12)
@@ -506,7 +506,7 @@ struct VPNMainView: View {
     // 毛玻璃效果的网络质量指示器
     private var glassyNetworkQualityIndicator: some View {
         HStack {
-            Text("Network Quality")
+            Text("Network Quality".localstr())
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
@@ -531,7 +531,7 @@ struct VPNMainView: View {
                 }
             }
             
-            Text("Excellent")
+            Text("Excellent".localstr())
                 .font(.caption)
                 .fontWeight(.medium)
                 .foregroundColor(.green)
@@ -593,7 +593,7 @@ struct VPNMainView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Selected Server")
+                        Text("Selected Server".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .fontWeight(.medium)
@@ -603,12 +603,12 @@ struct VPNMainView: View {
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
                         
-                        HStack(spacing: 12) {
+                        HStack(spacing: 8) {
                             Label("\(mainViewModel.selectedServer.ping)ms", systemImage: "timer")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             
-                            Label("Fast", systemImage: "bolt.fill")
+                            Label("Fast".localstr(), systemImage: "bolt.fill")
                                 .font(.caption)
                                 .foregroundColor(.green)
                         }
@@ -622,14 +622,14 @@ struct VPNMainView: View {
                             .font(.title3)
                             .foregroundColor(.green)
                         
-                        Text("Change")
+                        Text("Change".localstr())
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.green)
                     }
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 20)
             .padding(.vertical, 20)
             .background(.regularMaterial)
             .background(
@@ -671,7 +671,7 @@ struct VPNMainView: View {
             // 连接时间
             glassyStatCard(
                 icon: "clock.fill",
-                title: "Duration",
+                title: "Duration".localstr(),
                 value: mainViewModel.connectionTime,
                 color: .green
             )
@@ -679,7 +679,7 @@ struct VPNMainView: View {
             // 数据传输
             glassyStatCard(
                 icon: "arrow.up.arrow.down",
-                title: "Data",
+                title: "Data".localstr(),
                 value: mainViewModel.dataTransferred,
                 color: .mint
             )
@@ -751,10 +751,10 @@ struct VPNMainView: View {
     private var glassyRecentActivityCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Network Speed")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                            Text("Network Speed".localstr())
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
                 
                 Spacer()
                 
@@ -766,7 +766,7 @@ struct VPNMainView: View {
                         .scaleEffect(pulseAnimation ? 1.2 : 0.8)
                         .animation(.easeInOut(duration: 1.0).repeatForever(), value: pulseAnimation)
                     
-                    Text("Live")
+                    Text("Live".localstr())
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.green)
@@ -780,7 +780,7 @@ struct VPNMainView: View {
                             .font(.title3)
                             .foregroundColor(.orange)
                         
-                        Text("Upload")
+                        Text("Upload".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .fontWeight(.medium)
@@ -802,7 +802,7 @@ struct VPNMainView: View {
                             .font(.title3)
                             .foregroundColor(.cyan)
                         
-                        Text("Download")
+                        Text("Download".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .fontWeight(.medium)
@@ -894,13 +894,15 @@ struct VPNMainView: View {
                         color: .blue,
                         action: { showLanguageSelection = true }
                     )
+                    .frame(maxWidth: .infinity)
                     
                     glassyActionButton(
                         icon: "doc.text.fill",
-                        title: "Privacy Guide".localstr(),
+                        title: "Privacy".localstr(),
                         color: .purple,
                         action: { showPrivacyGuide = true }
                     )
+                    .frame(maxWidth: .infinity)
                 }
                 
 //                HStack(spacing: 14) {

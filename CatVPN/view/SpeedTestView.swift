@@ -36,7 +36,7 @@ struct SpeedTestView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
             }
-            .navigationTitle("Speed Test")
+            .navigationTitle("Speed Test".localstr())
             .navigationBarTitleDisplayMode(.large)
             .background(
                 LinearGradient(
@@ -95,7 +95,7 @@ struct SpeedTestView: View {
                                 .font(.system(size: 40))
                                 .foregroundColor(.blue)
                             
-                            Text("Speed Test")
+                            Text("Speed Test".localstr())
                                 .font(.headline)
                                 .fontWeight(.semibold)
                         }
@@ -115,7 +115,7 @@ struct SpeedTestView: View {
                     Image(systemName: speedTester.status == .testing ? "stop.fill" : "play.fill")
                         .font(.headline)
                     
-                    Text(speedTester.status == .testing ? "Stop Test" : "Start Test")
+                    Text(speedTester.status == .testing ? "Stop Test".localstr() : "Start Test".localstr())
                         .font(.headline)
                         .fontWeight(.semibold)
                 }
@@ -145,7 +145,7 @@ struct SpeedTestView: View {
     // 测速结果视图
     private var speedResultsView: some View {
         VStack(spacing: 16) {
-            Text("Test Results")
+            Text("Test Results".localstr())
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -153,7 +153,7 @@ struct SpeedTestView: View {
             HStack(spacing: 16) {
                 // 下载速度
                 speedMetricCard(
-                    title: "Download",
+                    title: "Download".localstr(),
                     value: String(format: "%.2f", speedTester.currentDownloadSpeed),
                     unit: "Mbps",
                     icon: "arrow.down.circle.fill",
@@ -162,7 +162,7 @@ struct SpeedTestView: View {
                 
                 // 上传速度
                 speedMetricCard(
-                    title: "Upload",
+                    title: "Upload".localstr(),
                     value: String(format: "%.2f", speedTester.currentUploadSpeed),
                     unit: "Mbps",
                     icon: "arrow.up.circle.fill",
@@ -172,7 +172,7 @@ struct SpeedTestView: View {
             
             // Ping单独显示
             speedMetricCard(
-                title: "Ping",
+                title: "Ping".localstr(),
                 value: "\(speedTester.ping)",
                 unit: "ms",
                 icon: "timer",
@@ -223,7 +223,7 @@ struct SpeedTestView: View {
     private func lastTestResultView(result: SpeedTestResult) -> some View {
         VStack(spacing: 16) {
             HStack {
-                Text("Last Test Result")
+                Text("Last Test Result".localstr())
                     .font(.headline)
                     .fontWeight(.semibold)
                 
@@ -236,17 +236,17 @@ struct SpeedTestView: View {
             
             VStack(spacing: 12) {
                 HStack {
-                    Label("Download: \(result.downloadSpeedString)", systemImage: "arrow.down.circle")
+                    Label("Download".localstr() + ": \(result.downloadSpeedString)", systemImage: "arrow.down.circle")
                         .foregroundColor(.blue)
                     
                     Spacer()
                     
-                    Label("Upload: \(result.uploadSpeedString)", systemImage: "arrow.up.circle")
+                    Label("Upload".localstr() + ": \(result.uploadSpeedString)", systemImage: "arrow.up.circle")
                         .foregroundColor(.green)
                 }
                 
                 HStack {
-                    Label("Ping: \(result.pingString)", systemImage: "timer")
+                    Label("Ping".localstr() + ": \(result.pingString)", systemImage: "timer")
                         .foregroundColor(.orange)
                     
                     Spacer()
@@ -268,10 +268,10 @@ struct SpeedTestView: View {
     // 测试说明
     private var testInstructionsView: some View {
         VStack(spacing: 16) {
-            Text("How it works")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                                    Text("How it works".localstr())
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 12) {
@@ -280,11 +280,11 @@ struct SpeedTestView: View {
                         .font(.title3)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Ping Test")
+                        Text("Ping Test".localstr())
                             .font(.subheadline)
                             .fontWeight(.semibold)
                         
-                        Text("Measures network latency to determine response time")
+                        Text("Measures network latency to determine response time".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -296,11 +296,11 @@ struct SpeedTestView: View {
                         .font(.title3)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Download Test")
+                        Text("Download Test".localstr())
                             .font(.subheadline)
                             .fontWeight(.semibold)
                         
-                        Text("Downloads test data to measure your connection speed")
+                        Text("Downloads test data to measure your connection speed".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -312,11 +312,11 @@ struct SpeedTestView: View {
                         .font(.title3)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Upload Test")
+                        Text("Upload Test".localstr())
                             .font(.subheadline)
                             .fontWeight(.semibold)
                         
-                        Text("Uploads test data to measure your upload speed")
+                        Text("Uploads test data to measure your upload speed".localstr())
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

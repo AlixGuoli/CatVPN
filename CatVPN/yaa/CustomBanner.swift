@@ -76,7 +76,7 @@ class CustomBanner: UIViewController {
         skipButtonLabel.textAlignment = .center
         skipButtonLabel.textColor = .white
         skipButtonLabel.font = UIFont(name: "PingFangSC-Regular", size: 14)
-        skipButtonLabel.text = String(format: "Skip Ad Time", remainingSeconds)
+        skipButtonLabel.text = String(format: "Skip_Ad_Time".localstr(), remainingSeconds)
         skipButtonLabel.isUserInteractionEnabled = !isClickPenetrated
         skipButtonContainer.isUserInteractionEnabled = !isClickPenetrated
         
@@ -162,9 +162,9 @@ class CustomBanner: UIViewController {
                 skipButtonLabel.isUserInteractionEnabled = true
                 skipButtonContainer.isUserInteractionEnabled = true
             }
-            skipButtonLabel.text = "Skip Ad"
+            skipButtonLabel.text = "Skip_Ad".localstr()
         } else {
-            skipButtonLabel.text = String(format: "Skip Ad Time", remainingSeconds)
+            skipButtonLabel.text = String(format: "Skip_Ad_Time".localstr(), remainingSeconds)
         }
     }
 } 

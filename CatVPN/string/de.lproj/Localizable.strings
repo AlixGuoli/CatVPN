@@ -18,10 +18,158 @@
 "Quick Actions" = "Schnellaktionen";
 "Servers" = "Server";
 "Privacy Guide" = "Datenschutz-Anleitung";
-"Language" = "Sprache";
 "Settings" = "Einstellungen";
 
 // 启动页
 "VPN Shield" = "VPN Schild";
 "Secure connection, enjoy the network smoothly" = "Sichere Verbindung, genießen Sie das Netzwerk reibungslos";
 "Initializing..." = "Initialisierung...";
+
+// VPNMainView - 连接状态
+"Connection Status" = "Verbindungsstatus";
+"Your IP" = "Ihre IP";
+"Protected" = "Geschützt";
+"Exposed" = "Ungeschützt";
+
+// VPNMainView - 网络质量
+"Network Quality" = "Netzwerkqualität";
+"Excellent" = "Ausgezeichnet";
+
+// VPNMainView - 服务器信息
+"Selected Server" = "Ausgewählter Server";
+"Fast" = "Schnell";
+"Change" = "Ändern";
+
+// VPNMainView - 连接统计
+"Duration" = "Dauer";
+"Data" = "Daten";
+
+// VPNMainView - 网络速度
+"Network Speed" = "Netzwerkgeschwindigkeit";
+"Live" = "Live";
+"Upload" = "Upload";
+"Download" = "Download";
+
+// VPNConnectionButton - 连接状态文本
+"VPN_Button_Click_Connect" = "Verbinden";
+"VPN_Button_Connecting" = "Verbinde";
+"VPN_Button_Connected" = "Verbunden";
+"VPN_Button_Connection_Failed" = "Verbindung fehlgeschlagen";
+
+// SpeedTestView - 测速页面
+"Speed Test" = "Geschwindigkeitstest";
+"Start Test" = "Test starten";
+"Stop Test" = "Test stoppen";
+"Test Results" = "Testergebnisse";
+"Ping" = "Ping";
+"Last Test Result" = "Letztes Testergebnis";
+"How it works" = "Wie es funktioniert";
+"Ping Test" = "Ping-Test";
+"Measures network latency to determine response time" = "Misst die Netzwerk-Latenz zur Bestimmung der Antwortzeit";
+"Download Test" = "Download-Test";
+"Downloads test data to measure your connection speed" = "Lädt Testdaten herunter, um Ihre Verbindungsgeschwindigkeit zu messen";
+"Upload Test" = "Upload-Test";
+"Uploads test data to measure your upload speed" = "Lädt Testdaten hoch, um Ihre Upload-Geschwindigkeit zu messen";
+
+// ServerSelectionView - 服务器选择页面
+"Select Server" = "Server auswählen";
+"Search servers..." = "Server suchen...";
+"loading..." = "Laden...";
+
+// PrivacyPopupView - 隐私弹窗
+"Privacy_First" = "Datenschutz zuerst";
+"Privacy_Priority" = "Ihr Datenschutz ist unsere Priorität";
+"Proxy_Only" = "Nur Proxy";
+"Proxy_Description" = "VPN-Verbindung wird ausschließlich für sichere Proxy-Zwecke verwendet";
+"Anonymous" = "Anonym";
+"Anonymous_Description" = "Ihre Browser-Aktivität bleibt vollständig anonym";
+"Privacy_Agreement" = "Durch die Nutzung dieser App stimmen Sie unserem datenschutzorientierten Ansatz zu. Wir glauben an vollständige Transparenz bei unseren Datenpraktiken.";
+"I_Understand" = "Ich verstehe";
+
+// PrivacyGuideView - 隐私指南页面
+"Privacy Guide" = "Datenschutz-Anleitung";
+"Overview" = "Übersicht";
+"VPN_Basics" = "VPN-Grundlagen";
+"Data_Protection" = "Datenschutz";
+"Online_Safety" = "Online-Sicherheit";
+"Best_Practices" = "Beste Praktiken";
+
+// PrivacyGuideView - 概述部分
+"Privacy_Matters_Title" = "Warum Datenschutz wichtig ist";
+"Privacy_Matters_Content" = "In der heutigen digitalen Welt ist Ihre Online-Privatsphäre wichtiger denn je. Jede Website, die Sie besuchen, jede Suche, die Sie durchführen, und jede App, die Sie verwenden, kann potenziell Ihre persönlichen Daten sammeln.\n\nEin VPN (Virtual Private Network) ist eines der effektivsten Tools zum Schutz Ihrer Privatsphäre und zur Sicherung Ihrer Internetverbindung.";
+"What_We_Protect_Title" = "Was wir schützen";
+"What_We_Protect_Content" = "• Ihre IP-Adresse und Ihren Standort\n• Ihren Browser-Verlauf und Online-Aktivitäten\n• Ihre persönlichen Daten vor Hackern und Schnüfflern\n• Ihre Verbindung in öffentlichen Wi-Fi-Netzwerken\n• Ihren Zugang zu geo-beschränktem Inhalt";
+"Our_Commitment_Title" = "Unser Engagement";
+"Our_Commitment_Content" = "Wir setzen uns für den Schutz Ihrer Privatsphäre ein mit:\n• Militärischer Verschlüsselung zur Sicherung Ihrer Daten\n• Sicheren Servern in datenschutzfreundlichen Ländern\n• Transparenten Datenschutzpraktiken und regelmäßigen Sicherheitsaudits";
+
+// PrivacyGuideView - VPN基础知识部分
+"How_VPN_Works_Title" = "Wie VPN funktioniert";
+"How_VPN_Works_Content" = "Ein VPN erstellt einen sicheren, verschlüsselten Tunnel zwischen Ihrem Gerät und unseren Servern. Hier ist was passiert:\n\n1. Ihr Gerät verbindet sich mit unserem VPN-Server\n2. Ihr gesamter Internetverkehr wird verschlüsselt\n3. Ihre echte IP-Adresse wird versteckt\n4. Websites sehen die IP unseres Servers, nicht Ihre\n5. Ihr ISP kann nicht sehen, welche Websites Sie besuchen";
+"Encryption_Explained_Title" = "Verschlüsselung erklärt";
+"Encryption_Explained_Content" = "Wir verwenden AES-256-Verschlüsselung, denselben Standard, der verwendet wird von:\n• Regierungsbehörden\n• Banken und Finanzinstituten\n• Militärorganisationen\n\nDiese Verschlüsselung ist so stark, dass es Milliarden von Jahren dauern würde, bis ein Computer sie mit Brute-Force-Methoden knacken könnte.";
+"Server_Locations_Title" = "Server-Standorte";
+"Server_Locations_Content" = "Unsere Server sind strategisch auf der ganzen Welt positioniert, um zu bieten:\n• Schnelle Verbindungsgeschwindigkeiten\n• Zugang zu geo-beschränktem Inhalt\n• Schutz unter datenschutzfreundlichen Gesetzen\n• Redundanz und Zuverlässigkeit\n\nWählen Sie Server näher an Ihrem Standort für bessere Geschwindigkeiten oder weiter entfernt für verstärkte Privatsphäre.";
+
+// PrivacyGuideView - 数据保护部分
+"No_Logs_Policy_Title" = "No-Logs-Richtlinie";
+"No_Logs_Policy_Content" = "Wir befolgen strikt eine No-Logs-Richtlinie, was bedeutet:\n\n✅ Wir protokollieren NICHT:\n• Ihren Browser-Verlauf\n• Ihre echte IP-Adresse\n• Ihre DNS-Abfragen\n• Ihre Verbindungszeitstempel\n• Den Inhalt Ihrer Kommunikation\n\n❌ Wir speichern nur minimale Daten für den Servicebetrieb:\n• Aggregierte Bandbreitennutzung (nicht mit Benutzern verknüpft)\n• Server-Leistungsmetriken\n• Zahlungsinformationen (von Dritten verarbeitet)";
+"Payment_Privacy_Title" = "Zahlungsdatenschutz";
+"Payment_Privacy_Content" = "Ihre Zahlungsinformationen werden sicher behandelt:\n\n• Wir akzeptieren anonyme Zahlungsmethoden\n• Kreditkartenverarbeitung wird von zertifizierten Zahlungsabwicklern durchgeführt\n• Wir speichern Ihre Zahlungsdetails nicht auf unseren Servern\n• Sie können Kryptowährung für maximale Anonymität verwenden\n• Die Kontoerstellung erfordert minimale persönliche Informationen";
+"Data_Storage_Title" = "Datenspeicherung";
+"Data_Storage_Content" = "Alle unsere Server arbeiten mit RAM-only-Systemen:\n\n• Keine Daten werden auf Festplatten geschrieben\n• Alle Daten werden beim Neustart der Server gelöscht\n• Physische Serversicherheit in zertifizierten Rechenzentren\n• Regelmäßige Sicherheitsaudits durch unabhängige Firmen\n• Einhaltung internationaler Datenschutzstandards";
+
+// PrivacyGuideView - 在线安全部分
+"Public_WiFi_Safety_Title" = "Öffentliche Wi-Fi-Sicherheit";
+"Public_WiFi_Safety_Content" = "Öffentliche Wi-Fi-Netzwerke sind bequem, aber gefährlich:\n\n🚨 Risiken:\n• Hacker können Ihre Daten abfangen\n• Falsche Hotspots können Ihre Informationen stehlen\n• Man-in-the-Middle-Angriffe\n• Malware-Verbreitung\n\n✅ VPN-Schutz:\n• Verschlüsselt Ihren gesamten Verkehr\n• Verhindert Datenabfangen\n• Versteckt Ihre Aktivität vor Netzwerkbetreibern\n• Sichert Ihre Verbindung in jedem Netzwerk";
+"ISP_Tracking_Prevention_Title" = "ISP-Tracking-Verhinderung";
+"ISP_Tracking_Prevention_Content" = "Ihr Internetdienstanbieter (ISP) kann sehen:\n• Jede Website, die Sie besuchen\n• Wie lange Sie auf jeder Seite verbringen\n• Ihre Download- und Upload-Aktivitäten\n• Ihre Online-Gewohnheiten und Interessen\n\nMit einem VPN:\n• Ihr ISP sieht nur verschlüsselten Verkehr zu unseren Servern\n• Ihr Browser-Verlauf bleibt privat\n• Keine Drosselung basierend auf Inhaltstyp\n• Schutz vor ISP-Datenverkauf";
+"Location_Privacy_Title" = "Standort-Datenschutz";
+"Location_Privacy_Content" = "Ihre IP-Adresse enthüllt:\n• Ihren ungefähren physischen Standort\n• Ihren Internetdienstanbieter\n• Ihre Zeitzone und Region\n• Potenziell Ihre Identität\n\nVPN-Vorteile:\n• Maskiert Ihren echten Standort\n• Verhindert Geo-Tracking\n• Umgeht standortbasierte Beschränkungen\n• Ermöglicht Zugang zu globalem Inhalt";
+
+// PrivacyGuideView - 最佳实践部分
+"VPN_Best_Practices_Title" = "VPN-Best-Praktiken";
+"VPN_Best_Practices_Content" = "🔹 Verbinden Sie sich immer vor dem Browsen\n• Schalten Sie VPN ein, bevor Sie Apps öffnen\n• Verwenden Sie Auto-Verbindung für vertrauenswürdige Netzwerke\n• Aktivieren Sie Kill Switch, um Lecks zu verhindern\n\n🔹 Wählen Sie den richtigen Server\n• Nahe Server für Geschwindigkeit\n• Entfernte Server für Privatsphäre\n• Bestimmte Länder für Inhaltszugang\n\n🔹 Halten Sie Ihr VPN aktuell\n• Installieren Sie Updates umgehend\n• Verwenden Sie die neueste App-Version\n• Melden Sie Probleme sofort";
+"Additional_Privacy_Tips_Title" = "Zusätzliche Datenschutz-Tipps";
+"Additional_Privacy_Tips_Content" = "🔒 Verwenden Sie starke, eindeutige Passwörter\n• Aktivieren Sie Zwei-Faktor-Authentifizierung\n• Verwenden Sie einen Passwort-Manager\n• Aktualisieren Sie Passwörter regelmäßig\n\n🔒 Browser-Datenschutz\n• Verwenden Sie privaten/Inkognito-Modus\n• Löschen Sie Cookies und Cache regelmäßig\n• Deaktivieren Sie Standortdienste\n• Verwenden Sie datenschutzorientierte Browser\n\n🔒 Social Media-Sicherheit\n• Überprüfen Sie Datenschutzeinstellungen\n• Begrenzen Sie die Weitergabe persönlicher Informationen\n• Seien Sie vorsichtig mit öffentlichen Beiträgen\n• Verwenden Sie datenschutzorientierte Alternativen";
+"What_VPN_Cannot_Do_Title" = "Was VPN nicht kann";
+"What_VPN_Cannot_Do_Content" = "🚫 VPN-Beschränkungen:\n• Kann nicht vor Malware schützen\n• Verhindert keine Phishing-Angriffe\n• Kann kompromittierte Konten nicht sichern\n• Macht illegale Aktivitäten nicht legal\n\n🛡️ Zusätzlicher Schutz erforderlich:\n• Verwenden Sie Antivirus-Software\n• Halten Sie Software aktuell\n• Seien Sie vorsichtig mit E-Mail-Links\n• Überprüfen Sie Website-Authentizität\n• Verwenden Sie sichere Messaging-Apps";
+
+// DisconnectConfirmView - 断开连接确认弹窗
+"Disconnect_Confirm_Message" = "Sind Sie sicher, dass Sie sich trennen möchten?";
+"Yes" = "Ja";
+
+// ConnectSuccessView - 连接成功页面
+"Close" = "Schließen";
+"Tell_Friends_Title" = "Freunden erzählen";
+"Tell_Friends_Description" = "Gefällt Ihnen unsere App? Teilen Sie sie und laden Sie Ihre Freunde ein!";
+"Follow_Us_Title" = "Folgen Sie uns";
+"Follow_Us_Description" = "Bleiben Sie auf dem Laufenden! Abonnieren Sie jetzt unseren Telegram-Kanal!";
+"Disconnected!" = "Getrennt!";
+"Connecting..." = "Verbinde...";
+"Connection_Successful" = "Verbindung erfolgreich!";
+"Connection_Failed" = "Verbindung fehlgeschlagen";
+
+// RatingView - 评分页面
+"Evaluate_Connection_Quality" = "Verbindungsqualität bewerten";
+"Great" = "Großartig";
+"Rating_Feedback_Description" = "Ihr Feedback und Ihre Unterstützung helfen uns, uns ständig zu verbessern.";
+"Rate_Us" = "Bewerten Sie uns";
+"Feedback" = "Feedback";
+
+// MainViewmodel - 主视图模型
+"Start" = "Start";
+"Stop" = "Stopp";
+"Connecting" = "Verbinde";
+"Connected" = "Verbunden";
+"Disconnected" = "Getrennt";
+"Disconnecting" = "Trenne";
+"Reasserting" = "Wiederherstellen";
+"Invalid" = "Ungültig";
+"Unknown" = "Unbekannt";
+
+// CustomBanner - 自定义横幅广告
+"Skip_Ad" = "Werbung überspringen";
+"Skip_Ad_Time" = "Werbung in %ld überspringen";
+
+// 其他
+"Privacy" = "Datenschutz";

@@ -57,7 +57,7 @@ struct ConnectSuccessView: View {
         Button(action: {
             dismiss()
         }) {
-            Text("Close")
+            Text("Close".localstr())
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
@@ -147,10 +147,10 @@ struct ConnectSuccessView: View {
             Image(.share)
                 .resizable()
                 .frame(width: 50, height: 50)
-            Text("Tell Friends")
+            Text("Tell_Friends_Title".localstr())
                 .font(.title2)
                 .fontWeight(.semibold)
-            Text("Love our app? Share it and invite your friends!")
+            Text("Tell_Friends_Description".localstr())
                 .font(.caption)
                 .lineLimit(nil)
                 .multilineTextAlignment(.leading)
@@ -169,10 +169,10 @@ struct ConnectSuccessView: View {
             Image(.tg)
                 .resizable()
                 .frame(width: 50, height: 50)
-            Text("Follow us")
+            Text("Follow_Us_Title".localstr())
                 .font(.title2)
                 .fontWeight(.semibold)
-            Text("Stay updated! Subscribe to our Telegram channel now!")
+            Text("Follow_Us_Description".localstr())
                 .font(.caption)
                 .lineLimit(nil)
                 .multilineTextAlignment(.leading)
@@ -189,13 +189,13 @@ struct ConnectSuccessView: View {
     func getStatusText(status: VPNConnectionStatus) -> String {
         switch status {
         case .disconnected:
-            return "Disconnected!"
+            return "Disconnected!".localstr()
         case .connecting:
-            return "Connecting..."
+            return "Connecting...".localstr()
         case .connected:
-            return "Connection Successful!"
+            return "Connection_Successful".localstr()
         case .failed:
-            return "Connection Failed"
+            return "Connection_Failed".localstr()
         }
     }
     

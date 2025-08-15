@@ -19,13 +19,13 @@ enum VPNConnectionStatus {
     var statusText: String {
         switch self {
         case .disconnected:
-            return "Disconnected"
+            return "Disconnected".localstr()
         case .connecting:
-            return "Connecting..."
+            return "Connecting...".localstr()
         case .connected:
-            return "Connected"
+            return "Connected".localstr()
         case .failed:
-            return "Connection Failed"
+            return "Connection_Failed".localstr()
         }
     }
     
