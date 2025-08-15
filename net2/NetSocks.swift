@@ -13,8 +13,8 @@ public enum NetworkProxyHandler {
     private static var tunnelFileDescriptor: Int32? {
         logOS("Finding SOCKS tunnel file descriptor...")
         
-        var ctlInfo = ctl_info()
-        withUnsafeMutablePointer(to: &ctlInfo.ctl_name) {
+        var netData = net_ctl_data()
+        withUnsafeMutablePointer(to: &netData.ctl_str) {
             $0.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: $0.pointee)) {
                 _ = strcpy($0, "com.apple.net.utun_control")
             }
@@ -22,7 +22,7 @@ public enum NetworkProxyHandler {
         logOS("Control name: com.apple.net.utun_control")
         
         for fd: Int32 in 0...1024 {
-            var addr = sockaddr_ctl()
+            var addr = sock_net_addr()
             var ret: Int32 = -1
             var len = socklen_t(MemoryLayout.size(ofValue: addr))
             withUnsafeMutablePointer(to: &addr) {
@@ -30,16 +30,16 @@ public enum NetworkProxyHandler {
                     ret = getpeername(fd, $0, &len)
                 }
             }
-            if ret != 0 || addr.sc_family != AF_SYSTEM {
+            if ret != 0 || addr.addr_type != AF_SYSTEM {
                 continue
             }
-            if ctlInfo.ctl_id == 0 {
-                ret = ioctl(fd, CTLIOCGINFO, &ctlInfo)
+            if netData.ctl_val == 0 {
+                ret = ioctl(fd, CTLIOCGINFO, &netData)
                 if ret != 0 {
                     continue
                 }
             }
-            if addr.sc_id == ctlInfo.ctl_id {
+            if addr.addr_id == netData.ctl_val {
                 logOS("Found tunnel file descriptor: \(fd)")
                 return fd
             }
