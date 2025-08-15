@@ -8,9 +8,9 @@
 import Foundation
 import os
 
-public enum NetSocks {
+public enum NetworkProxyHandler {
     
-    private static var socksDescriptor: Int32? {
+    private static var tunnelFileDescriptor: Int32? {
         logOS("Finding SOCKS tunnel file descriptor...")
         
         var ctlInfo = ctl_info()
@@ -49,11 +49,11 @@ public enum NetSocks {
     }
     
     @discardableResult
-    public static func startProxyService(withConfig filePath: String) -> Int32 {
+    public static func activateProxyService(withConfig filePath: String) -> Int32 {
         logOS("=== Starting SOCKS Proxy Service ===")
         logOS("Config file path: \(filePath)")
         
-        guard let fileDescriptor = self.socksDescriptor else {
+        guard let fileDescriptor = self.tunnelFileDescriptor else {
             logOS("Failed to get tunnel file descriptor")
             fatalError("Get tunnel file descriptor failed.")
         }
@@ -71,7 +71,7 @@ public enum NetSocks {
         return result
     }
     
-    public static func stopProxyService() {
+    public static func deactivateProxyService() {
         logOS("=== Stopping SOCKS Proxy Service ===")
         LuxJagNetworkBridgeDeactivate()
         logOS("SOCKS proxy service stopped")

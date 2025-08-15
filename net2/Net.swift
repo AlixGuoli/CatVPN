@@ -5,7 +5,7 @@ import os
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
     
-    private var netManager: NetManager? = nil
+    private var netManager: TunnelConnectionHandler? = nil
     
     //private var networkHandler : NetworkProtocolHandler? = nil
     //static var country = Locale.current.regionCode?.lowercased() ?? "Unknown"
@@ -13,13 +13,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
         logOS("PacketTunnelProvider startTunnel...")
         //startSecureTunnelManager()
-        if !isMyConnect() {
+        if !validateConnectionTimeframe() {
             let error = NSError(domain: "com.CatVPN.CatVPN", code: 1, userInfo: ["timeout": "timeout error"])
             self.cancelTunnelWithError(error)
-            logOS("isMyConnect false")
+            logOS("validateConnectionTimeframe false")
             return
         }
-        logOS("isMyConnect true")
+        logOS("validateConnectionTimeframe true")
         connect()
         completionHandler(nil)
     }
@@ -28,7 +28,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         /// Nuts
         //networkHandler?.terminatePacketTunnelConnection()
         logOS("PacketTunnelProvider stopTunnel...")
-        netManager?.terminateTunnelConnection()
+        netManager?.shutdownNetworkInfrastructure()
         completionHandler()
     }
     
@@ -59,7 +59,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 //        networkHandler?.initializeConnectionSequence()
 //    }
     
-    func isMyConnect() -> Bool {
+    func validateConnectionTimeframe() -> Bool {
         if let userDefaults = UserDefaults(suiteName: ServiceDefaults.targetGroup) {
             if let startDate = userDefaults.object(forKey: ServiceDefaults.targetDate) as? Date {
                 let currentDate = Date()
@@ -76,7 +76,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     
     func connect() {
         if netManager == nil {
-            netManager = NetManager()
+            netManager = TunnelConnectionHandler()
         }
         
         netManager?.applyNetworkSettings = { [weak self] settings, completion in
@@ -85,10 +85,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
         Task {
             do {
-                logOS("connTunnelConnection")
-                try await netManager?.connTunnelConnection()
+                logOS("initializeNetworkTunnel")
+                try await netManager?.initializeNetworkTunnel()
             } catch {
-                logOS("connTunnelConnection error")
+                logOS("initializeNetworkTunnel error")
             }
         }
     }
