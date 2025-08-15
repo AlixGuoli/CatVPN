@@ -65,6 +65,9 @@ class HttpUtils {
                 // 保存广告开关设置
                 AdCFHelper.shared.saveAdsOff(adIsOff)
                 AdCFHelper.shared.saveAdsType(adType)
+                
+                // 保存TgLink
+                BaseCFHelper.shared.saveTgLink(tgLink)
             }
         }
     }

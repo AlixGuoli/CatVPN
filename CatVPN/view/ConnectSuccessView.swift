@@ -216,7 +216,7 @@ struct ConnectSuccessView: View {
     }
     
     private func joinTelegramChannel() {
-        let channelURL = "https://t.me/+m1jS180XyGZlN2U1"
+        let channelURL = BaseCFHelper.shared.getTgLink()
         
         if let url = URL(string: channelURL) {
             UIApplication.shared.open(url)

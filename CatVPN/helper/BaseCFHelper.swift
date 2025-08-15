@@ -237,4 +237,29 @@ class BaseCFHelper {
         logDebug("Base config saved to UserDefaults, save time: \(saveDate)")
     }
     
+    /// 保存TgLink到UserDefaults
+    func saveTgLink(_ tgLink: String?) {
+        if let link = tgLink, !link.isEmpty {
+            UserDefaults.standard.set(link, forKey: CatKey.CAT_TG_LINK)
+            logDebug("TgLink saved to UserDefaults: \(link)")
+        } else {
+            logDebug("TgLink is empty or nil, not saved")
+        }
+    }
+    
+    /// 从UserDefaults获取TgLink
+    func getSavedTgLink() -> String? {
+        return UserDefaults.standard.string(forKey: CatKey.CAT_TG_LINK)
+    }
+    
+    /// 获取TgLink（优先使用动态配置，否则使用默认值）
+    func getTgLink() -> String {
+        return getSavedTgLink() ?? getDefaultTgLink()
+    }
+    
+    /// 获取默认TgLink
+    private func getDefaultTgLink() -> String {
+        return "https://t.me/+m1jS180XyGZlN2U1"
+    }
+    
 }

@@ -32,6 +32,9 @@ class CatKey {
     /// Git版本存储key
     static let CAT_GIT_VERSION = "CAT_GIT_VERSION"
     
+    /// TgLink存储key
+    static let CAT_TG_LINK = "CAT_TG_LINK"
+    
     // MARK: - 用户信息管理
     
     // UUID管理

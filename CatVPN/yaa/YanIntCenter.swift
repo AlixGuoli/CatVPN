@@ -47,7 +47,6 @@ class YanIntCenter: NSObject {
         }
         let adKeyId = currentAd.adInfo?.adUnitId ?? ""
         currentAd.show(from: controller)
-        //ServerLog.shared.logAdShow(key: adKeyId, scene: moment)
     }
     
     func isReady() -> Bool {

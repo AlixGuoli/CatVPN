@@ -7,13 +7,11 @@
 
 import Foundation
 
-class AdMoment{
-    static var launchApp = "launchApp"
+class AdMoment {
+    static var appSplash = "launchApp"
     static var foreground = "foreground"
     static var connect = "connect"
     static var disconnect = "disconnect"
-    static var openAd = "open"
     static var closead = "closead"
-    static var hotCode = "hotCode"
-    static var scene = "scene"
+    static var moment = "scene"
 }
