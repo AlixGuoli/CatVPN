@@ -20,7 +20,7 @@ class ADSCenter {
     var isVip = false
 
     private var isAdsOpen: Bool {
-        // 测试服
+        // 测试服 关闭广告
         //return false
         
         if isVip {

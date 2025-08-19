@@ -10,12 +10,12 @@ import UIKit
 
 class CustomBanner: UIViewController {
     
-    private var countdownTimer = 6
-    private let skipContainer = UIView()
-    private let skipLabel = UILabel()
     private var adClicked = false
     private var delayEnabled = false
     private var penetrationEnabled = false
+    private var countdownTimer = 6
+    private let skipContainer = UIView()
+    private let skipLabel = UILabel()
     
     var onDismiss: (() -> Void)?
     
@@ -172,7 +172,8 @@ class CustomBanner: UIViewController {
             countdownTimer -= 1
             refreshSkipButtonText()
         } else {
-            enableSkipButton()
+            skipLabel.isUserInteractionEnabled = true
+            skipContainer.isUserInteractionEnabled = true
             refreshSkipButtonText()
             timer.invalidate()
         }
@@ -191,6 +192,7 @@ class CustomBanner: UIViewController {
         let timeExpired = countdownTimer <= 0
         
         if timeExpired {
+            enableSkipButton()
             skipLabel.text = "Skip_Ad".localstr()
         } else {
             skipLabel.text = String(format: "Skip_Ad_Time".localstr(), countdownTimer)

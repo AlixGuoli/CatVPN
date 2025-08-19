@@ -419,14 +419,16 @@ class MainViewmodel: ObservableObject {
     
     func connectFailed() {
         logDebug("Connect Failed")
-        stopConnect()
-        self.resultStatus = .failed
-        self.showResult = true
         ReportCat.shared.reportConnect(
             moment: ReportCat.E_FAIL,
             ip: ServiceCFHelper.shared.ipService,
             sid: ServiceCFHelper.shared.idConnect
         )
+        stopConnect()
+        DispatchQueue.main.async {
+            self.resultStatus = .failed
+            self.showResult = true
+        }
     }
     
     func checkGG() {

@@ -158,14 +158,17 @@ class ReportCat {
             return
         }
         
-        let request = URLRequest(url: url, timeoutInterval: TimeInterval(ReportCat.TIMEOUT))
+        //let request = URLRequest(url: url, timeoutInterval: TimeInterval(ReportCat.TIMEOUT))
+        /// 不设置超时
+        let request = URLRequest(url: url)
+        //logDebug("ReportCat: Request Url: \(url)")
         
         AF.request(request).response { response in
             switch response.result {
             case .success:
                 logDebug("ReportCat: Request success ** url: \(url)")
             case .failure(let error):
-                logDebug("ReportCat: Request failed: \(error.localizedDescription)")
+                logDebug("ReportCat: Request failed: \(error.localizedDescription) ** \nUtl: \(url)")
             }
         }
     }

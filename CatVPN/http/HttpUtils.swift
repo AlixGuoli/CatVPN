@@ -182,7 +182,12 @@ class HttpUtils {
         
         // 3. 使用配置尝试请求
         logDebug("Request with host config")
-        if let response = await performRequestWithConfig(hostConfig: config, url: url, param: param) {
+        /// 测试服
+//        logDebug("模拟失败")
+//        if let response = await performRequestWithConfig(url: "url", param: param) {
+//            return response
+//        }
+        if let response = await performRequestWithConfig(url: url, param: param) {
             return response
         }
         
@@ -198,16 +203,16 @@ class HttpUtils {
         
         // 5. 使用更新后的配置重试
         logDebug("Try again request with updated host config")
-        return await performRequestWithConfig(hostConfig: HostCFHelper.shared.getCurOrLoaclHostCF(), url: url, param: param)
+        return await performRequestWithConfig(url: url, param: param)
     }
     
     /// 使用指定配置发起请求
     /// - Parameters:
-    ///   - hostConfig: 域名配置字符串
+    ///   - hostConfig: 域名配置字符串(移除，通过HostCFHelper获取，因为更新git会保存到本地)
     ///   - url: 请求路径
     ///   - param: 请求参数
     /// - Returns: 响应字符串
-    private func performRequestWithConfig(hostConfig: String?, url: String, param: [String: Any]) async -> String? {
+    private func performRequestWithConfig(url: String, param: [String: Any]) async -> String? {
         guard let hostList = HostCFHelper.shared.getHostList() else {
             logDebug("!!! Cannot get host list")
             return nil
@@ -269,7 +274,8 @@ class HttpUtils {
                         if let statusCode = response.response?.statusCode,
                            statusCode >= 200 && statusCode < 300 {
                             if let result = String(data: resultData, encoding: .utf8) {
-                                logDebug("### Finally request successful result \(result)")
+                                //logDebug("### Finally request successful result \(result)")
+                                logDebug("### Finally request successful!")
                                 continuation.resume(returning: result)
                             } else {
                                 logDebug("!!! Request failed, cannot parse response data")

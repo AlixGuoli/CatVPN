@@ -797,6 +797,8 @@ struct VPNConnectionButton: View {
             return "VPN_Button_Connection_Failed".localstr() + " 🐸😔"
         }
     }
+    
+    
 }
 
 #Preview {

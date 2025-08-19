@@ -87,10 +87,18 @@ struct CatVPNApp: App {
                             vm.checkNet { success in
                                 logDebug("SplashScreen ** Initial check completed: \(success)")
                                 if success {
-                                    // 配置检查完成，进入主页
-                                    showSplashAd()
-                                    completeStartup()
+                                    // 如果已经超时进入了主页就不展示
+                                    if isAppStarted {
+                                        // 展示广告
+                                        logDebug("SplashScreen ** 展示广告")
+                                        showSplashAd()
+                                    } else {
+                                        logDebug("SplashScreen ** 已经超时进入了主页，不展示广告")
+                                    }
                                 }
+                                logDebug("SplashScreen ** 进入主页")
+                                // 网络检查完成，进入主页
+                                completeStartup()
                             }
                             
                             // 20秒超时自动进入主页
@@ -163,7 +171,7 @@ struct CatVPNApp: App {
             }
             
             // 检查连接状态
-            if GlobalStatus.shared.connectStatus == .connecting {
+            if vm.connectionStatus == .connecting {
                 logDebug("SplashScreen ** Returning from background, but VPN is connecting, skip splash screen")
                 wasInBackground = false
                 return

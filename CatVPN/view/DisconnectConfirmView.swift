@@ -9,6 +9,8 @@ import SwiftUI
 
 struct DisconnectConfirmView: View {
     
+    @Environment(\.colorScheme) var colorScheme
+    
     var onConfirm: () -> Void
     var onCancel: () -> Void
     
@@ -27,7 +29,7 @@ struct DisconnectConfirmView: View {
                 btnTopClose
                 
                 // 图标
-                Image("disconnectHint")
+                Image(colorScheme == .dark ? "disconnectHintWhite" : "disconnectHint")
                     .resizable()
                     .frame(width: 66, height: 66)
                 
