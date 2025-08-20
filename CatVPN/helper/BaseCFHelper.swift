@@ -55,6 +55,48 @@ class BaseCFHelper {
         return extractHotcode(from: config)
     }
     
+    /// 保存 hotcode（永久，一次设置后不再更改）
+    func saveHotcodeIfNeeded(_ hotcode: String?) {
+        let normalized = normalizeHotcode(hotcode)
+        if UserDefaults.standard.string(forKey: CatKey.CAT_HOTCODE) == nil {
+            UserDefaults.standard.set(normalized, forKey: CatKey.CAT_HOTCODE)
+            UserDefaults.standard.synchronize()
+            logDebug("[ BaseCFHelper ] save hotcode once: \(normalized)")
+        } else {
+            logDebug("[ BaseCFHelper ] hotcode already set, skip")
+        }
+    }
+    
+    /// 读取已保存的 hotcode（如果存在）
+    func getSavedHotcode() -> String? {
+        return UserDefaults.standard.string(forKey: CatKey.CAT_HOTCODE)
+    }
+    
+    /// 清除本地保存的 hotcode（仅用于测试）
+    func clearSavedHotcode() {
+        UserDefaults.standard.removeObject(forKey: CatKey.CAT_HOTCODE)
+        UserDefaults.standard.synchronize()
+        logDebug("[ BaseCFHelper ] Cleared saved hotcode for testing")
+    }
+    
+    /// 是否可用（true: in_service，false: out_of_service）。
+    /// 优先使用永久标记；若未标记，则基于当前配置临时判断（空/失败视为 out_of_service）。
+    func isServiceAvailable() -> Bool {
+        let saved = getSavedHotcode()
+        logDebug("[ BaseCFHelper ] UD hotcode: \(String(describing: saved))")
+        if let saved = saved {
+            return saved == "in_service"
+        }
+        let current = normalizeHotcode(getHotcode())
+        return current == "in_service"
+    }
+    
+    /// 归一化 hotcode，空/未知均视为 out_of_service
+    private func normalizeHotcode(_ code: String?) -> String {
+        let trimmed = (code ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed == "in_service" ? "in_service" : "out_of_service"
+    }
+    
     /// 获取rateus配置 (maxDailyPopups, cooldownDays)
     func getRateusConfig() -> (Int?, Int?) {
         guard let config = getBaseCF() else { return (nil, nil) }

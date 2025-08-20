@@ -56,18 +56,27 @@ class HttpUtils {
                 let adIsOff = BaseCFHelper.shared.getAdsOff()
                 let adType = BaseCFHelper.shared.getAdsType()
                 let tgLink = BaseCFHelper.shared.getDynamicTgLink()
+                let hotcode = BaseCFHelper.shared.getHotcode()
                 
                 logDebug("FetctBaseConf result ** ⬇️")
                 logDebug("adIsOff: \(String(describing: adIsOff))")
                 logDebug("adType: \(String(describing: adType))")
                 logDebug("tgLink: \(String(describing: tgLink))")
+                logDebug("hotcode: \(String(describing: hotcode))")
                 
                 // 保存广告开关设置
                 AdCFHelper.shared.saveAdsOff(adIsOff)
                 AdCFHelper.shared.saveAdsType(adType)
-                
                 // 保存TgLink
                 BaseCFHelper.shared.saveTgLink(tgLink)
+                
+                // 测试服，清除本地 hotcode
+                //BaseCFHelper.shared.clearSavedHotcode()
+                //BaseCFHelper.shared.saveHotcodeIfNeeded("")
+                //BaseCFHelper.shared.saveHotcodeIfNeeded("in_service")
+                //BaseCFHelper.shared.saveHotcodeIfNeeded("out_of_service")
+                // 保存hotcode（只保存一次）
+                BaseCFHelper.shared.saveHotcodeIfNeeded(hotcode)
             }
         }
     }
@@ -219,11 +228,11 @@ class HttpUtils {
         }
         
         /// 测试服
-        logDebug("*** Now is Debug ***")
-        let texthostList = ["https://test.nifymon.com"]
-        for host in texthostList {
+//        logDebug("*** Now is Debug ***")
+//        let texthostList = ["https://test.nifymon.com"]
+//        for host in texthostList {
             
-        //for host in hostList {
+        for host in hostList {
             logDebug("Host ** \(host)")
             logDebug("Url  ** \(url)")
             let fullUrl = fixFullUrl(baseUrl: "\(host)\(url)", parameters: param)

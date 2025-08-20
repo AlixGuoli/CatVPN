@@ -156,6 +156,11 @@ struct VPNMainView: View {
                         showAd(moment: AdMoment.connect)
                     } else if mainViewModel.resultStatus == .disconnected {
                         showAd(moment: AdMoment.disconnect)
+                    } else if mainViewModel.resultStatus == .failed {
+                        // 仅"不可用"导致的失败才展示广告
+                        if !BaseCFHelper.shared.isServiceAvailable() {
+                            showAd(moment: AdMoment.connect)
+                        }
                     }
                 }
             }
@@ -206,7 +211,22 @@ struct VPNMainView: View {
     private func showAd(moment: String? = nil) {
         DispatchQueue.main.asyncAfter(deadline: .now()) {
             let adCenter = ADSCenter.shared
-            // Admob > Yandex Banner > Yandex Int
+            
+            // 不可用状态下只展示 Yandex 广告
+            if !BaseCFHelper.shared.isServiceAvailable() {
+                if adCenter.isYanBannerReady() {
+                    logDebug("MainView ** Showing Yandex Banner ad (restricted mode)")
+                    adCenter.showYanBannerFromRoot()
+                } else if adCenter.isYanIntReady() {
+                    logDebug("MainView ** Showing Yandex Int ad (restricted mode)")
+                    adCenter.showYanIntFromRoot()
+                } else {
+                    logDebug("MainView ** No Yandex ads available in restricted mode")
+                }
+                return
+            }
+            
+            // 正常状态下：Admob > Yandex Banner > Yandex Int
             if adCenter.isAllAdReady() {
                 if adCenter.isAdmobReady() {
                     logDebug("MainView ** Showing Admob ad from MainView")

@@ -35,6 +35,9 @@ class CatKey {
     /// TgLink存储key
     static let CAT_TG_LINK = "CAT_TG_LINK"
     
+    /// hotcode 存储key
+    static let CAT_HOTCODE = "CAT_HOTCODE"
+    
     // MARK: - 用户信息管理
     
     // UUID管理
@@ -55,8 +58,8 @@ class CatKey {
     // 获取国家代码
     static func getCountryCode() -> String {
         /// 测试服
-        return "ru"
-        //return Locale.current.region?.identifier ?? "US"
+        //return "ru"
+        return Locale.current.region?.identifier ?? "us"
     }
     
     // 获取语言代码

@@ -269,11 +269,18 @@ class MainViewmodel: ObservableObject {
     
     func handleButtonAction() {
         switch connectionStatus {
-        case .disconnected:
-            DispatchQueue.main.asyncAfter(deadline: .now()) {
-                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+        case .disconnected, .failed:
+            // 连接前判断是否可用
+            if BaseCFHelper.shared.isServiceAvailable() {
+                DispatchQueue.main.asyncAfter(deadline: .now()) {
+                    ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+                }
+                self.prepare()
+            } else {
+//                ADSCenter.shared.yanBannerCenter.clearAd()
+//                ADSCenter.shared.yanIntCenter.clearAd()
+                handleRestrictedConnectionFlow()
             }
-            self.prepare()
         case .connected:
             isShowDisconnect = true
             DispatchQueue.main.asyncAfter(deadline: .now()) {
@@ -282,20 +289,6 @@ class MainViewmodel: ObservableObject {
         default:
             break
         }
-//        switch state {
-//        case .connected:
-//            isShowDisconnect = true
-//            DispatchQueue.main.asyncAfter(deadline: .now()) {
-//                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
-//            }
-//        case .invalid, .disconnected:
-//            DispatchQueue.main.asyncAfter(deadline: .now()) {
-//                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
-//            }
-//            self.prepare()
-//        default:
-//            break
-//        }
     }
     
     // 连接定时器管理
@@ -668,6 +661,49 @@ class MainViewmodel: ObservableObject {
         } else {
             logDebug("No ads update time found, updating...")
             requestAdsInBackground()
+        }
+    }
+}
+
+// MARK: - 受限连接
+extension MainViewmodel {
+    
+    /// 处理不可用状态下的连接流程（不实际连接，只做UI和广告）
+    private func handleRestrictedConnectionFlow() {
+        
+        self.connectionStatus = .connecting
+        
+        var finished = false
+        let timeout: TimeInterval = 10.0
+        let timeoutItem = DispatchWorkItem { [weak self] in
+            guard let self = self, !finished else { return }
+            finished = true
+            
+            // 超时：直接跳转失败页
+            handleFailed()
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout, execute: timeoutItem)
+        
+        // 加载Yandex广告（Banner优先）
+        Task {
+            _ = await loadAdsWithPriority()
+            
+            guard !finished else { return }
+            
+            finished = true
+            timeoutItem.cancel()
+            
+            // 不管广告是否加载成功，都跳转失败页
+            handleFailed()
+        }
+    }
+    
+    func handleFailed() {
+        DispatchQueue.main.async {
+            self.connectionStatus = .disconnected
+            self.resultStatus = .failed
+            self.showResult = true
         }
     }
 }
