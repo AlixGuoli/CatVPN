@@ -25,6 +25,7 @@ struct VPNMainView: View {
     @State private var liquidAnimation = false
     
     @State private var showLanguageSelection = false
+    @State private var showSystemInfo = false
     
     // 背景球体的固定位置数据 - 使用相对于屏幕的百分比位置
     private var backgroundCircles: [BackgroundCircle] {
@@ -195,6 +196,9 @@ struct VPNMainView: View {
             }
             .navigationDestination(isPresented: $showLanguageSelection) {
                 LanguageSelectionView(isPresented: $showLanguageSelection)
+            }
+            .navigationDestination(isPresented: $showSystemInfo) {
+                SystemInfoView()
             }
             .overlay(
                 showPrivacyPopup ?
@@ -909,10 +913,10 @@ struct VPNMainView: View {
             VStack(spacing: 14) {
                 HStack(spacing: 14) {
                     glassyActionButton(
-                        icon: "globe",
-                        title: "Language".localstr(),
-                        color: .blue,
-                        action: { showLanguageSelection = true }
+                        icon: "server.rack",
+                        title: "Servers".localstr(),
+                        color: .green,
+                        action: { showServerSelection = true }
                     )
                     .frame(maxWidth: .infinity)
                     
@@ -921,6 +925,23 @@ struct VPNMainView: View {
                         title: "Privacy".localstr(),
                         color: .purple,
                         action: { showPrivacyGuide = true }
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+                HStack(spacing: 14) {
+                    glassyActionButton(
+                        icon: "globe",
+                        title: "Language".localstr(),
+                        color: .blue,
+                        action: { showLanguageSelection = true }
+                    )
+                    .frame(maxWidth: .infinity)
+                    
+                    glassyActionButton(
+                        icon: "info.circle.fill",
+                        title: "System Info".localstr(),
+                        color: .teal,
+                        action: { showSystemInfo = true }
                     )
                     .frame(maxWidth: .infinity)
                 }

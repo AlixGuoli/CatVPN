@@ -175,3 +175,16 @@
 // CustomBanner - 自定义横幅广告
 "Skip_Ad" = "Skip Ad";
 "Skip_Ad_Time" = "Skip Ad %ldS";
+
+// SystemInfoView - 系统信息页面
+"System Info" = "System Info";
+"Basic device and app information" = "Basic device and app information";
+"UUID" = "UUID";
+"Device" = "Device";
+"iOS" = "iOS";
+"Language" = "Language";
+"Region" = "Region";
+"App Version" = "App Version";
+
+// VPNMainView - 快速操作新增
+"System Info" = "System Info";

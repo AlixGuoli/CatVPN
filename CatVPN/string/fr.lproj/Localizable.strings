@@ -173,3 +173,16 @@
 
 // 其他
 "Privacy" = "Confidentialité";
+
+// SystemInfoView - Informations système
+"System Info" = "Informations système";
+"Basic device and app information" = "Informations de base sur l'appareil et l'application";
+"UUID" = "UUID";
+"Device" = "Appareil";
+"iOS" = "iOS";
+"Language" = "Langue";
+"Region" = "Région";
+"App Version" = "Version de l'app";
+
+// VPNMainView - Actions rapides (nouveau)
+"System Info" = "Informations système";

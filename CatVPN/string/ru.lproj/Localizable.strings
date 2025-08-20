@@ -173,3 +173,16 @@
 // CustomBanner - 自定义横幅广告
 "Skip_Ad" = "Пропустить";
 "Skip_Ad_Time" = "Пропустить рекламу через %ld";
+
+// SystemInfoView - Страница системной информации
+"System Info" = "Системная информация";
+"Basic device and app information" = "Базовая информация об устройстве и приложении";
+"UUID" = "UUID";
+"Device" = "Устройство";
+"iOS" = "iOS";
+"Language" = "Язык";
+"Region" = "Регион";
+"App Version" = "Версия приложения";
+
+// VPNMainView - Быстрые действия (новое)
+"System Info" = "Системная информация";
