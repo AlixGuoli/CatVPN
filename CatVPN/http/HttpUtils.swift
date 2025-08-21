@@ -13,6 +13,14 @@ class HttpUtils {
     
     private init() {}
     
+    // MARK: - 接口常量
+    private enum APIPath {
+        static let systemSettings = "/fetch/system/settings"
+        static let advertisementList = "/fetch/advertisement/list"
+        static let groupCollection = "/fetch/group/collection"
+        static let serviceInfo = "/fetch/service/info"
+    }
+    
     // MARK: - 基本参数
     
     lazy var baseParameters: [String: Any] = {
@@ -29,7 +37,7 @@ class HttpUtils {
     /// 获取基本配置
     func fetchBaseConf() async {
         logDebug("Start request fetctBaseConf")
-        let response = await performRequest(url: "/getconf", param: baseParameters)
+        let response = await performRequest(url: APIPath.systemSettings, param: baseParameters)
         
         if let baseConf = response, !baseConf.isEmpty {
             logDebug("Successful fetctBaseConf result: \(baseConf)")
@@ -85,7 +93,7 @@ class HttpUtils {
     func fetchAds() async {
         logDebug("Start request fetchAds")
         
-        let response = await performRequest(url: "/getAds", param: baseParameters)
+        let response = await performRequest(url: APIPath.advertisementList, param: baseParameters)
         
         if let result = response, !result.isEmpty {
             logDebug("Successful fetchAds result: \(result)")
@@ -128,7 +136,7 @@ class HttpUtils {
     func fetchCountry() async -> String? {
         logDebug("Start request fetchCountry")
         
-        let response = await performRequest(url: "/getGroupList", param: baseParameters)
+        let response = await performRequest(url: APIPath.groupCollection, param: baseParameters)
         
         if let result = response, !result.isEmpty {
             logDebug("Successful fetchCountry result: \(result)")
@@ -153,7 +161,7 @@ class HttpUtils {
         var allParams = baseParameters
         allParams.merge(newPram) { (_, new) in new }
         
-        let response = await performRequest(url: "/getService", param: allParams)
+        let response = await performRequest(url: APIPath.serviceInfo, param: allParams)
         
         if let result = response, !result.isEmpty {
             logDebug("Successful fetchServiceCF result: \(result)")
@@ -389,7 +397,7 @@ class HttpUtils {
     /// - Returns: 是否有效
     private func responseIsRight(response: String, url: String) -> Bool {
         // 检查是否是getService接口，如果是则先解密再验证
-        if url.contains("/getService") {
+        if url.contains(APIPath.serviceInfo) {
             logDebug("### getService interface detected, decrypting response")
             guard let decryptedResponse = FileUtils.decodeSafetyData(response) else {
                 logDebug("!!! getService response decryption failed")
