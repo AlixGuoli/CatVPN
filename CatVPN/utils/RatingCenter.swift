@@ -17,7 +17,7 @@ class RatingCenter {
     private enum DefaultParams {
         static let coolDays = 3           // 默认冷却天数
         static let maxPopups = 3          // 每日默认最大弹窗数
-        static let maxGood = 3            // 默认最大好评数（5星算一次）
+        static let maxGood = 3            // 默认最大评分次数（不管几星）
         static let triggerMin = 10        // 出发时机（分钟）
         static let highScore = 5          // 最高评分
     }
@@ -27,7 +27,7 @@ class RatingCenter {
         static let coolEnd = "RC_End"        // 冷却期结束时间
         static let todayCount = "RC_Count"   // 今日弹窗次数
         static let lastScore = "RC_Score"    // 最后一次评分
-        static let fiveCount = "RC_Five"     // 5星次数
+        static let fiveCount = "RC_Five"     // 评分次数（不管几星）
         static let todayDate = "RC_Date"     // 今日日期
     }
     
@@ -124,15 +124,11 @@ class RatingCenter {
         return isOverLimit
     }
     
-    // MARK: - 检查高分限制
+    // MARK: - 检查评分次数限制
     private func checkHighScoreLimit() -> Bool {
-        guard let score = UserDefaults.standard.object(forKey: Keys.lastScore) as? Int else {
-            logDebug("RatingCenter: 无历史评分记录")
-            return false
-        }
-        let fiveStarCount = UserDefaults.standard.integer(forKey: Keys.fiveCount)
-        let isOverLimit = score == DefaultParams.highScore && fiveStarCount >= maxGood
-        logDebug("RatingCenter: 高分限制检查 - 上次评分: \(score), 5星次数: \(fiveStarCount), 最大5星次数: \(maxGood), 是否超限: \(isOverLimit)")
+        let ratingCount = UserDefaults.standard.integer(forKey: Keys.fiveCount)
+        let isOverLimit = ratingCount >= maxGood
+        logDebug("RatingCenter: 评分次数限制检查 - 评分次数: \(ratingCount), 最大评分次数: \(maxGood), 是否超限: \(isOverLimit)")
         return isOverLimit
     }
     
@@ -168,14 +164,12 @@ class RatingCenter {
         }
     }
     
-    // MARK: - 处理高分
+    // MARK: - 处理评分次数
     private func handleHighScore(_ score: Int) {
-        guard score == DefaultParams.highScore else { return }
-        
         let currentCount = UserDefaults.standard.integer(forKey: Keys.fiveCount)
         let newCount = currentCount + 1
         UserDefaults.standard.set(newCount, forKey: Keys.fiveCount)
-        logDebug("RatingCenter: 处理高分 - 当前5星次数: \(currentCount) -> \(newCount)")
+        logDebug("RatingCenter: 处理评分次数 - 当前评分次数: \(currentCount) -> \(newCount)")
     }
     
     // MARK: - 注册交互
@@ -228,7 +222,7 @@ class RatingCenter {
         defaults.synchronize()
         
         logDebug("RatingCenter: 所有数据重置完成")
-        logDebug("RatingCenter: 重置后状态 - 冷却期: 无, 今日次数: 0, 评分: 无, 5星次数: 0")
+        logDebug("RatingCenter: 重置后状态 - 冷却期: 无, 今日次数: 0, 评分: 无, 评分次数: 0")
     }
     
     // MARK: - 打印所有数据（调试用）
@@ -245,7 +239,7 @@ class RatingCenter {
         logDebug("RatingCenter: 冷却期结束时间: \(coolEnd?.description ?? "无")")
         logDebug("RatingCenter: 今日弹窗次数: \(todayCount)")
         logDebug("RatingCenter: 最后一次评分: \(lastScore?.description ?? "无")")
-        logDebug("RatingCenter: 5星次数: \(fiveCount)")
+        logDebug("RatingCenter: 评分次数: \(fiveCount)")
         logDebug("RatingCenter: 今日日期: \(todayDate?.description ?? "无")")
         logDebug("RatingCenter: 连接开始时间: \(connectedTime?.description ?? "无")")
         logDebug("RatingCenter: 当前配置 - 冷却天数: \(coolDays), 每日最大弹窗: \(maxPopups), 最大好评数: \(maxGood)")

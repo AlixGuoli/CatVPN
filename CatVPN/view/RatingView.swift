@@ -17,19 +17,7 @@ struct RatingView: View {
     
     // 获取按钮文字
     private func getButtonText() -> String {
-        // 如果不是俄罗斯地区，都显示 Rate Us
-        if RatingCenter.shared.checkVersionAndRu() {
-            return "Rate_Us".localstr()
-        }
-        
-        // 如果是俄罗斯地区，根据评分显示不同文字
-        if selectedRating == 5 {
-            return "Rate_Us".localstr()
-        } else if selectedRating > 0 {
-            return "Feedback".localstr()
-        } else {
-            return "Rate_Us".localstr()
-        }
+        return "Rate_Us".localstr()
     }
     
     var body: some View {
@@ -100,17 +88,9 @@ struct RatingView: View {
                     
                     // 评分按钮
                     Button(action: {
-                        if selectedRating == 5 {
+                        if selectedRating > 0 {
                             onRatingSubmit?(selectedRating)
                             dismiss()
-                        } else if (selectedRating > 0 && selectedRating < 5) {
-                            if EmailView.canSendEmail() {
-                                vm.showEmail.toggle()
-                            } else {
-                                logDebug("不支持邮件")
-                                onRatingSubmit?(selectedRating)
-                                dismiss()
-                            }
                         }
                     }) {
                         Text(getButtonText())
@@ -169,12 +149,7 @@ struct RatingView: View {
         .onAppear {
             RatingCenter.shared.register()
         }
-        .sheet(isPresented: $vm.showEmail) {
-            EmailView {
-                onRatingSubmit?(selectedRating)
-                dismiss()
-            }
-        }
+
     }
     
     private var btnClose: some View {

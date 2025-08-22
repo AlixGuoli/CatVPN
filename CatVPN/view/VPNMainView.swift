@@ -168,21 +168,10 @@ struct VPNMainView: View {
             .navigationDestination(isPresented: $mainViewModel.isShowRate) {
                 RatingView { star in
                     RatingCenter.shared.submit(star: star)
-                    if RatingCenter.shared.checkVersionAndRu() {
-                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                            SKStoreReviewController.requestReview(in: scene)
-                        }
-                    } else {
-                        if star == 5 {
-                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                                SKStoreReviewController.requestReview(in: scene)
-                            }
-                        } else if (star > 0 && star < 5) {
-                            // Feedback
-                            logDebug("RatingCenter: Feedback ~~~~~~~~")
-                        }
+                    // 所有评分都使用系统评价
+                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                        SKStoreReviewController.requestReview(in: scene)
                     }
-                    
                 }.environmentObject(mainViewModel)
             }
             .navigationDestination(isPresented: $mainViewModel.showResult) {
