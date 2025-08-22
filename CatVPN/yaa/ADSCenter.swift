@@ -24,13 +24,13 @@ class ADSCenter {
         //return false
         
         if isVip {
-            logDebug("isAdsOpen: false. It's Vip")
+            logDebug("~~ADSCenter isAdsOpen: false. It's Vip")
             return false
         }
         let isAdsOff = AdCFHelper.shared.getAdsOff()
         let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
-        logDebug("isAdsOff: \(isAdsOff)")
-        logDebug("adType: \(adType)")
+        logDebug("~~ADSCenter isAdsOff: \(isAdsOff)")
+        logDebug("~~ADSCenter adType: \(adType)")
         return !isAdsOff
     }
 
@@ -39,7 +39,7 @@ class ADSCenter {
         if adType.contains("y"){
             return true
         }
-        logDebug("isYandexOpen: false")
+        logDebug("~~ADSCenter isYandexOpen: false")
         return false
     }
 
@@ -50,7 +50,7 @@ class ADSCenter {
                 return true
             }
         }
-        logDebug("isAdmobOpen: false")
+        logDebug("~~ADSCenter isAdmobOpen: false")
         return false
     }
     
@@ -88,10 +88,10 @@ class ADSCenter {
     // MARK: - 广告加载管理
     
     func prepareAllAd(moment: String? = nil) {
-        logDebug("ADSCenter loadAllAds ** moment: \(String(describing: moment))")
+        logDebug("~~ADSCenter loadAllAds ** moment: \(String(describing: moment))")
         guard isAdsOpen else {
-            logDebug("ADSCenter loadAllAds - ads disabled")
-            return 
+            logDebug("~~ADSCenter loadAllAds - ads disabled")
+            return
         }
         
         if isYandexOpen {
@@ -105,7 +105,7 @@ class ADSCenter {
     }
     
     func prepareYanBanner(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
-        logDebug("ADSCenter load Yandex Banner")
+        logDebug("~~ADSCenter load Yandex Banner")
         if isAdsOpen && isYandexOpen {
             if isYanBannerReady() {
                 onAdReady?()
@@ -120,7 +120,7 @@ class ADSCenter {
     }
     
     func prepareYanInt(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
-        logDebug("ADSCenter load Yandex Int")
+        logDebug("~~ADSCenter load Yandex Int")
         if isAdsOpen && isYandexOpen {
             if isYanIntReady() {
                 onAdReady?()
@@ -135,7 +135,7 @@ class ADSCenter {
     }
     
     func prepareAdmobInt(moment: String? = nil, onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
-        logDebug("ADSCenter load Admob Int")
+        logDebug("~~ADSCenter load Admob Int")
         if isAdsOpen && isAdmobOpen {
             admobCenter.onAdReady = onAdReady
             admobCenter.onAdFailed = onAdFailed

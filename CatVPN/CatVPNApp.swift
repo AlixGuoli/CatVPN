@@ -94,25 +94,25 @@ struct CatVPNApp: App {
                         .environmentObject(vm)
                         .background(Color(UIColor.systemBackground).opacity(1.0)) // 适配暗黑模式的完全不透明背景
                         .onAppear {
-                            logDebug("SplashScreen ** Splash Screen shown from ** Start App")
+                            logDebug("~~ADSCenter SplashScreen ** Splash Screen shown from ** Start App")
                             // 启动配置检查
                             vm.checkNet { success in
-                                logDebug("SplashScreen ** Initial check completed: \(success)")
+                                logDebug("~~ADSCenter SplashScreen ** Initial check completed: \(success)")
                                 if success {
                                     // 标记待展示广告，等进度补齐后再展示
                                     if isAppStarted {
-                                        logDebug("SplashScreen ** 标记启动页广告，等待进度补齐后展示")
+                                        logDebug("~~ADSCenter SplashScreen ** 标记启动页广告，等待进度补齐后展示")
                                         shouldShowStartupAd = true
                                     }
                                 }
-                                logDebug("SplashScreen ** 触发补齐进入主页")
+                                logDebug("~~ADSCenter SplashScreen ** 触发补齐进入主页")
                                 splashFinishTrigger = true
                             }
                             
                             // 20秒超时自动进入主页
                             DispatchQueue.main.asyncAfter(deadline: .now() + 20.0) {
                                 if isAppStarted {
-                                    logDebug("SplashScreen ** Initial splash timeout (20s), entering main view (complete to 100%)")
+                                    logDebug("~~ADSCenter SplashScreen ** Initial splash timeout (20s), entering main view (complete to 100%)")
                                     splashFinishTrigger = true
                                 }
                             }
@@ -126,7 +126,7 @@ struct CatVPNApp: App {
                     }
                         .background(Color(UIColor.systemBackground).opacity(1.0)) // 适配暗黑模式的完全不透明背景
                         .onAppear {
-                            logDebug("SplashScreen ** Splash Screen shown from ** background")
+                            logDebug("~~ADSCenter SplashScreen ** Splash Screen shown from ** background")
                             
                             // 2秒后展示广告
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -175,14 +175,14 @@ struct CatVPNApp: App {
             
             // 检查隐私状态
             guard vm.isPrivacyAgreed else {
-                logDebug("SplashScreen ** Privacy not agreed, skip showing splash ads")
+                logDebug("~~ADSCenter SplashScreen ** Privacy not agreed, skip showing splash ads")
                 wasInBackground = false
                 return
             }
             
             // 检查连接状态
             if vm.connectionStatus == .connecting {
-                logDebug("SplashScreen ** Returning from background, but VPN is connecting, skip splash screen")
+                logDebug("~~ADSCenter SplashScreen ** Returning from background, but VPN is connecting, skip splash screen")
                 wasInBackground = false
                 return
             }
@@ -191,15 +191,15 @@ struct CatVPNApp: App {
             if !adCenter.isShowingAd {
                 // 检查是否有广告可以展示
                 if adCenter.isAllAdReady() {
-                    logDebug("SplashScreen ** Returning from background, showing splash screen")
+                    logDebug("~~ADSCenter SplashScreen ** Returning from background, showing splash screen")
                     showSplashOnForeground = true
                     wasInBackground = false
                 } else {
-                    logDebug("SplashScreen ** Returning from background, but no ads available, skip splash screen")
+                    logDebug("~~ADSCenter SplashScreen ** Returning from background, but no ads available, skip splash screen")
                     wasInBackground = false
                 }
             } else {
-                logDebug("SplashScreen ** Returning from background, but ad is showing, skip splash screen")
+                logDebug("~~ADSCenter SplashScreen ** Returning from background, but ad is showing, skip splash screen")
                 wasInBackground = false
             }
         }

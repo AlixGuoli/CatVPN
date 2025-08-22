@@ -23,10 +23,10 @@ class AdmobCenter: NSObject {
         let admobKey = AdCFHelper.shared.getAdmobIntKey()
         if !admobKey.isEmpty {
             self.adKeyList = admobKey.components(separatedBy: ";").filter { !$0.isEmpty }
-            logDebug("Admob ads Int keys from AdCFHelper: \(adKeyList)")
+            logDebug("~~ADSCenter Admob ads Int keys from AdCFHelper: \(adKeyList)")
         } else {
             self.adKeyList = []
-            logDebug("Admob ads Int no keys found in AdCFHelper")
+            logDebug("~~ADSCenter Admob ads Int no keys found in AdCFHelper")
         }
     }
     
@@ -45,15 +45,15 @@ class AdmobCenter: NSObject {
     
     func clearAd() {
         currentAd = nil
-        logDebug("Admob ads Int clearAd")
+        logDebug("~~ADSCenter Admob ads Int clearAd")
     }
     
     // MARK: - 广告加载管理
     
     func beginAdLoading(moment: String? = nil) {
-        logDebug("Admob ads Int beginAdLoading ** Current connect status: \(GlobalStatus.shared.connectStatus)")
+        logDebug("~~ADSCenter Admob ads Int beginAdLoading ** Current connect status: \(GlobalStatus.shared.connectStatus)")
         if canBeginLoading() && GlobalStatus.shared.connectStatus == .connected {
-            logDebug("Admob ads Int beginAdLoading ** Start")
+            logDebug("~~ADSCenter Admob ads Int beginAdLoading ** Start")
             // 先从 AdCFHelper 获取最新的广告密钥
             setupAdKeys()
             if !adKeyList.isEmpty {
@@ -63,7 +63,7 @@ class AdmobCenter: NSObject {
                     await loadAdRecursively(index: 0, moment: moment)
                 }
             } else {
-                logDebug("!!! Admob ads Int beginAdLoading ** Failed - no ad keys available")
+                logDebug("~~ADSCenter !!! Admob ads Int beginAdLoading ** Failed - no ad keys available")
                 onAdFailed?()
             }
         }
@@ -79,14 +79,14 @@ class AdmobCenter: NSObject {
     private func loadAdRecursively(index: Int, moment: String? = nil) async {
         guard index < adKeyList.count else {
             // 所有广告密钥都尝试过了，失败
-            logDebug("!!! Admob ads Int all ad keys failed")
+            logDebug("~~ADSCenter !!! Admob ads Int all ad keys failed")
             isLoadingAd = false
             onAdFailed?()
             return
         }
         
         let adKey = adKeyList[index]
-        logDebug("Admob ads Int loadAdRecursively ** Start ** adkey: \(adKey) (index: \(index))")
+        logDebug("~~ADSCenter Admob ads Int loadAdRecursively ** Start ** adkey: \(adKey) (index: \(index))")
         do {
             ReportCat.shared.reportAd(moment: ReportCat.E_AD_START, adMoment: moment)
             currentAd = try await InterstitialAd.load(with: adKey, request: Request())
@@ -94,9 +94,9 @@ class AdmobCenter: NSObject {
             isLoadingAd = false
             onAdReady?()
             ReportCat.shared.reportAd(moment: ReportCat.E_AD_SUCCESS, key: adKey, adMoment: moment)
-            logDebug("Admob ads Int loadAdRecursively ** Success AdKey: \(adKey)")
+            logDebug("~~ADSCenter Admob ads Int loadAdRecursively ** Success AdKey: \(adKey)")
         } catch {
-            logDebug("!!! Admob ads Int loadAdRecursively failed adKey: \(adKey) error: \(error.localizedDescription)")
+            logDebug("~~ADSCenter !!! Admob ads Int loadAdRecursively failed adKey: \(adKey) error: \(error.localizedDescription)")
             // 当前广告密钥失败，递归尝试下一个
             await loadAdRecursively(index: index + 1, moment: moment)
         }
@@ -123,7 +123,7 @@ class AdmobCenter: NSObject {
 extension AdmobCenter: FullScreenContentDelegate {
     
     func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
-        logDebug("Admob ads Show success")
+        logDebug("~~ADSCenter Admob ads Show success")
         ADSCenter.shared.isShowingAd = true
         displayingAd = currentAd
         currentAd = nil
@@ -131,24 +131,24 @@ extension AdmobCenter: FullScreenContentDelegate {
     }
     
     func adDidRecordImpression(_ ad: any FullScreenPresentingAd) {
-        logDebug("Admob ads is Showing")
+        logDebug("~~ADSCenter Admob ads is Showing")
     }
     
     func adDidRecordClick(_ ad: any FullScreenPresentingAd) {
-        logDebug("Admob ads is Clicked")
+        logDebug("~~ADSCenter Admob ads is Clicked")
     }
     
     func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        logDebug("Admob ads show error: \(error.localizedDescription)")
+        logDebug("~~ADSCenter Admob ads show error: \(error.localizedDescription)")
         reloadAd()
     }
     
     func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
-        logDebug("Admob ads will Close")
+        logDebug("~~ADSCenter Admob ads will Close")
         ADSCenter.shared.isShowingAd = false
     }
     
     func adDidDismissFullScreenContent(_ ad: any FullScreenPresentingAd) {
-        logDebug("Admob ads is Closed")
+        logDebug("~~ADSCenter Admob ads is Closed")
     }
 }

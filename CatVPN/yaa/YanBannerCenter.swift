@@ -28,10 +28,10 @@ class YanBannerCenter: NSObject {
         let yandexBannerKey = AdCFHelper.shared.getYandexBannerKey()
         if !yandexBannerKey.isEmpty {
             self.adKeyList = yandexBannerKey.components(separatedBy: ";").filter { !$0.isEmpty }
-            logDebug("YanBanner ads keys from AdCFHelper: \(adKeyList)")
+            logDebug("~~ADSCenter YanBanner ads keys from AdCFHelper: \(adKeyList)")
         } else {
             self.adKeyList = []
-            logDebug("YanBanner ads no keys found in AdCFHelper")
+            logDebug("~~ADSCenter YanBanner ads no keys found in AdCFHelper")
         }
     }
     
@@ -54,13 +54,13 @@ class YanBannerCenter: NSObject {
     func clearAd() {
         isAdReady = false
         bannerView = nil
-        logDebug("YanBanner ads clearAd")
+        logDebug("~~ADSCenter YanBanner ads clearAd")
     }
     
     // MARK: - 广告加载管理
     
     func beginAdLoading() {
-        logDebug("YanBanner ads beginAdLoading ** Start")
+        logDebug("~~ADSCenter YanBanner ads beginAdLoading ** Start")
         if canBeginLoading() {
             // 先从 AdCFHelper 获取最新的广告密钥
             setupAdKeys()
@@ -70,7 +70,7 @@ class YanBannerCenter: NSObject {
                 loadBeginTime = Date()
                 loadAdRecursively(index: currentKeyIndex)
             } else {
-                logDebug("!!! YanBanner ads beginAdLoading ** Failed - no ad keys available")
+                logDebug("~~ADSCenter !!! YanBanner ads beginAdLoading ** Failed - no ad keys available")
                 onAdFailed?()
             }
         }
@@ -85,21 +85,21 @@ class YanBannerCenter: NSObject {
     
     private func loadAdRecursively(index: Int) {
         guard index < adKeyList.count else {
-            logDebug("!!! YanBanner ads all ad keys failed")
+            logDebug("~~ADSCenter !!! YanBanner ads all ad keys failed")
             isLoadingAd = false
             onAdFailed?()
             return
         }
         
         if let startTime = loadBeginTime, Date().timeIntervalSince(startTime) > 120 {
-            logDebug("!!! YanBanner ads loading timeout")
+            logDebug("~~ADSCenter !!! YanBanner ads loading timeout")
             isLoadingAd = false
             onAdFailed?()
             return
         }
         
         let adKey = adKeyList[index]
-        logDebug("YanBanner ads loadAdRecursively ** Start ** adkey: \(adKey) (index: \(index))")
+        logDebug("~~ADSCenter YanBanner ads loadAdRecursively ** Start ** adkey: \(adKey) (index: \(index))")
         
         let screenWidth = UIScreen.main.bounds.width
         let screenHeight = UIScreen.main.bounds.height
@@ -109,7 +109,7 @@ class YanBannerCenter: NSObject {
            let window = windowScene.windows.first {
             safeAreaInsets = window.safeAreaInsets
         } else {
-            logDebug("!!! YanBanner ads failed to get safe area insets")
+            logDebug("~~ADSCenter !!! YanBanner ads failed to get safe area insets")
         }
         
         let adjustedHeight = screenHeight - safeAreaInsets.top - safeAreaInsets.bottom
@@ -140,7 +140,7 @@ class YanBannerCenter: NSObject {
         if currentKeyIndex < adKeyList.count {
             loadAdRecursively(index: currentKeyIndex)
         } else {
-            logDebug("!!! YanBanner ads all ad keys failed")
+            logDebug("~~ADSCenter !!! YanBanner ads all ad keys failed")
             isLoadingAd = false
             onAdFailed?()
         }

@@ -42,8 +42,8 @@ class CustomBanner: UIViewController {
         penetrationEnabled = AdCFHelper.shared.getPenetrate() >= penetrationThreshold
         delayEnabled = AdCFHelper.shared.getClickDelay() >= delayThreshold
         
-        logDebug("CustomBanner Penetrate: \(AdCFHelper.shared.getPenetrate()) ** 随机: \(penetrationThreshold)")
-        logDebug("CustomBanner ClickDelay: \(AdCFHelper.shared.getClickDelay()) ** 随机: \(delayThreshold)")
+        logDebug("~~ADSCenter CustomBanner Penetrate: \(AdCFHelper.shared.getPenetrate()) ** 随机: \(penetrationThreshold)")
+        logDebug("~~ADSCenter CustomBanner ClickDelay: \(AdCFHelper.shared.getClickDelay()) ** 随机: \(delayThreshold)")
         
         guard let bannerView = ADSCenter.shared.getYanBannerAd() else {
             dismissAd()
@@ -154,7 +154,7 @@ class CustomBanner: UIViewController {
         dismiss(animated: true) {
             ADSCenter.shared.isShowingAd = false
             self.onDismiss?()
-            logDebug("App has come dismissAd")
+            logDebug("~~ADSCenter App has come dismissAd")
         }
     }
     
