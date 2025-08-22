@@ -178,8 +178,8 @@ class AdCFHelper {
         }
         
         if UserDefaults.standard.object(forKey: AdDefaults.CAT_AD_IS_OFF) == nil {
-            UserDefaults.standard.set(false, forKey: AdDefaults.CAT_AD_IS_OFF)
-            logDebug("AdCFHelper initialized default adsOff: false")
+            UserDefaults.standard.set(true, forKey: AdDefaults.CAT_AD_IS_OFF)
+            logDebug("AdCFHelper initialized default adsOff: true")
         }
         
 

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Alamofire
 
 class ReportCat {
     
@@ -14,7 +13,7 @@ class ReportCat {
     private init() {}
     
     // MARK: - 配置常量
-    private static let TIMEOUT = 5
+    private static let TIMEOUT = 15
     private static let DEVICE = "iPhone"
     
     // MARK: - 事件类型
@@ -159,17 +158,26 @@ class ReportCat {
         }
         
         //let request = URLRequest(url: url, timeoutInterval: TimeInterval(ReportCat.TIMEOUT))
-        /// 不设置超时
         let request = URLRequest(url: url)
-        //logDebug("ReportCat: Request Url: \(url)")
+        let startTime = Date()
+        logDebug("ReportCat: Request start ** start time: \(startTime)")
         
-        AF.request(request).response { response in
-            switch response.result {
-            case .success:
-                logDebug("ReportCat: Request success ** url: \(url)")
-            case .failure(let error):
-                logDebug("ReportCat: Request failed: \(error.localizedDescription) ** \nUtl: \(url)")
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            let endTime = Date()
+            let duration = endTime.timeIntervalSince(startTime)
+            
+            let httpResponse = response as! HTTPURLResponse
+            if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
+                logDebug("ReportCat: Request success ** url: \(url) ** status: \(httpResponse.statusCode) ** duration: \(String(format: "%.2f", duration))s")
+            } else {
+                logDebug("ReportCat: Request failed with status ** url: \(url) ** status: \(httpResponse.statusCode) ** duration: \(String(format: "%.2f", duration))s")
             }
+        } catch {
+            let endTime = Date()
+            let duration = endTime.timeIntervalSince(startTime)
+            logDebug("ReportCat: Request failed: \(error.localizedDescription) ** url: \(url) ** duration: \(String(format: "%.2f", duration))s")
         }
     }
     
