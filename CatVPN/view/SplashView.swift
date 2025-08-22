@@ -6,8 +6,15 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct SplashScreenView: View {
+    // true 表示冷启动；false 表示后台→前台
+    let isColdStart: Bool
+    // 触发补齐到 100% 后再退出
+    @Binding var finishNow: Bool
+    // 补齐动画完成后的回调
+    var onFinished: (() -> Void)? = nil
     @State private var logoScale: CGFloat = 0.3
     @State private var logoOpacity: Double = 0.0
     @State private var titleOpacity: Double = 0.0
@@ -17,6 +24,11 @@ struct SplashScreenView: View {
     @State private var liquidAnimation = false
     @State private var waveAnimation = false
     @State private var rotationAngle: Double = 0
+    @State private var progress: Double = 0.0
+    @State private var progressTimer: Timer? = nil
+    @State private var runDuration: TimeInterval = 20.0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var lightMode: Bool = true
     
     // 粒子效果数据
     private var particles: [FloatingParticle] {
@@ -53,13 +65,19 @@ struct SplashScreenView: View {
                 dynamicBackground
                 
                 // 液体流动背景层
-                liquidFlowBackground
+                if !lightMode {
+                    liquidFlowBackground
+                }
                 
                 // 浮动粒子效果
-                floatingParticlesLayer
+                if !lightMode {
+                    floatingParticlesLayer
+                }
                 
                 // 波纹效果层
-                rippleEffectLayer
+                if !lightMode {
+                    rippleEffectLayer
+                }
                 
                 // 主要内容
                 VStack(spacing: 30) {
@@ -80,13 +98,43 @@ struct SplashScreenView: View {
             }
         }
         .onAppear {
+            runDuration = isColdStart ? 20.0 : 2.0
+            // 默认启用轻量模式，避免卡顿
+            lightMode = true || reduceMotion
             startSplashAnimations()
+            startProgress()
+        }
+        .onDisappear {
+            progressTimer?.invalidate()
+            progressTimer = nil
+        }
+        .onChange(of: finishNow) { newValue in
+            guard newValue else { return }
+            // 停止定时器，避免冲突
+            progressTimer?.invalidate()
+            progressTimer = nil
+            withAnimation(.easeInOut(duration: 0.25)) {
+                progress = 1.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) {
+                onFinished?()
+                finishNow = false
+            }
         }
         .localview()  // 确保启动页也能响应语言变化
     }
     
     // 启动所有动画
     private func startSplashAnimations() {
+        if lightMode {
+            // 轻量模式：只做最小淡入
+            logoScale = 1.0
+            withAnimation(.easeInOut(duration: 0.4)) {
+                logoOpacity = 1.0
+                titleOpacity = 1.0
+            }
+            return
+        }
         // 背景动画
         withAnimation(.easeInOut(duration: 1.0)) {
             backgroundAnimation = true
@@ -137,38 +185,73 @@ struct SplashScreenView: View {
         }
     }
     
+    // 进度条逻辑
+    private func startProgress() {
+        progress = 0
+        progressTimer?.invalidate()
+        let startTime = Date()
+        let interval = 1.0 / 60.0
+        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { t in
+            let elapsed = Date().timeIntervalSince(startTime)
+            let p = min(1.0, elapsed / max(0.1, runDuration))
+            progress = p
+            if p >= 1.0 {
+                t.invalidate()
+                progressTimer = nil
+            }
+        }
+        progressTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+    
     // 动态渐变背景
     private var dynamicBackground: some View {
-        ZStack {
-            // 主渐变背景
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(.systemBackground),
-                    Color.green.opacity(backgroundAnimation ? 0.3 : 0.1),
-                    Color.mint.opacity(backgroundAnimation ? 0.25 : 0.08),
-                    Color.green.opacity(backgroundAnimation ? 0.2 : 0.05),
-                    Color(.systemGray6).opacity(0.1)
-                ]),
-                startPoint: backgroundAnimation ? .topTrailing : .topLeading,
-                endPoint: backgroundAnimation ? .bottomLeading : .bottomTrailing
+        if lightMode || reduceMotion {
+            return AnyView(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color.mint.opacity(0.12),
+                        Color.green.opacity(0.12)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
             )
-            .ignoresSafeArea()
-            .animation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true), value: backgroundAnimation)
-            
-            // 径向渐变覆盖层
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    Color.mint.opacity(backgroundAnimation ? 0.4 : 0.1),
-                    Color.green.opacity(backgroundAnimation ? 0.2 : 0.05),
-                    Color.clear
-                ]),
-                center: backgroundAnimation ? .topLeading : .bottomTrailing,
-                startRadius: 50,
-                endRadius: 300
-            )
-            .ignoresSafeArea()
-            .animation(.easeInOut(duration: 5.0).repeatForever(autoreverses: true), value: backgroundAnimation)
         }
+        return AnyView(
+            ZStack {
+                // 主渐变背景
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color.green.opacity(backgroundAnimation ? 0.3 : 0.1),
+                        Color.mint.opacity(backgroundAnimation ? 0.25 : 0.08),
+                        Color.green.opacity(backgroundAnimation ? 0.2 : 0.05),
+                        Color(.systemGray6).opacity(0.1)
+                    ]),
+                    startPoint: backgroundAnimation ? .topTrailing : .topLeading,
+                    endPoint: backgroundAnimation ? .bottomLeading : .bottomTrailing
+                )
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true), value: backgroundAnimation)
+                
+                // 径向渐变覆盖层
+                RadialGradient(
+                    gradient: Gradient(colors: [
+                        Color.mint.opacity(backgroundAnimation ? 0.4 : 0.1),
+                        Color.green.opacity(backgroundAnimation ? 0.2 : 0.05),
+                        Color.clear
+                    ]),
+                    center: backgroundAnimation ? .topLeading : .bottomTrailing,
+                    startRadius: 50,
+                    endRadius: 300
+                )
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 5.0).repeatForever(autoreverses: true), value: backgroundAnimation)
+            }
+        )
     }
     
     // 液体流动背景
@@ -339,30 +422,23 @@ struct SplashScreenView: View {
         }
     }
     
-    // 加载指示器
+    // 加载指示器（线性进度条）
     private var loadingIndicator: some View {
-        VStack(spacing: 16) {
-            // 自定义加载动画
+        VStack(spacing: 12) {
+            ProgressView(value: progress)
+                .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                .frame(height: 6)
+                .padding(.horizontal, 40)
+                .opacity(titleOpacity)
             HStack(spacing: 8) {
-                ForEach(0..<3) { index in
-                    Circle()
-                        .fill(Color.green)
-                        .frame(width: 10, height: 10)
-                        .scaleEffect(logoOpacity > 0 ? 1.0 : 0.5)
-                        .animation(
-                            Animation.easeInOut(duration: 0.6)
-                                .repeatForever(autoreverses: true)
-                                .delay(Double(index) * 0.2),
-                            value: logoOpacity
-                        )
-                }
+                Text("Initializing...".localstr())
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                Text("\(Int(progress * 100))%")
+                    .font(.body)
+                    .foregroundColor(.secondary)
             }
-            .opacity(titleOpacity)
-            
-            Text("Initializing...".localstr())
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .opacity(titleOpacity * 0.6)
+            .opacity(titleOpacity * 0.8)
         }
     }
 }
@@ -420,5 +496,5 @@ struct SplashRipple {
 }
 
 #Preview {
-    SplashScreenView()
+    SplashScreenView(isColdStart: false, finishNow: .constant(false))
 }

@@ -67,6 +67,9 @@ struct CatVPNApp: App {
     @State private var showSplashOnForeground = false
     @State private var wasInBackground = false
     @State private var isAppStarted = true  // 启动状态
+    @State private var splashFinishTrigger = false
+    @State private var shouldShowStartupAd = false
+    // 回退：不再通过触发补齐动画关闭
     
     @StateObject private var vm = MainViewmodel()
     
@@ -78,7 +81,16 @@ struct CatVPNApp: App {
                     .localview()   // 确保整个应用都能响应语言变化
                 // 启动阶段覆盖页
                 if isAppStarted {
-                    SplashScreenView()
+                    SplashScreenView(isColdStart: true, finishNow: $splashFinishTrigger) {
+                        completeStartup()
+                        if shouldShowStartupAd {
+                            // 延迟展示广告，避免与切换动画竞争
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                showSplashAd()
+                            }
+                            shouldShowStartupAd = false
+                        }
+                    }
                         .environmentObject(vm)
                         .background(Color(UIColor.systemBackground).opacity(1.0)) // 适配暗黑模式的完全不透明背景
                         .onAppear {
@@ -87,25 +99,21 @@ struct CatVPNApp: App {
                             vm.checkNet { success in
                                 logDebug("SplashScreen ** Initial check completed: \(success)")
                                 if success {
-                                    // 如果已经超时进入了主页就不展示
+                                    // 标记待展示广告，等进度补齐后再展示
                                     if isAppStarted {
-                                        // 展示广告
-                                        logDebug("SplashScreen ** 展示广告")
-                                        showSplashAd()
-                                    } else {
-                                        logDebug("SplashScreen ** 已经超时进入了主页，不展示广告")
+                                        logDebug("SplashScreen ** 标记启动页广告，等待进度补齐后展示")
+                                        shouldShowStartupAd = true
                                     }
                                 }
-                                logDebug("SplashScreen ** 进入主页")
-                                // 网络检查完成，进入主页
-                                completeStartup()
+                                logDebug("SplashScreen ** 触发补齐进入主页")
+                                splashFinishTrigger = true
                             }
                             
                             // 20秒超时自动进入主页
                             DispatchQueue.main.asyncAfter(deadline: .now() + 20.0) {
                                 if isAppStarted {
-                                    logDebug("SplashScreen ** Initial splash timeout (20s), entering main view")
-                                    completeStartup()
+                                    logDebug("SplashScreen ** Initial splash timeout (20s), entering main view (complete to 100%)")
+                                    splashFinishTrigger = true
                                 }
                             }
                         }
@@ -113,7 +121,9 @@ struct CatVPNApp: App {
                 
                 // 后台返回覆盖页
                 if !isAppStarted && showSplashOnForeground {
-                    SplashScreenView()
+                    SplashScreenView(isColdStart: false, finishNow: $splashFinishTrigger) {
+                        showSplashOnForeground = false
+                    }
                         .background(Color(UIColor.systemBackground).opacity(1.0)) // 适配暗黑模式的完全不透明背景
                         .onAppear {
                             logDebug("SplashScreen ** Splash Screen shown from ** background")
@@ -125,7 +135,7 @@ struct CatVPNApp: App {
                             
                             // 3秒后自动关闭
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                                showSplashOnForeground = false
+                                splashFinishTrigger = true
                             }
                         }
                 }
