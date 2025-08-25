@@ -11,188 +11,57 @@ import YandexMobileAds
 class ADSCenter {
     
     static var shared = ADSCenter()
-
-    let admobCenter = AdmobCenter()
-    let yanIntCenter = YanIntCenter()
-    let yanBannerCenter = YanBannerCenter()
     
-    var isShowingAd = false
-    var isVip = false
-
-    private var isAdsOpen: Bool {
-        // 测试服 关闭广告
-        //return false
-        
-        if isVip {
-            logDebug("~~ADSCenter isAdsOpen: false. It's Vip")
-            return false
-        }
-        let isAdsOff = AdCFHelper.shared.getAdsOff()
-        let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
-        logDebug("~~ADSCenter isAdsOff: \(isAdsOff)")
-        logDebug("~~ADSCenter adType: \(adType)")
-        return !isAdsOff
-    }
-
-    private var isYandexOpen: Bool {
-        let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
-        if adType.contains("y"){
-            return true
-        }
-        logDebug("~~ADSCenter isYandexOpen: false")
-        return false
-    }
-
-    private var isAdmobOpen: Bool {
-        let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
-        if adType.contains("a"){
-            if GlobalStatus.shared.connectStatus == .connected {
-                return true
-            }
-        }
-        logDebug("~~ADSCenter isAdmobOpen: false")
-        return false
+    private let configManager = AdConfigManager.shared
+    private let displayManager = AdDisplayManager.shared
+    
+    private init() {}
+    
+    // MARK: - 保持原有属性可访问
+    
+    var isShowingAd: Bool {
+        get { configManager.isShowingAd }
+        set { configManager.isShowingAd = newValue }
     }
     
-    private init() {
-        isVip = UserDefaults.standard.bool(forKey: AdDefaults.CAT_IS_VIP)
-    }
-
-    func isYanBannerReady() -> Bool {
-        return yanBannerCenter.isReady()
+    var isVip: Bool {
+        get { configManager.isVip }
+        set { configManager.isVip = newValue }
     }
     
-    func isYanIntReady() -> Bool {
-        return yanIntCenter.isReady()
-    }
+    // 保持原有属性可访问
+    var yanBannerCenter: YanBannerCenter { return configManager.yanBannerCenter }
+    var yanIntCenter: YanIntCenter { return configManager.yanIntCenter }
+    var admobCenter: AdmobCenter { return configManager.admobCenter }
     
-    func isAdmobReady() -> Bool {
-        if GlobalStatus.shared.connectStatus == .connected {
-            return admobCenter.isReady()
-        }else{
-            admobCenter.clearAd()
-            return false
-        }
-    }
+    // MARK: - 状态检查方法（保持原名）
     
-    func isYandexAdReady() -> Bool {
-        guard isAdsOpen else { return false }
-        return isYanBannerReady() || isYanIntReady()
-    }
+    func isYanBannerReady() -> Bool { return configManager.checkBannerStatus() }
+    func isYanIntReady() -> Bool { return configManager.checkIntStatus() }
+    func isAdmobReady() -> Bool { return configManager.checkAdmobStatus() }
+    func isYandexAdReady() -> Bool { return configManager.checkYandexAvailability() }
+    func isAllAdReady() -> Bool { return configManager.checkOverallAvailability() }
     
-    func isAllAdReady() -> Bool {
-        guard isAdsOpen else { return false }
-        return isYandexAdReady() || isAdmobReady()
-    }
+    // MARK: - 加载方法（保持原名）
     
-    // MARK: - 广告加载管理
+    func prepareAllAd(moment: String? = nil) { configManager.loadAllAdvertisements(moment: moment) }
+    func prepareYanBanner(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) { configManager.loadBannerAd(onAdReady: onAdReady, onAdFailed: onAdFailed) }
+    func prepareYanInt(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) { configManager.loadIntAd(onAdReady: onAdReady, onAdFailed: onAdFailed) }
+    func prepareAdmobInt(moment: String? = nil, onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) { configManager.loadAdmobAd(moment: moment, onAdReady: onAdReady, onAdFailed: onAdFailed) }
     
-    func prepareAllAd(moment: String? = nil) {
-        logDebug("~~ADSCenter loadAllAds ** moment: \(String(describing: moment))")
-        guard isAdsOpen else {
-            logDebug("~~ADSCenter loadAllAds - ads disabled")
-            return
-        }
-        
-        if isYandexOpen {
-            yanBannerCenter.beginAdLoading()
-            yanIntCenter.beginAdLoading()
-        }
-        
-        if isAdmobOpen {
-            admobCenter.beginAdLoading(moment: moment)
-        }
-    }
+    // MARK: - 展示方法（保持原名）
     
-    func prepareYanBanner(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
-        logDebug("~~ADSCenter load Yandex Banner")
-        if isAdsOpen && isYandexOpen {
-            if isYanBannerReady() {
-                onAdReady?()
-            } else {
-                yanBannerCenter.onAdReady = onAdReady
-                yanBannerCenter.onAdFailed = onAdFailed
-                yanBannerCenter.beginAdLoading()
-            }
-        } else {
-            onAdReady?()
-        }
-    }
+    func showYanInt(from viewController: UIViewController, onClose: (() -> Void)? = nil) { displayManager.displayYandexInt(from: viewController, onClose: onClose) }
+    func showYanBanner(from viewController: UIViewController) { displayManager.displayYandexBanner(from: viewController) }
+    func showAdmobInt(from viewController: UIViewController, moment: String?) { displayManager.displayAdmobInt(from: viewController, moment: moment) }
     
-    func prepareYanInt(onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
-        logDebug("~~ADSCenter load Yandex Int")
-        if isAdsOpen && isYandexOpen {
-            if isYanIntReady() {
-                onAdReady?()
-            } else {
-                yanIntCenter.onAdReady = onAdReady
-                yanIntCenter.onAdFailed = onAdFailed
-                yanIntCenter.beginAdLoading()
-            }
-        } else {
-            onAdReady?()
-        }
-    }
+    // MARK: - 便捷展示方法（保持原名）
     
-    func prepareAdmobInt(moment: String? = nil, onAdReady: (() -> Void)? = nil, onAdFailed: (() -> Void)? = nil) {
-        logDebug("~~ADSCenter load Admob Int")
-        if isAdsOpen && isAdmobOpen {
-            admobCenter.onAdReady = onAdReady
-            admobCenter.onAdFailed = onAdFailed
-            admobCenter.beginAdLoading(moment: moment)
-        } else {
-            onAdReady?()
-        }
-    }
+    func showYanBannerFromRoot() { displayManager.displayAdFromRoot(type: .yandexBanner) }
+    func showYanIntFromRoot(onClose: (() -> Void)? = nil) { displayManager.displayAdFromRoot(type: .yandexInt, onClose: onClose) }
+    func showAdmobIntFromRoot(moment: String?) { displayManager.displayAdFromRoot(type: .admobInt, moment: moment) }
     
-    // MARK: - 广告展示
+    // MARK: - 获取方法（保持原名）
     
-    func showYanInt(from viewController: UIViewController, onClose: (() -> Void)? = nil) {
-        yanIntCenter.onAdClosed = onClose
-        yanIntCenter.presentAd(from: viewController, moment: nil)
-    }
-    
-    func showYanBanner(from viewController: UIViewController) {
-        yanBannerCenter.presentAd(from: viewController)
-    }
-    
-    func showAdmobInt(from viewController: UIViewController, moment: String?) {
-        admobCenter.presentAd(from: viewController, moment: moment)
-    }
-    
-    // MARK: - 便捷展示方法
-    
-    func showYanBannerFromRoot() {
-        if let rootVC = getRootViewController() {
-            showYanBanner(from: rootVC)
-        }
-    }
-    
-    func showYanIntFromRoot(onClose: (() -> Void)? = nil) {
-        if let rootVC = getRootViewController() {
-            showYanInt(from: rootVC, onClose: onClose)
-        }
-    }
-    
-    func showAdmobIntFromRoot(moment: String?) {
-        if let rootVC = getRootViewController() {
-            showAdmobInt(from: rootVC, moment: moment)
-        }
-    }
-    
-    private func getRootViewController() -> UIViewController? {
-        return UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows })
-            .first(where: { $0.isKeyWindow })?.rootViewController
-    }
-    
-    // MARK: - 广告获取方法
-    
-    func getYanBannerAd() -> AdView? {
-        let adView = yanBannerCenter.getCurrentAd()
-        yanBannerCenter.refreshAd()
-        return adView
-    }
-    
+    func getYanBannerAd() -> AdView? { return displayManager.getCurrentBannerAd() }
 }
