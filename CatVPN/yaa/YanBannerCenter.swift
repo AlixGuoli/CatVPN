@@ -152,19 +152,19 @@ class YanBannerCenter: NSObject {
 extension YanBannerCenter: AdViewDelegate {
     
     func adViewDidLoad(_ adView: AdView) {
-        logDebug("YanBanner ads loadAdRecursively ** Success AdKey: \(adView.adUnitID)")
+        logDebug("~~ADSCenter YanBanner ads loadAdRecursively ** Success AdKey: \(adView.adUnitID)")
         isLoadingAd = false
         isAdReady = true
         onAdReady?()
     }
     
     func adViewDidFailLoading(_ adView: AdView, error: Error) {
-        logDebug("!!! YanBanner ads loadAdRecursively failed adKey: \(adView.adUnitID) error: \(error.localizedDescription)")
+        logDebug("~~ADSCenter !!! YanBanner ads loadAdRecursively failed adKey: \(adView.adUnitID) error: \(error.localizedDescription)")
         loadNextAd()
     }
     
     func adViewDidClick(_ adView: AdView) {
-        logDebug("YanBanner ads is Clicked")
+        logDebug("~~ADSCenter YanBanner ads is Clicked")
         onAdClicked?()
     }
 }

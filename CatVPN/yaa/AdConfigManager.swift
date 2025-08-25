@@ -46,7 +46,7 @@ class AdConfigManager {
 
     private var isAdmobOpen: Bool {
         let adType = AdCFHelper.shared.getAdsType()?.components(separatedBy: ";") ?? []
-        if adType.contains("a"){
+        if adType.contains("a") {
             if GlobalStatus.shared.connectStatus == .connected {
                 return true
             }

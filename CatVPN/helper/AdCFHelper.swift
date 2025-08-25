@@ -18,20 +18,20 @@ class AdCFHelper {
     
     func getYandexBannerKey() -> String {
         /// 测试服
-        return "demo-banner-yandex;ss;demo-banner-yandex"
-        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_BANNER) ?? "demo-banner-yandex;demo-banner-yandex"
+        //return "aaa;bbb;demo-banner-yandex"
+        return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_BANNER) ?? "R-M-16910303-1;R-M-16910303-2"
     }
     
     func getYandexIntKey() -> String {
         /// 测试服
-        return "demo-interstitial-yandex;demo-interstitial-yandex"
-        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_INT) ?? "demo-interstitial-yandex;demo-interstitial-yandex"
+        //return "aa;demo-interstitial-yandex"
+        return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_YANDEX_INT) ?? "R-M-16910303-3"
     }
     
     func getAdmobIntKey() -> String {
         /// 测试服
-        return "ca-app-pub-3940256099942544/4411468910"
-        //return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_ADMOB_INT) ?? "ca-app-pub-3940256099942544/4411468910"
+        //return "aaaa;ca-app-pub-3940256099942544/4411468910"
+        return UserDefaults.standard.string(forKey: AdDefaults.CAT_AD_KEY_ADMOB_INT) ?? "ca-app-pub-9967705190578179/7444843696"
     }
     
     func getPenetrate() -> Int {
