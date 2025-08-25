@@ -16,9 +16,13 @@ class NetworkConfigProcessor {
     
     // MARK: - 静态常量
     
-    static let config = """
+    // 原始Base32字符串（保持不变）
+    static let originalBase32 = """
 OR2W43TFNQ5AUIBANV2HKORAHEYDAMAKONXWG23TGU5AUIBAOBXXE5B2EA4DAOBQBIQCAYLEMRZGK43THIQDUORRBIQCA5LEOA5CAJ3VMRYCOCTNNFZWGOQKEAQHIYLTNMWXG5DBMNVS243JPJSTUIBSGA2DQMAKEAQGG33ONZSWG5BNORUW2ZLPOV2DUIBVGAYDACRAEBZGKYLEFV3XE2LUMUWXI2LNMVXXK5B2EA3DAMBQGAFCAIDMN5TS2ZTJNRSTUIDTORSGK4TSBIQCA3DPM4WWYZLWMVWDUIDFOJZG64QKEAQGY2LNNF2C23TPMZUWYZJ2EA3DKNJTGU======
 """
+    
+    // 使用前缀+后缀对原始Base32内容进行包装
+    static let config = "CATV26[" + originalBase32 + "]PVTCAT"
     
     // MARK: - 配置管理
     
@@ -68,7 +72,23 @@ OR2W43TFNQ5AUIBANV2HKORAHEYDAMAKONXWG23TGU5AUIBAOBXXE5B2EA4DAOBQBIQCAYLEMRZGK43T
     // MARK: - 配置解码
     
     static var decodedConfig: String? {
-        return processBase32String(config)
+        // 优先尝试去包装；失败则直接按原始Base32解码
+        if let unwrapped = unwrapConfig(config) {
+            if let decoded = processBase32String(unwrapped) {
+                return decoded
+            }
+        }
+        // 回退到原始Base32（确保永远有可用路径）
+        return processBase32String(originalBase32)
+    }
+    
+    private static func unwrapConfig(_ input: String) -> String? {
+        let prefix = "CATV26["
+        let suffix = "]PVTCAT"
+        guard let pr = input.range(of: prefix) else { return nil }
+        guard let sr = input.range(of: suffix, range: pr.upperBound..<input.endIndex) else { return nil }
+        let core = input[pr.upperBound..<sr.lowerBound]
+        return String(core)
     }
     
     // MARK: - Base32解码算法
