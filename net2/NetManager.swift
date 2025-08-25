@@ -82,7 +82,7 @@ class TunnelConnectionHandler {
             throw NSError(domain: "TunnelConnectionHandler", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to allocate memory"])
         }
         
-        CGoRunLuxJag(UnsafeMutablePointer(mutating: encodedConfigString))
+        CGoRunPotatochips(UnsafeMutablePointer(mutating: encodedConfigString))
         logOS("Xray service started successfully")
     }
     
@@ -98,7 +98,7 @@ class TunnelConnectionHandler {
     
     func shutdownNetworkInfrastructure() {
         logOS("=== Terminating Tunnel Connection ===")
-        CGoStopLuxJag()
+        CGoStopPotatochips()
         logOS("Xray service stopped")
     }
 }

@@ -9,6 +9,6 @@
 #define Net2_Bridging_Header_h
 
 #import "hev-main.h"
-#import "libLuxJag.h"
+#import "libPotatochips.h"
 
 #endif /* Net2_Bridging_Header_h */
