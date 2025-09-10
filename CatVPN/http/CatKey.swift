@@ -57,7 +57,7 @@ class CatKey {
     
     // 获取国家代码
     static func getCountryCode() -> String {
-        return Locale.current.region?.identifier ?? "us"
+        return (Locale.current.region?.identifier ?? "us").lowercased()
     }
     
     // 获取语言代码
