@@ -127,9 +127,25 @@ class MainViewmodel: ObservableObject {
     }
     
     func regainVPN() {
-        manager.loadMAllFromPreferences { error in
-            if error != nil {
-                
+//        manager.loadMAllFromPreferences { error in
+//            if error != nil {
+//                
+//            }
+//        }
+        manager.loadMAllFromPreferences { [weak self] error in
+            guard let self = self, error == nil else {
+                logDebug("Failed to load VPN preferences: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            // 获取当前系统VPN状态
+            let currentStatus = self.manager.connectionManager.connection.status
+            logDebug("Current VPN status on app start: \(currentStatus)")
+            
+            // 更新UI状态以反映当前VPN状态
+            DispatchQueue.main.async {
+                self.state = currentStatus
+                logDebug("VPN state restored - status: \(currentStatus)")
             }
         }
     }
