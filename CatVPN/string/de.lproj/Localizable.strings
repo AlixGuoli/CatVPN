@@ -186,3 +186,7 @@
 
 // VPNMainView - Schnellaktionen (neu)
 "System Info" = "Systeminformationen";
+
+// FirstConnectionRatingPopupView - Erstverbindungsbewertung (neu)
+"FirstRating_Title" = "Bewerten Sie uns";
+"FirstRating_Description" = "Jede positive Bewertung treibt unsere ständige Verbesserung voran!";

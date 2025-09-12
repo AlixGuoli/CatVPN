@@ -65,10 +65,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FE7E2F432E3DFA0600F69A45 /* Exceptions for "CatVPN" folder in "net2" target */ = {
+		FEA953C82E726F2F005FF510 /* Exceptions for "CatVPN" folder in "net2" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				utils/LogUtils.swift,
 				utils/ServiceDefaults.swift,
 			);
 			target = FEC6A4C32E2121A100AE43BF /* net2 */;
@@ -76,7 +75,6 @@
 		FEB0487B2E2E3AC20088CDC0 /* Exceptions for "CatVPN" folder in "CatVPN" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				file/testConf.local,
 				Info.plist,
 			);
 			target = FEC6A3A32E210F5A00AE43BF /* CatVPN */;
@@ -90,23 +88,12 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		FEA09D512E5C0B2D00BFD96B /* Exceptions for "CatVPN" folder in "Compile Sources" phase from "CatVPN" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = FEC6A3A02E210F5A00AE43BF /* Sources */;
-			membershipExceptions = (
-				file/testConf.local,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FEC6A3A62E210F5A00AE43BF /* CatVPN */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				FEB0487B2E2E3AC20088CDC0 /* Exceptions for "CatVPN" folder in "CatVPN" target */,
-				FEA09D512E5C0B2D00BFD96B /* Exceptions for "CatVPN" folder in "Compile Sources" phase from "CatVPN" target */,
-				FE7E2F432E3DFA0600F69A45 /* Exceptions for "CatVPN" folder in "net2" target */,
+				FEA953C82E726F2F005FF510 /* Exceptions for "CatVPN" folder in "net2" target */,
 			);
 			path = CatVPN;
 			sourceTree = "<group>";

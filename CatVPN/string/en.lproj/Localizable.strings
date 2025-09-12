@@ -188,3 +188,7 @@
 
 // VPNMainView - 快速操作新增
 "System Info" = "System Info";
+
+// FirstConnectionRatingPopupView - 首次连接评分弹窗（新增）
+"FirstRating_Title" = "Rate Us";
+"FirstRating_Description" = "Every positive review drives our continuous improvement!";

@@ -1,9 +1,7 @@
 /* 
   Localizable.strings
   CatVPN
-
   Created by Stephen Schaaf on 2025/8/14.
-  
 */
 
 // 语言选择页面
@@ -186,3 +184,7 @@
 
 // VPNMainView - Actions rapides (nouveau)
 "System Info" = "Informations système";
+
+// FirstConnectionRatingPopupView - Évaluation lors de la première connexion (nouveau)
+"FirstRating_Title" = "Évaluez-nous";
+"FirstRating_Description" = "Chaque avis positif nous pousse à nous améliorer sans cesse !";

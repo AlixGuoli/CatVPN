@@ -28,7 +28,7 @@ struct ConnectSuccessView: View {
             )
             .ignoresSafeArea()
             
-            VStack(spacing: 30) {
+            VStack(spacing: 20) {
                 btnTopClose
                 Text(getStatusText(status: status))
                     .fontWeight(.semibold)
@@ -41,10 +41,11 @@ struct ConnectSuccessView: View {
                     .onTapGesture {
                         joinTelegramChannel()
                     }
-                btnClose
-                    .padding(.top, 50)
+                
                 Spacer()
                 
+                ratingGuideCard
+                    //.padding(.bottom, 30)
             }
         }
         .navigationBarBackButtonHidden()
@@ -53,47 +54,11 @@ struct ConnectSuccessView: View {
         }
     }
     
-    private var btnClose: some View {
-        Button(action: {
-            dismiss()
-        }) {
-            Text("Close".localstr())
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(.regularMaterial)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.green.opacity(0.1),
-                                    Color.mint.opacity(0.06),
-                                    Color.green.opacity(0.04)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .blur(radius: 0.5)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.linearGradient(
-                            colors: [
-                                Color.white.opacity(0.4),
-                                Color.green.opacity(0.3),
-                                Color.mint.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ), lineWidth: 1.5)
-                )
-                .shadow(color: .green.opacity(0.15), radius: 20, x: 0, y: 8)
-                .padding(.horizontal, 30)
+    // 评分引导卡片（替换底部关闭按钮）
+    private var ratingGuideCard: some View {
+        RatingGuideCardView {
+            openReviewPage()
         }
-        .buttonStyle(ScaleButtonStyle())
     }
     
     private var btnTopClose: some View {
@@ -143,44 +108,60 @@ struct ConnectSuccessView: View {
     }
     
     private var shareView: some View {
-        VStack(alignment: .leading) {
+        HStack(alignment: .center, spacing: 16) {
             Image(.share)
                 .resizable()
-                .frame(width: 50, height: 50)
-            Text("Tell_Friends_Title".localstr())
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text("Tell_Friends_Description".localstr())
-                .font(.caption)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
+                .scaledToFit()
+                .frame(width: 56, height: 56)
+                .padding(4)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Tell_Friends_Title".localstr())
+                    .font(.system(size: 22, weight: .semibold))
+                    .fontWeight(.semibold)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+                Text("Tell_Friends_Description".localstr())
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+            }
             Spacer()
         }
-        .padding(.top, 25)
-        .padding(.horizontal, 45)
-        .frame(height: 170)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 20).fill(.bgGreen))
         .padding(.horizontal, 30)
     }
     
     private var tgView: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        HStack(alignment: .center, spacing: 16) {
             Image(.tg)
                 .resizable()
-                .frame(width: 50, height: 50)
-            Text("Follow_Us_Title".localstr())
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text("Follow_Us_Description".localstr())
-                .font(.caption)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
+                .scaledToFit()
+                .frame(width: 56, height: 56)
+                .padding(4)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Follow_Us_Title".localstr())
+                    .font(.system(size: 22, weight: .semibold))
+                    .fontWeight(.semibold)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+                Text("Follow_Us_Description".localstr())
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+            }
             Spacer()
         }
-        .padding(.top, 25)
-        .padding(.horizontal, 45)
-        .frame(height: 170)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 20).fill(.bgGreen))
         .padding(.horizontal, 30)
@@ -222,6 +203,15 @@ struct ConnectSuccessView: View {
             UIApplication.shared.open(url)
         }
     }
+    
+    private func openReviewPage() {
+        let reviewURL = "https://apps.apple.com/app/id6748526674?action=write-review"
+        if let url = URL(string: reviewURL) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+    }
+    
+    
 }
 
 #Preview {
