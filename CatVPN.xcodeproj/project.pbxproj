@@ -751,7 +751,7 @@
 					"$(PROJECT_DIR)/net2/libhev-socks5-tunnel.a",
 					"-lresolv",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.net2.yun;
+				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.ne;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -794,7 +794,7 @@
 					"$(PROJECT_DIR)/net2/libhev-socks5-tunnel.a",
 					"-lresolv",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.net2.yun;
+				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.ne;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
