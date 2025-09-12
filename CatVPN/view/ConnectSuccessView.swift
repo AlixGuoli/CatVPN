@@ -28,7 +28,7 @@ struct ConnectSuccessView: View {
             )
             .ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 15) {
                 btnTopClose
                 Text(getStatusText(status: status))
                     .fontWeight(.semibold)
@@ -45,7 +45,7 @@ struct ConnectSuccessView: View {
                 Spacer()
                 
                 ratingGuideCard
-                    //.padding(.bottom, 30)
+                    .padding(.bottom, 30)
             }
         }
         .navigationBarBackButtonHidden()

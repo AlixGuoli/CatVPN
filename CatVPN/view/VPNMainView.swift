@@ -174,6 +174,10 @@ struct VPNMainView: View {
                     }
                 }.environmentObject(mainViewModel)
             }
+            .navigationDestination(isPresented: $mainViewModel.showConnecting) {
+                ConnectingView()
+                    .environmentObject(mainViewModel)
+            }
             .navigationDestination(isPresented: $mainViewModel.showResult) {
                 ConnectSuccessView(status: mainViewModel.resultStatus)
             }

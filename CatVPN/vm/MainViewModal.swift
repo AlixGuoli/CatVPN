@@ -17,6 +17,7 @@ class MainViewmodel: ObservableObject {
     
     @Published var showResult = false
     @Published var resultStatus: VPNConnectionStatus = .disconnected
+    @Published var showConnecting = false
     
     @Published var isShowRate: Bool = false
     @Published var showEmail: Bool = false
@@ -275,7 +276,8 @@ class MainViewmodel: ObservableObject {
                 DispatchQueue.main.asyncAfter(deadline: .now()) {
                     ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
                 }
-                self.prepare()
+                // 跳转到连接中页面，而不是直接连接
+                self.showConnecting = true
             } else {
 //                ADSCenter.shared.yanBannerCenter.clearAd()
 //                ADSCenter.shared.yanIntCenter.clearAd()
@@ -396,7 +398,6 @@ class MainViewmodel: ObservableObject {
         RatingCenter.shared.connectedTime = Date()
         DispatchQueue.main.async {
             self.resultStatus = .connected
-            self.showResult = true
             self.connectionStatus = .connected
             self.startConnectionTimer()
             logDebug("Connect Successful")
@@ -406,6 +407,11 @@ class MainViewmodel: ObservableObject {
                     logDebug("Save service config to UserDefaults")
                     UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
                 }
+            }
+            // 先设置结果页状态，再关闭连接中页面，确保直接跳转
+            self.showResult = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.showConnecting = false
             }
         }
     }
@@ -420,7 +426,11 @@ class MainViewmodel: ObservableObject {
         stopConnect()
         DispatchQueue.main.async {
             self.resultStatus = .failed
+            // 先设置结果页状态，再关闭连接中页面，确保直接跳转
             self.showResult = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.showConnecting = false
+            }
         }
     }
     
@@ -703,7 +713,11 @@ extension MainViewmodel {
         DispatchQueue.main.async {
             self.connectionStatus = .disconnected
             self.resultStatus = .failed
+            // 先设置结果页状态，再关闭连接中页面，确保直接跳转
             self.showResult = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.showConnecting = false
+            }
         }
     }
 }

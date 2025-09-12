@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RatingGuideCardView: View {
-    @State private var selectedStars: Int = 0
+    @State private var selectedStars: Int = 4
     @State private var animationOffset: [Double] = [0, 0, 0, 0, 0]
     @Environment(\.colorScheme) private var colorScheme
     
@@ -12,7 +12,7 @@ struct RatingGuideCardView: View {
             Text("FirstRating_Title".localstr())
                 .font(.title2)
                 .fontWeight(.semibold)
-                .foregroundColor(.textGreen)
+                .foregroundColor(.bgGreen)
                 .padding(.top, 45)
             Text("FirstRating_Description".localstr())
                 .font(.body)
