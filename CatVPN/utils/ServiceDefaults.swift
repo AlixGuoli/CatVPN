@@ -7,7 +7,7 @@
 import Foundation
 
 class ServiceDefaults {
-    public static let targetGroup = "group.CatVPN.CatVPN"
+    public static let targetGroup = "group.CatVPN.CatVPN.yun"
     
     public static let targetConfig = "targetConfig"
     

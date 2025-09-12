@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		293F75EFC64C443FCFB9AE24 /* Pods_CatVPN.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 41CDF00F889678C10D129AB4 /* Pods_CatVPN.framework */; };
 		A2EA65AC7DE7B79DA6C12014 /* Pods_net2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 727129C344D46A7EFAA334EE /* Pods_net2.framework */; };
-		FE2993BE2E4064CC002DA134 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FE2993BD2E4064CC002DA134 /* libresolv.tbd */; };
-		FE2993BF2E406562002DA134 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FE2993BD2E4064CC002DA134 /* libresolv.tbd */; };
 		FE767F0B2E3386240003EC3C /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896E82E322E77009BCE27 /* AppTrackingTransparency.framework */; };
 		FE767F0C2E33862F0003EC3C /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896EA2E322E8A009BCE27 /* AdSupport.framework */; };
 		FE767F0D2E33863F0003EC3C /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896EC2E322E94009BCE27 /* SystemConfiguration.framework */; };
@@ -57,7 +55,6 @@
 		FE0896EC2E322E94009BCE27 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		FE0896EE2E322EB0009BCE27 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		FE0896F02E322EBA009BCE27 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		FE2993BD2E4064CC002DA134 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		FE7E2EC32E37787E00F69A45 /* GameAnalytics.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GameAnalytics.xcframework; path = "Pods/GA-SDK-IOS/GameAnalytics.xcframework"; sourceTree = "<group>"; };
 		FEC6A3A42E210F5A00AE43BF /* CatVPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatVPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEC6A3F52E21107A00AE43BF /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
@@ -65,7 +62,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FEA953C82E726F2F005FF510 /* Exceptions for "CatVPN" folder in "net2" target */ = {
+		BBB7A1882E74042F00E86A3A /* Exceptions for "CatVPN" folder in "net2" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				utils/ServiceDefaults.swift,
@@ -93,7 +90,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				FEB0487B2E2E3AC20088CDC0 /* Exceptions for "CatVPN" folder in "CatVPN" target */,
-				FEA953C82E726F2F005FF510 /* Exceptions for "CatVPN" folder in "net2" target */,
+				BBB7A1882E74042F00E86A3A /* Exceptions for "CatVPN" folder in "net2" target */,
 			);
 			path = CatVPN;
 			sourceTree = "<group>";
@@ -113,7 +110,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FE2993BF2E406562002DA134 /* libresolv.tbd in Frameworks */,
 				FE7E2EC42E37787E00F69A45 /* GameAnalytics.xcframework in Frameworks */,
 				FE767F0F2E33867C0003EC3C /* libz.tbd in Frameworks */,
 				FE767F0E2E3386720003EC3C /* libsqlite3.tbd in Frameworks */,
@@ -128,7 +124,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FE2993BE2E4064CC002DA134 /* libresolv.tbd in Frameworks */,
 				FEC6A4C52E2121A100AE43BF /* NetworkExtension.framework in Frameworks */,
 				A2EA65AC7DE7B79DA6C12014 /* Pods_net2.framework in Frameworks */,
 			);
@@ -171,7 +166,6 @@
 		FEC6A3F42E21107A00AE43BF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				FE2993BD2E4064CC002DA134 /* libresolv.tbd */,
 				FE7E2EC32E37787E00F69A45 /* GameAnalytics.xcframework */,
 				FE0896F02E322EBA009BCE27 /* libz.tbd */,
 				FE0896EE2E322EB0009BCE27 /* libsqlite3.tbd */,
@@ -242,7 +236,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					FEC6A3A32E210F5A00AE43BF = {
 						CreatedOnToolsVersion = 16.4;
@@ -259,8 +253,8 @@
 			knownRegions = (
 				en,
 				Base,
-				ru,
 				de,
+				ru,
 				fr,
 			);
 			mainGroup = FEC6A39B2E210F5A00AE43BF;
@@ -541,7 +535,7 @@
 				CODE_SIGN_ENTITLEMENTS = CatVPN/CatVPN.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 65F9DSLLJ5;
+				DEVELOPMENT_TEAM = 6JW2G9TQP7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CatVPN/Info.plist;
@@ -557,7 +551,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -640,7 +634,7 @@
 				CODE_SIGN_ENTITLEMENTS = CatVPN/CatVPN.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 65F9DSLLJ5;
+				DEVELOPMENT_TEAM = 6JW2G9TQP7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CatVPN/Info.plist;
@@ -656,7 +650,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -735,7 +729,7 @@
 				CODE_SIGN_ENTITLEMENTS = net2/net2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 65F9DSLLJ5;
+				DEVELOPMENT_TEAM = 6JW2G9TQP7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = net2/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = net2;
@@ -750,8 +744,14 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/net2",
 				);
-				MARKETING_VERSION = 1.0.2;
-				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.net2;
+				MARKETING_VERSION = 1.0.3;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/net2/libPotatochips.a",
+					"$(PROJECT_DIR)/net2/libhev-socks5-tunnel.a",
+					"-lresolv",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.net2.yun;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -759,7 +759,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "/Users/stephenschaaf/Desktop/CatVPN/net2/Net2-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "net2/Net2-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -772,7 +772,7 @@
 				CODE_SIGN_ENTITLEMENTS = net2/net2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 65F9DSLLJ5;
+				DEVELOPMENT_TEAM = 6JW2G9TQP7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = net2/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = net2;
@@ -787,8 +787,14 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/net2",
 				);
-				MARKETING_VERSION = 1.0.2;
-				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.net2;
+				MARKETING_VERSION = 1.0.3;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/net2/libPotatochips.a",
+					"$(PROJECT_DIR)/net2/libhev-socks5-tunnel.a",
+					"-lresolv",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.net2.yun;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -796,7 +802,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "/Users/stephenschaaf/Desktop/CatVPN/net2/Net2-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "net2/Net2-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
