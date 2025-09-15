@@ -158,8 +158,8 @@ struct VPNMainView: View {
                     } else if mainViewModel.resultStatus == .disconnected {
                         showAd(moment: AdMoment.disconnect)
                     } else if mainViewModel.resultStatus == .failed {
-                        // 仅"不可用"导致的失败才展示广告
-                        if !BaseCFHelper.shared.isServiceAvailable() {
+                        // 仅"不可用"导致的失败才展示广告，且不是中国地区
+                        if mainViewModel.isServiceUnavailable && CatKey.getCountryCode() != "cn" {
                             showAd(moment: AdMoment.connect)
                         }
                     }
@@ -179,7 +179,11 @@ struct VPNMainView: View {
                     .environmentObject(mainViewModel)
             }
             .navigationDestination(isPresented: $mainViewModel.showResult) {
-                ConnectSuccessView(status: mainViewModel.resultStatus)
+                if mainViewModel.resultStatus == .failed && mainViewModel.isServiceUnavailable && CatKey.getCountryCode() != "cn" {
+                    ServiceUnavailableView()
+                } else {
+                    ConnectSuccessView(status: mainViewModel.resultStatus)
+                }
             }
             .navigationDestination(isPresented: $showServerSelection) {
                 ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
@@ -210,7 +214,7 @@ struct VPNMainView: View {
             let adCenter = ADSCenter.shared
             
             // 不可用状态下只展示 Yandex 广告
-            if !BaseCFHelper.shared.isServiceAvailable() {
+            if mainViewModel.isServiceUnavailable {
                 if adCenter.isYanBannerReady() {
                     logDebug("MainView ** Showing Yandex Banner ad (restricted mode)")
                     adCenter.showYanBannerFromRoot()

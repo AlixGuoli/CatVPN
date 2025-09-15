@@ -17,6 +17,7 @@ class MainViewmodel: ObservableObject {
     
     @Published var showResult = false
     @Published var resultStatus: VPNConnectionStatus = .disconnected
+    @Published var isServiceUnavailable = false
     @Published var showConnecting = false
     
     @Published var isShowRate: Bool = false
@@ -287,16 +288,23 @@ class MainViewmodel: ObservableObject {
     func handleButtonAction() {
         switch connectionStatus {
         case .disconnected, .failed:
+            // 首先检查是否为中国地区
+            if CatKey.getCountryCode() == "cn" {
+                logDebug("vm: 检测到中国地区，直接跳转失败页")
+                handleChinaRestrictedFlow()
+                return
+            }
+            
             // 连接前判断是否可用
             if BaseCFHelper.shared.isServiceAvailable() {
+                logDebug("vm: 服务可用")
                 DispatchQueue.main.asyncAfter(deadline: .now()) {
                     ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
                 }
                 // 跳转到连接中页面，而不是直接连接
                 self.showConnecting = true
             } else {
-//                ADSCenter.shared.yanBannerCenter.clearAd()
-//                ADSCenter.shared.yanIntCenter.clearAd()
+                logDebug("vm: 服务不可用")
                 handleRestrictedConnectionFlow()
             }
         case .connected:
@@ -694,34 +702,36 @@ class MainViewmodel: ObservableObject {
 // MARK: - 受限连接
 extension MainViewmodel {
     
+    /// 处理中国地区限制流程（直接跳转失败页，不出广告，不弹连接中）
+    private func handleChinaRestrictedFlow() {
+        DispatchQueue.main.async {
+            self.connectionStatus = .disconnected
+            self.resultStatus = .failed
+            self.isServiceUnavailable = !BaseCFHelper.shared.isServiceAvailable() // 基于实际服务状态
+            self.showResult = true
+        }
+    }
+    
     /// 处理不可用状态下的连接流程（不实际连接，只做UI和广告）
     private func handleRestrictedConnectionFlow() {
         
+        // 显示连接中页面
+        self.showConnecting = true
         self.connectionStatus = .connecting
         
-        var finished = false
-        let timeout: TimeInterval = 10.0
-        let timeoutItem = DispatchWorkItem { [weak self] in
-            guard let self = self, !finished else { return }
-            finished = true
-            
-            // 超时：直接跳转失败页
-            handleFailed()
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + timeout, execute: timeoutItem)
-        
-        // 加载Yandex广告（Banner优先）
-        Task {
-            _ = await loadAdsWithPriority()
-            
-            guard !finished else { return }
-            
-            finished = true
-            timeoutItem.cancel()
-            
-            // 不管广告是否加载成功，都跳转失败页
-            handleFailed()
+        // 2秒后显示广告并跳转到不可用页面
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            // 跳转到不可用页面
+            DispatchQueue.main.async {
+                self.connectionStatus = .disconnected
+                self.resultStatus = .failed
+                self.isServiceUnavailable = !BaseCFHelper.shared.isServiceAvailable() // 基于实际服务状态
+                self.showResult = true
+                // 关闭连接中页面
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.showConnecting = false
+                }
+            }
         }
     }
     

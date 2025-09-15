@@ -188,3 +188,11 @@
 // FirstConnectionRatingPopupView - Évaluation lors de la première connexion (nouveau)
 "FirstRating_Title" = "Évaluez-nous";
 "FirstRating_Description" = "Chaque avis positif nous pousse à nous améliorer sans cesse !";
+
+// ServiceUnavailableView - Page de service indisponible
+"ServiceUnavailable_Message" = "Désolé, ce service n'est pas disponible en Russie.";
+"ServiceUnavailable_Support" = "Support";
+"ServiceUnavailable_Telegram" = "Telegram";
+"ServiceUnavailable_Close" = "Fermer";
+"ServiceUnavailable_EmailNotAvailable" = "E-mail non disponible";
+"ServiceUnavailable_EmailNotAvailableMessage" = "Veuillez configurer un compte e-mail dans les Paramètres ou contactez-nous à rocketfreevpn@gmail.com";

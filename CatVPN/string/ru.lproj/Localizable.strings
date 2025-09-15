@@ -190,3 +190,11 @@
 // FirstConnectionRatingPopupView - Оценка при первом подключении (новое)
 "FirstRating_Title" = "Оцените нас";
 "FirstRating_Description" = "Каждый положительный отзыв о нас является движущей силой для нашего непрерывного стремления к улучшению!";
+
+// ServiceUnavailableView - Страница недоступности сервиса
+"ServiceUnavailable_Message" = "Извините, этот сервис недоступен в России.";
+"ServiceUnavailable_Support" = "Поддержка";
+"ServiceUnavailable_Telegram" = "Telegram";
+"ServiceUnavailable_Close" = "Закрыть";
+"ServiceUnavailable_EmailNotAvailable" = "Email недоступен";
+"ServiceUnavailable_EmailNotAvailableMessage" = "Пожалуйста, настройте учетную запись электронной почты в Настройках или свяжитесь с нами по адресу rocketfreevpn@gmail.com";

@@ -192,3 +192,11 @@
 // FirstConnectionRatingPopupView - 首次连接评分弹窗（新增）
 "FirstRating_Title" = "Rate Us";
 "FirstRating_Description" = "Every positive review drives our continuous improvement!";
+
+// ServiceUnavailableView - 服务不可用页面
+"ServiceUnavailable_Message" = "Sorry, this service is not available in Russia.";
+"ServiceUnavailable_Support" = "Support";
+"ServiceUnavailable_Telegram" = "Telegram";
+"ServiceUnavailable_Close" = "Close";
+"ServiceUnavailable_EmailNotAvailable" = "Email Not Available";
+"ServiceUnavailable_EmailNotAvailableMessage" = "Please configure an email account in Settings or contact us at rocketfreevpn@gmail.com";

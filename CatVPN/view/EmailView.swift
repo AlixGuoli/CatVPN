@@ -12,18 +12,11 @@ struct EmailView: UIViewControllerRepresentable {
     var onDismiss: (() -> Void)?
     
     func makeUIViewController(context: Context) -> MFMailComposeViewController {
-        // 检查设备是否支持邮件
-//        guard MFMailComposeViewController.canSendMail() else {
-//            logDebug("设备不支持发送邮件")
-//            // 返回一个空的控制器，但这种情况不应该发生
-//            return MFMailComposeViewController()
-//        }
-        
         let mailComposer = MFMailComposeViewController()
         mailComposer.mailComposeDelegate = context.coordinator
         
         // 固定设置
-        mailComposer.setToRecipients(["support@catvpn.com"])
+        mailComposer.setToRecipients(["rocketfreevpn@gmail.com"])
         mailComposer.setSubject("Feedback")
         mailComposer.setMessageBody("", isHTML: false)
         
