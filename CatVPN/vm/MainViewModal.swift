@@ -10,6 +10,10 @@ import NetworkExtension
 import Alamofire
 
 class MainViewmodel: ObservableObject {
+    private struct TrafficMetrics: Decodable {
+        let egressBytes: UInt64
+        let ingressBytes: UInt64
+    }
     
     enum ConnectionFlowError: LocalizedError {
         case emptyServiceConfig
@@ -32,6 +36,8 @@ class MainViewmodel: ObservableObject {
     
     private var connectManual: Bool = false
     private var isProbingConnection: Bool = false
+    private var connectGeneration: Int = 0
+    private var probeTask: Task<Void, Never>?
     
     @Published var showResult = false
     @Published var resultStatus: VPNConnectionStatus = .disconnected
@@ -79,47 +85,41 @@ class MainViewmodel: ObservableObject {
     private var previousUploadBytes: UInt64 = 0
     private var previousDownloadBytes: UInt64 = 0
     private var lastSpeedUpdateTime = Date()
+    private var isUpdatingTrafficMetrics = false
+    private var trafficMetricsRequestID = 0
+    private var trafficMetricsTimeoutWorkItem: DispatchWorkItem?
     
+    // 修复(§3-7-A)：按钮文案与点击分发必须读同一个真值源。
+    // handleButtonAction 读 connectionStatus，因此这里也改为读 connectionStatus，
+    // 避免在探测窗口/失败瞬间，系统原始状态(state)与派生连接态(connectionStatus)背离时，
+    // 出现"显示 Stop 却点击无效"或"显示 Stop 却触发 Start"的错配。
     var buttonText: String {
-        switch state {
-        case .disconnected, .invalid:
+        switch connectionStatus {
+        case .disconnected, .failed:
             return "Start".localstr()
         case .connecting:
             return "Connecting".localstr()
         case .connected:
             return "Stop".localstr()
-        case .disconnecting:
-            return "Disconnecting".localstr()
-        case .reasserting:
-            return "Reasserting".localstr()
-        @unknown default:
-            return "Unknown".localstr()
         }
     }
-    
+
     var statusText: String {
-        switch state {
+        switch connectionStatus {
         case .disconnected:
             return "Disconnected".localstr()
         case .connecting:
             return "Connecting".localstr()
         case .connected:
             return "Connected".localstr()
-        case .disconnecting:
-            return "Disconnecting".localstr()
-        case .invalid:
-            return "Invalid".localstr()
-        case .reasserting:
-            return "Reasserting".localstr()
-        @unknown default:
-            return "Unknown".localstr()
+        case .failed:
+            return "Connection_Failed".localstr()
         }
     }
     
     init() {
         self.state = manager.connectionManager.connection.status
         NotificationCenter.default.addObserver(self, selector: #selector(vpnStatusDidChange(_:)), name: .NEVPNStatusDidChange, object: nil)
-        startSpeedTimer()
         
         // 初始化时使用默认服务器列表
         self.availableServers = ServerCFHelper.shared.getDefaultServers()
@@ -133,6 +133,7 @@ class MainViewmodel: ObservableObject {
     
     deinit{
         NotificationCenter.default.removeObserver(self)
+        probeTask?.cancel()
         stopConnectionTimer()
         stopSpeedTimer()
     }
@@ -181,38 +182,138 @@ class MainViewmodel: ObservableObject {
         case .connected:
             logDebug("NEVPNStatus: connected")
             if self.connectManual {
-                guard !isProbingConnection else {
-                    logDebug("VPN probe skipped: probe is already running")
-                    return
-                }
-                isProbingConnection = true
-                logDebug("VPN connected, start network probe")
-                checkGG()
+                startConnectivityProbeIfNeeded()
             } else {
                 connectManual = false
                 connectionStatus = .connected
                 startConnectionTimer()
+                startSpeedTimer()
             }
         case .disconnected, .invalid:
             logDebug("NEVPNStatus: disconnected")
+            if isProbingConnection {
+                invalidateCurrentProbe()
+            }
             connectManual = false
-            isProbingConnection = false
             connectionStatus = .disconnected
             stopConnectionTimer()
+            stopSpeedTimer()
+            // 修复：连接窗口期内被系统断开（典型如连接层封禁在探测期间打掉隧道，
+            // 探测任务被取消、verdict 永不回调），需要主动驱动到失败终态，
+            // 否则会永远卡在"连接中"页面。仅在尚未到达任何结果页时触发，
+            // 避免误伤"已连接成功后用户主动断开/隧道掉线"的正常场景。
+            if showConnecting && !showResult {
+                logDebug("System disconnected during connect window, drive to failure terminal state")
+                handleConnectionFailure(stopTunnel: false, reportResult: true)
+            }
         case .connecting:
             logDebug("NEVPNStatus: connecting")
             connectionStatus = .connecting
         case .disconnecting, .reasserting:
             logDebug("NEVPNStatus: disconnecting")
+            if isProbingConnection {
+                invalidateCurrentProbe()
+            }
+            // 拆除期间复位手动连接标志，防止 reasserting->connected 反弹时误走探测分支。
+            connectManual = false
+            // 注意：此处刻意保持 .connecting（而非 .disconnected），
+            // 让 handleButtonAction 在拆除窗口走 default 分支不响应，
+            // 阻止隧道拆除中途被再次点击触发新连接（按钮文案由 state 驱动，仍正确显示 Disconnecting）。
             connectionStatus = .connecting
         @unknown default:
             logDebug("NEVPNStatus: failed")
+            if isProbingConnection {
+                invalidateCurrentProbe()
+            }
             connectionStatus = .failed
         }
     }
     
+    private func beginConnectAttempt() {
+        connectGeneration += 1
+        probeTask?.cancel()
+        probeTask = nil
+        isProbingConnection = false
+        connectionStatus = .connecting
+        // 修复(§3-7-B)：在"开始新一次连接尝试"的同步入口清除上一轮的结果页标志，
+        // 不依赖异步导航通知，避免上一轮成功/断开结果页与本轮连接中页同时生效。
+        showResult = false
+        logDebug("Begin VPN connect attempt, generation:", connectGeneration)
+    }
+    
+    private func invalidateCurrentProbe() {
+        connectGeneration += 1
+        probeTask?.cancel()
+        probeTask = nil
+        isProbingConnection = false
+        logDebug("Invalidate VPN connectivity probe, generation:", connectGeneration)
+    }
+    
+    private func startConnectivityProbeIfNeeded() {
+        guard !isProbingConnection else {
+            logDebug("VPN probe skipped: probe is already running")
+            return
+        }
+        
+        isProbingConnection = true
+        let generation = connectGeneration
+        logDebug("VPN connected, start connectivity probe, generation:", generation)
+        
+        probeTask = Task { [weak self] in
+            let verdict = await Self.makeConnectivityProber().verify()
+            guard !Task.isCancelled else {
+                logDebug("VPN connectivity probe cancelled before handling verdict")
+                return
+            }
+            
+            guard let self = self else { return }
+            await MainActor.run {
+                self.handleProbeVerdict(verdict, generation: generation)
+            }
+        }
+    }
+    
+    private func handleProbeVerdict(_ verdict: ProbeVerdict, generation: Int) {
+        guard generation == connectGeneration else {
+            logDebug("Drop stale VPN probe verdict, verdict generation:", generation, "current generation:", connectGeneration)
+            return
+        }
+        
+        guard state == .connected else {
+            logDebug("Drop VPN probe verdict because system state is not connected:", state.rawValue)
+            invalidateCurrentProbe()
+            return
+        }
+        
+        isProbingConnection = false
+        probeTask = nil
+        
+        if verdict.isAlive {
+            logDebug("VPN connectivity probe succeeded, generation:", generation)
+            Task {
+                await self.prepareAndNotify(generation: generation)
+            }
+        } else {
+            logDebug("VPN connectivity probe failed, reason:", verdict.reason.rawValue, "generation:", generation)
+            connectFailed(reason: verdict.reason)
+        }
+    }
+    
+    private func isConnectionGenerationCurrent(_ generation: Int) -> Bool {
+        return generation == connectGeneration && state == .connected
+    }
+    
+    private static func makeConnectivityProber() -> ConnectivityProber {
+        let configuredTargets = BaseCFHelper.shared.getDetectionServers()?
+            .compactMap { ProbeTarget(urlString: $0) } ?? []
+        let targets = configuredTargets.isEmpty ? ProbeTarget.defaultTargets : configuredTargets
+        logDebug("Using VPN connectivity probe targets, count:", targets.count, configuredTargets.isEmpty ? "default" : "configured")
+        return ConnectivityProber(targets: targets)
+    }
+    
     func prepare(){
         connectManual = true
+        beginConnectAttempt()
         manager.loadMAllFromPreferences() { error in
             logDebug("prepare")
             if error != nil {
@@ -349,6 +450,12 @@ class MainViewmodel: ObservableObject {
     }
     
     func stopConnect(){
+        // 主动、幂等地清理本地状态，不完全依赖系统 .disconnected 通知是否/何时到达，
+        // 避免上一次断开未清干净（残留 Timer / probe / 标志位）影响下一次连接。
+        invalidateCurrentProbe()
+        stopConnectionTimer()
+        stopSpeedTimer()
+        connectManual = false
         manager.stopVpnConnection() { error in
             guard error == nil else {
                 logDebug("stopConnect error:", error?.localizedDescription ?? "Unknown error")
@@ -357,7 +464,23 @@ class MainViewmodel: ObservableObject {
             logDebug("stopConnect success")
         }
     }
-    
+
+    /// 延迟断开（断开前先展示广告的场景）。捕获当前连接代次，到点后若期间已发起新的
+    /// 连接尝试（connectGeneration 改变），则跳过这次已过期的断开，避免"死 IP 断开→
+    /// 立即重连获取新 IP"时，旧的 3 秒延迟 stopConnect 误杀用户刚建立的新连接。
+    func scheduleStopConnect(afterAdDelay delay: TimeInterval) {
+        let generation = connectGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self = self else { return }
+            guard generation == self.connectGeneration else {
+                logDebug("Skip stale deferred stopConnect, scheduled generation:", generation, "current generation:", self.connectGeneration)
+                return
+            }
+            logDebug("Delay finish *** stopConnect, generation:", generation)
+            self.stopConnect()
+        }
+    }
+
     func handleButtonAction() {
         switch connectionStatus {
         case .disconnected, .failed:
@@ -392,7 +515,14 @@ class MainViewmodel: ObservableObject {
     
     // 连接定时器管理
     private func startConnectionTimer() {
-        startTime = Date()
+        // 修复：先失效旧 Timer，避免 reasserting 抖动反弹时（.connected -> .reasserting
+        // -> .connected）重复创建定时器导致泄漏。同时仅在没有计时基准时才重置 startTime，
+        // 使抖动回弹不会把已连接时长归零（stopConnectionTimer 会把 startTime 置 nil，
+        // 因此全新连接时仍会正确从 0 开始计时）。
+        connectionTimer?.invalidate()
+        if startTime == nil {
+            startTime = Date()
+        }
         connectionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             self.updateConnectionTime()
         }
@@ -404,6 +534,7 @@ class MainViewmodel: ObservableObject {
         connectionTimer?.invalidate()
         connectionTimer = nil
         startTime = nil
+        resetTrafficStats()
     }
     
     private func updateConnectionTime() {
@@ -413,14 +544,11 @@ class MainViewmodel: ObservableObject {
         let minutes = (Int(elapsed) % 3600) / 60
         let seconds = Int(elapsed) % 60
         connectionTime = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-        
-        // 模拟数据传输
-        let dataInMB = elapsed / 60 * Double.random(in: 1...5)
-        dataTransferred = String(format: "%.1f MB", dataInMB)
     }
     
     // 网络速度监测
     private func startSpeedTimer() {
+        guard speedTimer == nil else { return }
         speedTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             self.updateNetworkSpeed()
         }
@@ -432,46 +560,98 @@ class MainViewmodel: ObservableObject {
     }
     
     private func updateNetworkSpeed() {
-        let currentBytes = getNetworkBytes()
+        guard state == .connected else {
+            resetTrafficStats()
+            return
+        }
+
+        guard !isUpdatingTrafficMetrics else { return }
+        isUpdatingTrafficMetrics = true
+        trafficMetricsRequestID += 1
+        let requestID = trafficMetricsRequestID
+        let timeoutWorkItem = DispatchWorkItem { [weak self] in
+            guard let self = self,
+                  self.trafficMetricsRequestID == requestID,
+                  self.isUpdatingTrafficMetrics else {
+                return
+            }
+            logDebug("Traffic metrics request timeout")
+            self.isUpdatingTrafficMetrics = false
+        }
+        trafficMetricsTimeoutWorkItem?.cancel()
+        trafficMetricsTimeoutWorkItem = timeoutWorkItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: timeoutWorkItem)
+        
+        requestTrafficMetrics { [weak self] currentBytes in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                guard self.trafficMetricsRequestID == requestID else { return }
+                self.trafficMetricsTimeoutWorkItem?.cancel()
+                self.trafficMetricsTimeoutWorkItem = nil
+                self.isUpdatingTrafficMetrics = false
+                guard self.state == .connected, let currentBytes = currentBytes else {
+                    self.resetTrafficStats()
+                    return
+                }
+                self.applyTrafficMetrics(currentBytes)
+            }
+        }
+    }
+
+    private func applyTrafficMetrics(_ currentBytes: (upload: UInt64, download: UInt64)) {
         let currentTime = Date()
         let timeInterval = currentTime.timeIntervalSince(lastSpeedUpdateTime)
         
-        if timeInterval >= 1.0 && previousUploadBytes > 0 && previousDownloadBytes > 0 {
+        if timeInterval >= 1.0 && (previousUploadBytes > 0 || previousDownloadBytes > 0) {
             let uploadDiff = currentBytes.upload > previousUploadBytes ? currentBytes.upload - previousUploadBytes : 0
             let downloadDiff = currentBytes.download > previousDownloadBytes ? currentBytes.download - previousDownloadBytes : 0
             
-            let uploadSpeed = Double(uploadDiff) / timeInterval
-            let downloadSpeed = Double(downloadDiff) / timeInterval
+            let uploadBytesPerSecond = Double(uploadDiff) / timeInterval
+            let downloadBytesPerSecond = Double(downloadDiff) / timeInterval
             
-            DispatchQueue.main.async {
-                self.uploadSpeed = self.formatSpeed(uploadSpeed)
-                self.downloadSpeed = self.formatSpeed(downloadSpeed)
-            }
-            
-            lastSpeedUpdateTime = currentTime
+            uploadSpeed = formatSpeed(uploadBytesPerSecond)
+            downloadSpeed = formatSpeed(downloadBytesPerSecond)
         }
-        
+
+        lastSpeedUpdateTime = currentTime
+        dataTransferred = formatDataSize(currentBytes.upload + currentBytes.download)
         previousUploadBytes = currentBytes.upload
         previousDownloadBytes = currentBytes.download
     }
     
-    private func getNetworkBytes() -> (upload: UInt64, download: UInt64) {
-        // 模拟网络数据，因为实际获取系统网络数据需要更复杂的API
-        let baseUpload: UInt64 = UInt64.random(in: 1000...50000) // 1KB-50KB
-        let baseDownload: UInt64 = UInt64.random(in: 5000...500000) // 5KB-500KB
-        
-        // 如果VPN连接，模拟更稳定的速度
-        if state == .connected {
-            return (
-                upload: baseUpload * UInt64.random(in: 2...8),
-                download: baseDownload * UInt64.random(in: 3...10)
-            )
-        } else {
-            return (
-                upload: baseUpload,
-                download: baseDownload
-            )
+    private func requestTrafficMetrics(completion: @escaping (((upload: UInt64, download: UInt64)?) -> Void)) {
+        guard let session = manager.connectionManager.connection as? NETunnelProviderSession,
+              let messageData = ServiceDefaults.metricsMessage.data(using: .utf8) else {
+            completion(nil)
+            return
         }
+
+        do {
+            try session.sendProviderMessage(messageData) { responseData in
+                guard let responseData = responseData,
+                      let metrics = try? JSONDecoder().decode(TrafficMetrics.self, from: responseData) else {
+                    completion(nil)
+                    return
+                }
+                completion((upload: metrics.egressBytes, download: metrics.ingressBytes))
+            }
+        } catch {
+            logDebug("Traffic metrics request failed:", error.localizedDescription)
+            completion(nil)
+        }
+    }
+
+    private func resetTrafficStats() {
+        trafficMetricsRequestID += 1
+        trafficMetricsTimeoutWorkItem?.cancel()
+        trafficMetricsTimeoutWorkItem = nil
+        previousUploadBytes = 0
+        previousDownloadBytes = 0
+        lastSpeedUpdateTime = Date()
+        isUpdatingTrafficMetrics = false
+        uploadSpeed = "0 KB/s"
+        downloadSpeed = "0 KB/s"
+        dataTransferred = "0 MB"
     }
     
     private func formatSpeed(_ bytesPerSecond: Double) -> String {
@@ -485,39 +665,70 @@ class MainViewmodel: ObservableObject {
             return String(format: "%.1f GB/s", bytesPerSecond / (1024 * 1024 * 1024))
         }
     }
+
+    private func formatDataSize(_ bytes: UInt64) -> String {
+        let value = Double(bytes)
+        if value < 1024 {
+            return String(format: "%.0f B", value)
+        } else if value < 1024 * 1024 {
+            return String(format: "%.1f KB", value / 1024)
+        } else if value < 1024 * 1024 * 1024 {
+            return String(format: "%.1f MB", value / (1024 * 1024))
+        } else {
+            return String(format: "%.1f GB", value / (1024 * 1024 * 1024))
+        }
+    }
     
     func connectSuccessful() {
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in
+                self?.connectSuccessful()
+            }
+            return
+        }
+        
+        guard state == .connected else {
+            logDebug("Skip connectSuccessful because system state is not connected:", state.rawValue)
+            return
+        }
         isProbingConnection = false
         connectManual = false
+        probeTask = nil
         reportConnectionResultAfterDelay(moment: ReportCat.E_SUCCESS)
         RatingCenter.shared.connectedTime = Date()
-        DispatchQueue.main.async {
-            self.resultStatus = .connected
-            self.connectionStatus = .connected
-            self.startConnectionTimer()
-            logDebug("Connect Successful")
-            let helper = ServiceCFHelper.shared
-            if helper.isFromRequest {
-                if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
-                    logDebug("Save service config to UserDefaults")
-                    UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
-                }
+        resultStatus = .connected
+        connectionStatus = .connected
+        startConnectionTimer()
+        startSpeedTimer()
+        logDebug("Connect Successful")
+        let helper = ServiceCFHelper.shared
+        if helper.isFromRequest {
+            if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
+                logDebug("Save service config to UserDefaults")
+                UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
             }
-            // 先设置结果页状态，再关闭连接中页面，确保直接跳转
-            self.showResult = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.showConnecting = false
-            }
+        }
+        // 先设置结果页状态，再关闭连接中页面，确保直接跳转
+        showResult = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.showConnecting = false
         }
     }
     
     func connectFailed() {
+        connectFailed(reason: nil)
+    }
+    
+    func connectFailed(reason: ProbeVerdictReason?) {
+        if let reason = reason {
+            logDebug("Connect Failed with connectivity probe reason:", reason.rawValue)
+        }
         handleConnectionFailure(stopTunnel: true, reportResult: true)
     }
     
     private func handleConnectionFailure(stopTunnel: Bool, reportResult: Bool) {
         logDebug("Connect Failed, stopTunnel: \(stopTunnel), reportResult: \(reportResult)")
-        isProbingConnection = false
+        invalidateCurrentProbe()
         connectManual = false
         
         if reportResult {
@@ -553,20 +764,12 @@ class MainViewmodel: ObservableObject {
         }
     }
     
-    func checkGG() {
-        Task {
-            let connectionStatus = await CatKey.shared.validateConnectionStatus()
-            if connectionStatus {
-                logDebug("Successfully to test Google")
-                await prepareAndNotify()
-            } else {
-                logDebug("Failed to test Google")
-                connectFailed()
-            }
+    private func prepareAndNotify(generation: Int) async {
+        guard isConnectionGenerationCurrent(generation) else {
+            logDebug("Skip prepareAndNotify for stale generation:", generation, "current generation:", connectGeneration)
+            return
         }
-    }
-    
-    private func prepareAndNotify() async {
+        
         // 设置状态
         GlobalStatus.shared.connectStatus = .connected
         
@@ -579,6 +782,10 @@ class MainViewmodel: ObservableObject {
         // 设置超时任务
         let task = DispatchWorkItem { [weak self] in
             guard let self = self, !done else { return }
+            guard self.isConnectionGenerationCurrent(generation) else {
+                logDebug("Skip connect success after Admob timeout for stale generation:", generation, "current generation:", self.connectGeneration)
+                return
+            }
             done = true
             let timeoutTime = Date()
             logDebug("Admob load 超时: \(timeoutTime)，耗时: \(timeoutTime.timeIntervalSince(start))")
@@ -590,7 +797,12 @@ class MainViewmodel: ObservableObject {
         // 加载广告
         ADSCenter.shared.prepareAdmobInt(moment: AdMoment.connect) {
             // 成功处理
-            if !done {
+            DispatchQueue.main.async {
+                guard !done else { return }
+                guard self.isConnectionGenerationCurrent(generation) else {
+                    logDebug("Skip connect success after Admob load for stale generation:", generation, "current generation:", self.connectGeneration)
+                    return
+                }
                 done = true
                 task.cancel()
                 let end = Date()
@@ -599,7 +811,12 @@ class MainViewmodel: ObservableObject {
             }
         } onAdFailed: {
             // 失败处理
-            if !done {
+            DispatchQueue.main.async {
+                guard !done else { return }
+                guard self.isConnectionGenerationCurrent(generation) else {
+                    logDebug("Skip connect success after Admob failure for stale generation:", generation, "current generation:", self.connectGeneration)
+                    return
+                }
                 done = true
                 task.cancel()
                 let end = Date()

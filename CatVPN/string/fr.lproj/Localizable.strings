@@ -196,3 +196,8 @@
 "ServiceUnavailable_Close" = "Fermer";
 "ServiceUnavailable_EmailNotAvailable" = "E-mail non disponible";
 "ServiceUnavailable_EmailNotAvailableMessage" = "Veuillez configurer un compte e-mail dans les Paramètres ou contactez-nous à rocketfreevpn@gmail.com";
+
+// VPNMainView - 切换节点拦截提示（已连接时需先断开）
+"Switch_Node_Title" = "Changer de serveur";
+"Switch_Node_Blocked_Message" = "Veuillez vous déconnecter avant de changer de serveur.";
+"OK" = "OK";

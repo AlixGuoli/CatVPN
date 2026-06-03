@@ -78,62 +78,16 @@ class CatKey {
     
     
     func validateConnectionStatus() async -> Bool {
-        logDebug("=== Starting to test Google ===")
+        logDebug("=== Starting VPN connectivity validation ===")
+        let configuredTargets = BaseCFHelper.shared.getDetectionServers()?
+            .compactMap { ProbeTarget(urlString: $0) } ?? []
+        let targets = configuredTargets.isEmpty ? ProbeTarget.defaultTargets : configuredTargets
+        logDebug("Using VPN connectivity probe targets, count:", targets.count, configuredTargets.isEmpty ? "default" : "configured")
         
-        let targetUrls = BaseCFHelper.shared.getDetectionServers()?.filter { !$0.isEmpty } ?? []
-        guard !targetUrls.isEmpty else {
-            logDebug("Network validation skipped: detection server list is empty")
-            return false
-        }
-        
-        logDebug("Using server list for validation, count:", targetUrls.count)
-        
-        return await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                var requests: [DataRequest] = []
-                var remaining = targetUrls.count
-                var finished = false
-                
-                func finish(_ success: Bool) {
-                    guard !finished else { return }
-                    finished = true
-                    requests.forEach { $0.cancel() }
-                    logDebug("Network validation result:", success ? "SUCCESS" : "FAILED")
-                    logDebug("=== Network connectivity validation completed ===")
-                    continuation.resume(returning: success)
-                }
-                
-                logDebug("Starting concurrent network requests...")
-                
-                for url in targetUrls {
-                    let request = AF.request(url, method: .get)
-                        .validate(statusCode: 0..<1000)
-                        .response(queue: .main) { response in
-                            guard !finished else { return }
-                            
-                            switch response.result {
-                            case .success:
-                                logDebug("Network check SUCCESS for URL:", url)
-                                finish(true)
-                            case .failure(let error):
-                                logDebug("Network check FAILED for URL:", url, "Error:", error.localizedDescription)
-                                remaining -= 1
-                                if remaining == 0 {
-                                    finish(false)
-                                }
-                            }
-                        }
-                    requests.append(request)
-                    logDebug("Added network task for URL:", url)
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    guard !finished else { return }
-                    logDebug("Network validation TIMEOUT - cancelling current probe requests")
-                    finish(false)
-                }
-            }
-        }
+        let verdict = await ConnectivityProber(targets: targets).verify()
+        logDebug("VPN connectivity validation result:", verdict.isAlive ? "SUCCESS" : "FAILED", "reason:", verdict.reason.rawValue)
+        logDebug("=== VPN connectivity validation completed ===")
+        return verdict.isAlive
     }
     
     func validateServiceEndpoint(host: String?, port: Int, timeout: TimeInterval = 8) async -> Bool {

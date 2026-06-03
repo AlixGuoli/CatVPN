@@ -78,7 +78,7 @@ class NetworkSpeedTester: ObservableObject {
     private func setupNetworkMonitoring() {
         monitor.pathUpdateHandler = { path in
             if path.status == .satisfied {
-                print("网络连接正常")
+                logDebug("网络连接正常")
             }
         }
         let queue = DispatchQueue(label: "NetworkMonitor")

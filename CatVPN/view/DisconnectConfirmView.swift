@@ -221,10 +221,10 @@ struct DisconnectConfirmView: View {
 #Preview {
     DisconnectConfirmView(
         onConfirm: {
-            print("Disconnect confirmed")
+            logDebug("Disconnect confirmed")
         },
         onCancel: {
-            print("Disconnect cancelled")
+            logDebug("Disconnect cancelled")
         }
     )
 }

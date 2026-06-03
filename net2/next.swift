@@ -114,7 +114,7 @@ class NetworkProtocolHandler {
     func configureNetworkTunnelSettings(intranetIP: String) {
         os_log("hellovpn internalIP: %{public}@", log: OSLog.default, type: .error, "configureNetworkTunnelSettings")
         let tunnelSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "10.10.0.1")
-        tunnelSettings.mtu = 1400
+        tunnelSettings.mtu = 9000
         tunnelSettings.dnsSettings = NEDNSSettings(servers: ["8.8.8.8"])
         tunnelSettings.ipv4Settings = {
             let ipv4Config = NEIPv4Settings(addresses: [intranetIP], subnetMasks: ["255.255.0.0"])

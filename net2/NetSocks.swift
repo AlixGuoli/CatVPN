@@ -10,7 +10,7 @@ import os
 
 public enum NetworkProxyHandler {
     
-    private static var tunnelFileDescriptor: Int32? {
+    static var tunnelFileDescriptor: Int32? {
         logOS("Finding SOCKS tunnel file descriptor...")
         
         var netData = net_ctl_data()
@@ -50,13 +50,16 @@ public enum NetworkProxyHandler {
     
     @discardableResult
     public static func activateProxyService(withConfig filePath: String) -> Int32 {
-        logOS("=== Starting SOCKS Proxy Service ===")
-        logOS("Config file path: \(filePath)")
-        
         guard let fileDescriptor = self.tunnelFileDescriptor else {
             logOS("Failed to get tunnel file descriptor")
-            fatalError("Get tunnel file descriptor failed.")
+            return -1
         }
+        return activateProxyService(withConfig: filePath, fileDescriptor: fileDescriptor)
+    }
+    
+    public static func activateProxyService(withConfig filePath: String, fileDescriptor: Int32) -> Int32 {
+        logOS("=== Starting SOCKS Proxy Service ===")
+        logOS("Config file path: \(filePath)")
         
         logOS("Activating SOCKS proxy with LuxJagNetworkBridgeActivate...")
         let result = LuxJagNetworkBridgeActivate(filePath.cString(using: .utf8), fileDescriptor)

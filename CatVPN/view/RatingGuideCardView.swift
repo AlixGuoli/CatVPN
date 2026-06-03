@@ -95,7 +95,7 @@ struct RatingGuideCardView: View {
 
 #Preview {
     RatingGuideCardView {
-        print("Rating card tapped!")
+        logDebug("Rating card tapped!")
     }
     .padding()
 }

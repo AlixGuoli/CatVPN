@@ -16,6 +16,7 @@ struct VPNMainView: View {
     
     @EnvironmentObject var mainViewModel: MainViewmodel
     @State private var showServerSelection = false
+    @State private var showSwitchNodeBlockedAlert = false
     @State private var showPrivacyGuide = false
     @State private var showPrivacyPopup = false
     @State private var pulseAnimation = false
@@ -119,10 +120,8 @@ struct VPNMainView: View {
                                 
                                 if ADSCenter.shared.isAllAdReady() {
                                     logDebug("Delay 3s *** stopConnect")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                        logDebug("Delay 3s finish *** stopConnect")
-                                        mainViewModel.stopConnect()
-                                    }
+                                    // 生成代次守卫的延迟断开，防止延迟期间用户已重连时误杀新连接。
+                                    mainViewModel.scheduleStopConnect(afterAdDelay: 3)
                                 } else {
                                     logDebug("Now *** stopConnect")
                                     mainViewModel.stopConnect()
@@ -187,6 +186,11 @@ struct VPNMainView: View {
             }
             .navigationDestination(isPresented: $showServerSelection) {
                 ServerSelectionView(mainViewModel: mainViewModel, isPresented: $showServerSelection)
+            }
+            .alert("Switch_Node_Title".localstr(), isPresented: $showSwitchNodeBlockedAlert) {
+                Button("OK".localstr(), role: .cancel) { }
+            } message: {
+                Text("Switch_Node_Blocked_Message".localstr())
             }
             .navigationDestination(isPresented: $showPrivacyGuide) {
                 PrivacyGuideView()
@@ -588,14 +592,24 @@ struct VPNMainView: View {
         }
     }
 
+    // 打开节点选择页：已连接时不进页面，提示需先断开；连接中同样不允许切换。
+    private func openServerSelection() {
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        switch mainViewModel.connectionStatus {
+        case .connected:
+            showSwitchNodeBlockedAlert = true
+        case .connecting:
+            break
+        case .disconnected, .failed:
+            showServerSelection = true
+        }
+    }
+
     // 毛玻璃效果的服务器信息卡片
     private var glassyServerInfoCard: some View {
         Button(action: {
-            if mainViewModel.connectionStatus != .connecting {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
-                showServerSelection = true
-            }
+            openServerSelection()
         }) {
             HStack {
                 HStack(spacing: 16) {
@@ -913,7 +927,7 @@ struct VPNMainView: View {
                         icon: "server.rack",
                         title: "Servers".localstr(),
                         color: .green,
-                        action: { showServerSelection = true }
+                        action: { openServerSelection() }
                     )
                     .frame(maxWidth: .infinity)
                     

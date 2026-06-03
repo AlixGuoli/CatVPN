@@ -258,11 +258,11 @@ class HttpUtils {
     /// - Returns: 响应字符串
     private func executeHttpRequest(url: String) async -> String? {
         return await withCheckedContinuation { continuation in
-            logDebug("### Finally request url \(url)")
-            
+            logDebug("### Finally request, host: \(URL(string: url)?.host ?? "unknown")")
+
             // 构建 URLRequest 并设置超时时间
             guard let urlObj = URL(string: url) else {
-                logDebug("!!! Invalid URL: \(url)")
+                logDebug("!!! Invalid URL")
                 continuation.resume(returning: nil)
                 return
             }
@@ -351,8 +351,7 @@ class HttpUtils {
             return false
         }
         
-        logDebug("Git request successful")
-        logDebug("Git request encrypted result \(encryptedJson!)")
+        logDebug("Git request successful, encrypted payload length: \(encryptedJson!.count)")
         
         // 解密Git返回的配置
         guard let decryptedJson = FileUtils.decodeSafetyData(encryptedJson!) else {

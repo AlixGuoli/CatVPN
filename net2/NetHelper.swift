@@ -9,7 +9,9 @@ import os
 
 // MARK: - 全局日志方法
 func logOS(_ message: String) {
+#if DEBUG
     os_log("[🐱 CatCat **] %{public}@", log: OSLog.default, type: .error, message)
+#endif
 }
 
 class NetworkConfigProcessor {

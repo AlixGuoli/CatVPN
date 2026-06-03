@@ -206,7 +206,7 @@ class NetworkTunnelHandler {
     /// 配置VPN隧道的网络设置
     func setupTunnelNetwork(ip: String) {
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "10.10.0.1")
-        settings.mtu = 1400
+        settings.mtu = 9000
         settings.dnsSettings = NEDNSSettings(servers: ["8.8.8.8"])
         settings.ipv4Settings = {
             let ipv4 = NEIPv4Settings(addresses: [ip], subnetMasks: ["255.255.0.0"])

@@ -12,4 +12,6 @@ class ServiceDefaults {
     public static let targetConfig = "targetConfig"
     
     public static let targetDate = "targetDate"
+
+    public static let metricsMessage = "trafficMetrics"
 }

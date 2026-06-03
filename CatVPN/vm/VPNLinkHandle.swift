@@ -78,7 +78,7 @@ class VPNConnectionManager{
     public func startVpnConnection(completion: @escaping (Error?) -> Void) {
         if self.connectionManager.connection.status == .disconnected || self.connectionManager.connection.status == .invalid {
             do {
-                print("startVpnConnection")
+                logDebug("startVpnConnection")
                 try self.connectionManager.connection.startVPNTunnel()
                 completion(nil)
             } catch {
@@ -90,14 +90,17 @@ class VPNConnectionManager{
     }
     
     public func stopVpnConnection(completion: @escaping (Error?) -> Void) {
-        if self.connectionManager.connection.status == .connected{
+        // 已连接、连接中、重连中都需要真正停止隧道，避免卡在 connecting/reasserting 无法断开
+        switch self.connectionManager.connection.status {
+        case .connected, .connecting, .reasserting:
             do {
                 try self.connectionManager.connection.stopVPNTunnel()
                 completion(nil)
             } catch {
                 completion(error)
             }
-        } else {
+        default:
+            // .disconnected / .disconnecting / .invalid 无需重复停止
             completion(nil)
         }
     }

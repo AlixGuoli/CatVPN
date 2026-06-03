@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0DBC89C275DE19B0B25B62BE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 414A9A6DD9BFA0ADE3F1C7E5 /* Foundation.framework */; };
 		293F75EFC64C443FCFB9AE24 /* Pods_CatVPN.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 41CDF00F889678C10D129AB4 /* Pods_CatVPN.framework */; };
 		A2EA65AC7DE7B79DA6C12014 /* Pods_net2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 727129C344D46A7EFAA334EE /* Pods_net2.framework */; };
 		FE767F0B2E3386240003EC3C /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0896E82E322E77009BCE27 /* AppTrackingTransparency.framework */; };
@@ -45,9 +46,11 @@
 
 /* Begin PBXFileReference section */
 		19DA9F740259C2C260A62DE3 /* Pods-net2.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-net2.debug.xcconfig"; path = "Target Support Files/Pods-net2/Pods-net2.debug.xcconfig"; sourceTree = "<group>"; };
+		414A9A6DD9BFA0ADE3F1C7E5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		41CDF00F889678C10D129AB4 /* Pods_CatVPN.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CatVPN.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		727129C344D46A7EFAA334EE /* Pods_net2.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_net2.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		819CBF41A9DE4CD2B97A35C7 /* Pods-CatVPN.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CatVPN.debug.xcconfig"; path = "Target Support Files/Pods-CatVPN/Pods-CatVPN.debug.xcconfig"; sourceTree = "<group>"; };
+		A0DA598C2C8B88756DE9DE1E /* CatVPNTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CatVPNTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A98FF50E50285271F55098BF /* Pods-CatVPN.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CatVPN.release.xcconfig"; path = "Target Support Files/Pods-CatVPN/Pods-CatVPN.release.xcconfig"; sourceTree = "<group>"; };
 		A9E1318743038D2537C4D68B /* Pods-net2.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-net2.release.xcconfig"; path = "Target Support Files/Pods-net2/Pods-net2.release.xcconfig"; sourceTree = "<group>"; };
 		FE0896E82E322E77009BCE27 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = SDKROOT; };
@@ -86,6 +89,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		2CB4DF1ED0694763B7ECB4F8 /* CatVPNTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CatVPNTests;
+			sourceTree = "<group>";
+		};
 		FEC6A3A62E210F5A00AE43BF /* CatVPN */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -106,6 +114,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BFD5474085E66F5C57EE3EAF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0DBC89C275DE19B0B25B62BE /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FEC6A3A12E210F5A00AE43BF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -143,6 +159,14 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		DC7C7C33C91CD565DB426469 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				414A9A6DD9BFA0ADE3F1C7E5 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		FEC6A39B2E210F5A00AE43BF = {
 			isa = PBXGroup;
 			children = (
@@ -151,6 +175,7 @@
 				FEC6A3F42E21107A00AE43BF /* Frameworks */,
 				FEC6A3A52E210F5A00AE43BF /* Products */,
 				229D3E0A87789E126C1CAA82 /* Pods */,
+				2CB4DF1ED0694763B7ECB4F8 /* CatVPNTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -159,6 +184,7 @@
 			children = (
 				FEC6A3A42E210F5A00AE43BF /* CatVPN.app */,
 				FEC6A4C42E2121A100AE43BF /* net2.appex */,
+				A0DA598C2C8B88756DE9DE1E /* CatVPNTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -175,6 +201,7 @@
 				FEC6A3F52E21107A00AE43BF /* NetworkExtension.framework */,
 				41CDF00F889678C10D129AB4 /* Pods_CatVPN.framework */,
 				727129C344D46A7EFAA334EE /* Pods_net2.framework */,
+				DC7C7C33C91CD565DB426469 /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -182,6 +209,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		9FE1594DA1FD5FEE337EEFF7 /* CatVPNTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 609350CEA1ED663366FB7000 /* Build configuration list for PBXNativeTarget "CatVPNTests" */;
+			buildPhases = (
+				70EE64D0B71F4CF85EA069BF /* Sources */,
+				BFD5474085E66F5C57EE3EAF /* Frameworks */,
+				B88A010D3A925EEDE520FB52 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2CB4DF1ED0694763B7ECB4F8 /* CatVPNTests */,
+			);
+			name = CatVPNTests;
+			productName = CatVPNTests;
+			productReference = A0DA598C2C8B88756DE9DE1E /* CatVPNTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		FEC6A3A32E210F5A00AE43BF /* CatVPN */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FEC6A3AF2E210F5A00AE43BF /* Build configuration list for PBXNativeTarget "CatVPN" */;
@@ -266,11 +313,19 @@
 			targets = (
 				FEC6A3A32E210F5A00AE43BF /* CatVPN */,
 				FEC6A4C32E2121A100AE43BF /* net2 */,
+				9FE1594DA1FD5FEE337EEFF7 /* CatVPNTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B88A010D3A925EEDE520FB52 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FEC6A3A22E210F5A00AE43BF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -377,6 +432,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		70EE64D0B71F4CF85EA069BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FEC6A3A02E210F5A00AE43BF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -402,6 +464,39 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		07219FA72E966806AB0C5A17 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPNTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		81BD3EEAB3D9DB18D098C9E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPNTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		FEC6A3AD2E210F5A00AE43BF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -551,7 +646,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -650,7 +745,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -744,7 +839,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/net2",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/net2/libPotatochips.a",
@@ -787,7 +882,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/net2",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/net2/libPotatochips.a",
@@ -811,6 +906,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		609350CEA1ED663366FB7000 /* Build configuration list for PBXNativeTarget "CatVPNTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				07219FA72E966806AB0C5A17 /* Release */,
+				81BD3EEAB3D9DB18D098C9E1 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		FEC6A39F2E210F5A00AE43BF /* Build configuration list for PBXProject "CatVPN" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

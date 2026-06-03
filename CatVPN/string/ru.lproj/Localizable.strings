@@ -198,3 +198,8 @@
 "ServiceUnavailable_Close" = "Закрыть";
 "ServiceUnavailable_EmailNotAvailable" = "Email недоступен";
 "ServiceUnavailable_EmailNotAvailableMessage" = "Пожалуйста, настройте учетную запись электронной почты в Настройках или свяжитесь с нами по адресу rocketfreevpn@gmail.com";
+
+// VPNMainView - 切换节点拦截提示（已连接时需先断开）
+"Switch_Node_Title" = "Сменить сервер";
+"Switch_Node_Blocked_Message" = "Пожалуйста, отключитесь перед сменой сервера.";
+"OK" = "OK";

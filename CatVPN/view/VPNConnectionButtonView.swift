@@ -10,6 +10,13 @@ import AVKit
 import CoreMedia
 import NetworkExtension
 
+private func debugVideoLog(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+#if DEBUG
+    let message = items.map { "\($0)" }.joined(separator: separator)
+    print(message, terminator: terminator)
+#endif
+}
+
 // 使用AVPlayerLayer播放带Alpha通道的透明视频
 struct AlphaVideoPlayerView: UIViewRepresentable {
     let videoName: String
@@ -22,7 +29,7 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
         self.videoExtension = videoExtension
         self.delayLoop = delayLoop
         self.onVideoReady = onVideoReady
-        print("🎬 初始化视频播放器: \(videoName).\(videoExtension), delayLoop: \(delayLoop)")
+        debugVideoLog("🎬 初始化视频播放器: \(videoName).\(videoExtension), delayLoop: \(delayLoop)")
     }
     
     func makeUIView(context: Context) -> UIView {
@@ -30,77 +37,77 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
         containerView.backgroundColor = .clear
         containerView.isOpaque = false
         
-        print("🎬 开始创建UIView，查找视频文件: \(videoName).\(videoExtension)")
+        debugVideoLog("🎬 开始创建UIView，查找视频文件: \(videoName).\(videoExtension)")
         
         // 检查Bundle中的所有资源
         if let bundlePath = Bundle.main.path(forResource: videoName, ofType: videoExtension) {
-            print("✅ 通过path方式找到视频文件: \(bundlePath)")
+            debugVideoLog("✅ 通过path方式找到视频文件: \(bundlePath)")
         } else {
-            print("❌ 通过path方式未找到视频文件")
+            debugVideoLog("❌ 通过path方式未找到视频文件")
         }
         
         guard let url = Bundle.main.url(forResource: videoName, withExtension: videoExtension) else {
-            print("❌ 视频文件未找到: \(videoName).\(videoExtension)")
+            debugVideoLog("❌ 视频文件未找到: \(videoName).\(videoExtension)")
             
             // 列出Bundle中的所有.mov文件用于调试
             let bundlePath = Bundle.main.bundlePath
-            print("📁 Bundle路径: \(bundlePath)")
+            debugVideoLog("📁 Bundle路径: \(bundlePath)")
             let fileManager = FileManager.default
             do {
                 let contents = try fileManager.contentsOfDirectory(atPath: bundlePath)
                 let movFiles = contents.filter { $0.hasSuffix(".mov") }
-                print("📹 Bundle中的.mov文件: \(movFiles)")
+                debugVideoLog("📹 Bundle中的.mov文件: \(movFiles)")
             } catch {
-                print("❌ 无法读取Bundle内容: \(error)")
+                debugVideoLog("❌ 无法读取Bundle内容: \(error)")
             }
             
             return containerView
         }
         
-        print("✅ 视频文件找到: \(url)")
-        print("📄 视频文件信息:")
-        print("   - 路径: \(url.path)")
-        print("   - 是否存在: \(FileManager.default.fileExists(atPath: url.path))")
+        debugVideoLog("✅ 视频文件找到: \(url)")
+        debugVideoLog("📄 视频文件信息:")
+        debugVideoLog("   - 路径: \(url.path)")
+        debugVideoLog("   - 是否存在: \(FileManager.default.fileExists(atPath: url.path))")
         
         // 检查文件大小
         do {
             let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
             if let fileSize = attributes[.size] as? Int {
-                print("   - 文件大小: \(fileSize) bytes")
+                debugVideoLog("   - 文件大小: \(fileSize) bytes")
             }
         } catch {
-            print("❌ 无法获取文件属性: \(error)")
+            debugVideoLog("❌ 无法获取文件属性: \(error)")
         }
         
         // 创建播放器前先检查视频轨道
         let asset = AVAsset(url: url)
-        print("🎥 检查视频资源:")
-        print("   - 资源时长: \(asset.duration)")
-        print("   - 是否可播放: \(asset.isPlayable)")
-        print("   - 是否可读取: \(asset.isReadable)")
+        debugVideoLog("🎥 检查视频资源:")
+        debugVideoLog("   - 资源时长: \(asset.duration)")
+        debugVideoLog("   - 是否可播放: \(asset.isPlayable)")
+        debugVideoLog("   - 是否可读取: \(asset.isReadable)")
         
         // 检查视频轨道
         let videoTracks = asset.tracks(withMediaType: .video)
-        print("   - 视频轨道数量: \(videoTracks.count)")
+        debugVideoLog("   - 视频轨道数量: \(videoTracks.count)")
         
         for (index, track) in videoTracks.enumerated() {
-            print("   - 视频轨道 \(index):")
-            print("     - 尺寸: \(track.naturalSize)")
-            print("     - 是否启用: \(track.isEnabled)")
-            print("     - 媒体类型: \(track.mediaType)")
-            print("     - 格式描述: \(track.formatDescriptions)")
+            debugVideoLog("   - 视频轨道 \(index):")
+            debugVideoLog("     - 尺寸: \(track.naturalSize)")
+            debugVideoLog("     - 是否启用: \(track.isEnabled)")
+            debugVideoLog("     - 媒体类型: \(track.mediaType)")
+            debugVideoLog("     - 格式描述: \(track.formatDescriptions)")
             
             // 检查编解码器
             if let formatDescription = track.formatDescriptions.first {
                 let codecType = CMFormatDescriptionGetMediaSubType(formatDescription as! CMFormatDescription)
                 let codecString = String(describing: codecType)
-                print("     - 编解码器: \(codecString)")
+                debugVideoLog("     - 编解码器: \(codecString)")
             }
         }
         
         // 检查音频轨道
         let audioTracks = asset.tracks(withMediaType: .audio)
-        print("   - 音频轨道数量: \(audioTracks.count)")
+        debugVideoLog("   - 音频轨道数量: \(audioTracks.count)")
         
         let player = AVPlayer(url: url)
         let playerLayer = AVPlayerLayer(player: player)
@@ -110,18 +117,18 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
         playerLayer.isOpaque = false
         playerLayer.videoGravity = .resizeAspect
         
-        print("🎨 播放器层设置:")
-        print("   - backgroundColor: \(playerLayer.backgroundColor.debugDescription)")
-        print("   - isOpaque: \(playerLayer.isOpaque)")
-        print("   - videoGravity: \(playerLayer.videoGravity)")
+        debugVideoLog("🎨 播放器层设置:")
+        debugVideoLog("   - backgroundColor: \(playerLayer.backgroundColor.debugDescription)")
+        debugVideoLog("   - isOpaque: \(playerLayer.isOpaque)")
+        debugVideoLog("   - videoGravity: \(playerLayer.videoGravity)")
         
         // 初始时隐藏
         playerLayer.opacity = 0.0
-        print("   - 初始opacity: \(playerLayer.opacity)")
+        debugVideoLog("   - 初始opacity: \(playerLayer.opacity)")
         
         // 添加到容器视图
         containerView.layer.addSublayer(playerLayer)
-        print("✅ 播放器层已添加到容器视图")
+        debugVideoLog("✅ 播放器层已添加到容器视图")
         
         // 存储引用
         context.coordinator.player = player
@@ -145,31 +152,31 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
         
         // 检查delayLoop是否需要更新
         if context.coordinator.delayLoop != delayLoop {
-            print("🔄 更新delayLoop: \(context.coordinator.delayLoop) -> \(delayLoop)")
+            debugVideoLog("🔄 更新delayLoop: \(context.coordinator.delayLoop) -> \(delayLoop)")
             context.coordinator.delayLoop = delayLoop
         }
     }
     
     private func setupPlayerObservers(player: AVPlayer, coordinator: Coordinator) {
-        print("🔍 开始设置播放器观察者: \(coordinator.videoName)")
+        debugVideoLog("🔍 开始设置播放器观察者: \(coordinator.videoName)")
         
         // 监听播放器状态
         player.addObserver(coordinator, forKeyPath: "status", options: [.new, .initial], context: nil)
-        print("   ✅ 添加播放器状态观察者")
+        debugVideoLog("   ✅ 添加播放器状态观察者")
         
         // 监听播放项目状态
         if let currentItem = player.currentItem {
             currentItem.addObserver(coordinator, forKeyPath: "status", options: [.new, .initial], context: nil)
-            print("   ✅ 添加播放项目状态观察者")
-            print("   📹 当前播放项目: \(currentItem)")
+            debugVideoLog("   ✅ 添加播放项目状态观察者")
+            debugVideoLog("   📹 当前播放项目: \(currentItem)")
             
             // 添加更多播放项目状态观察
             currentItem.addObserver(coordinator, forKeyPath: "loadedTimeRanges", options: [.new], context: nil)
             currentItem.addObserver(coordinator, forKeyPath: "playbackBufferEmpty", options: [.new], context: nil)
             currentItem.addObserver(coordinator, forKeyPath: "playbackLikelyToKeepUp", options: [.new], context: nil)
-            print("   ✅ 添加额外的播放项目观察者")
+            debugVideoLog("   ✅ 添加额外的播放项目观察者")
         } else {
-            print("   ❌ 没有当前播放项目")
+            debugVideoLog("   ❌ 没有当前播放项目")
         }
         
         // 监听播放结束
@@ -179,7 +186,7 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
             name: .AVPlayerItemDidPlayToEndTime,
             object: player.currentItem
         )
-        print("   ✅ 添加播放结束通知观察者")
+        debugVideoLog("   ✅ 添加播放结束通知观察者")
         
         // 监听播放失败
         NotificationCenter.default.addObserver(
@@ -188,19 +195,19 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
             name: .AVPlayerItemFailedToPlayToEndTime,
             object: player.currentItem
         )
-        print("   ✅ 添加播放失败通知观察者")
+        debugVideoLog("   ✅ 添加播放失败通知观察者")
         
         // 静音预加载
         player.volume = 0
         player.automaticallyWaitsToMinimizeStalling = false
         
-        print("🔊 播放器配置:")
-        print("   - volume: \(player.volume)")
-        print("   - automaticallyWaitsToMinimizeStalling: \(player.automaticallyWaitsToMinimizeStalling)")
-        print("   - 当前播放器状态: \(player.status.rawValue)")
+        debugVideoLog("🔊 播放器配置:")
+        debugVideoLog("   - volume: \(player.volume)")
+        debugVideoLog("   - automaticallyWaitsToMinimizeStalling: \(player.automaticallyWaitsToMinimizeStalling)")
+        debugVideoLog("   - 当前播放器状态: \(player.status.rawValue)")
         
         player.play()
-        print("🔊 开始预加载视频: \(coordinator.videoName)")
+        debugVideoLog("🔊 开始预加载视频: \(coordinator.videoName)")
     }
     
     func makeCoordinator() -> Coordinator {
@@ -219,81 +226,81 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
         @objc func playerDidFinishPlaying() {
             guard let player = self.player else { return }
             
-            print("🔁 视频播放结束: \(videoName), 准备循环播放, delayLoop: \(delayLoop)")
+            debugVideoLog("🔁 视频播放结束: \(videoName), 准备循环播放, delayLoop: \(delayLoop)")
             
             if delayLoop {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     player.seek(to: CMTime.zero)
                     player.play()
-                    print("⏰ 延迟后重新开始播放: \(self.videoName)")
+                    debugVideoLog("⏰ 延迟后重新开始播放: \(self.videoName)")
                 }
             } else {
                 player.seek(to: CMTime.zero)
                 player.play()
-                print("🔄 立即重新开始播放: \(self.videoName)")
+                debugVideoLog("🔄 立即重新开始播放: \(self.videoName)")
             }
         }
         
         @objc func playerDidFailToPlay(_ notification: Notification) {
-            print("❌ 视频播放失败: \(videoName)")
+            debugVideoLog("❌ 视频播放失败: \(videoName)")
             if let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error {
-                print("   错误详情: \(error.localizedDescription)")
+                debugVideoLog("   错误详情: \(error.localizedDescription)")
             }
         }
         
         override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-            print("🔍 观察到状态变化: keyPath=\(keyPath ?? "nil"), videoName=\(videoName)")
+            debugVideoLog("🔍 观察到状态变化: keyPath=\(keyPath ?? "nil"), videoName=\(videoName)")
             
             if let keyPath = keyPath {
                 switch keyPath {
                 case "status":
                     if let player = object as? AVPlayer {
-                        print("   🎬 播放器状态变化: \(player.status.rawValue)")
+                        debugVideoLog("   🎬 播放器状态变化: \(player.status.rawValue)")
                         switch player.status {
                         case .unknown:
-                            print("      - AVPlayer状态: unknown")
+                            debugVideoLog("      - AVPlayer状态: unknown")
                         case .readyToPlay:
-                            print("      - AVPlayer状态: readyToPlay ✅")
+                            debugVideoLog("      - AVPlayer状态: readyToPlay ✅")
                         case .failed:
-                            print("      - AVPlayer状态: failed ❌")
+                            debugVideoLog("      - AVPlayer状态: failed ❌")
                             if let error = player.error {
-                                print("      - 错误: \(error.localizedDescription)")
+                                debugVideoLog("      - 错误: \(error.localizedDescription)")
                             }
                         @unknown default:
-                            print("      - AVPlayer状态: 未知状态")
+                            debugVideoLog("      - AVPlayer状态: 未知状态")
                         }
                     } else if let item = object as? AVPlayerItem {
-                        print("   📹 播放项目状态变化: \(item.status.rawValue)")
+                        debugVideoLog("   📹 播放项目状态变化: \(item.status.rawValue)")
                         switch item.status {
                         case .unknown:
-                            print("      - AVPlayerItem状态: unknown")
+                            debugVideoLog("      - AVPlayerItem状态: unknown")
                         case .readyToPlay:
-                            print("      - AVPlayerItem状态: readyToPlay ✅")
-                            print("      - 视频大小: \(item.presentationSize)")
-                            print("      - 持续时间: \(item.duration)")
+                            debugVideoLog("      - AVPlayerItem状态: readyToPlay ✅")
+                            debugVideoLog("      - 视频大小: \(item.presentationSize)")
+                            debugVideoLog("      - 持续时间: \(item.duration)")
                         case .failed:
-                            print("      - AVPlayerItem状态: failed ❌")
+                            debugVideoLog("      - AVPlayerItem状态: failed ❌")
                             if let error = item.error {
-                                print("      - 错误: \(error.localizedDescription)")
+                                debugVideoLog("      - 错误: \(error.localizedDescription)")
                             }
                         @unknown default:
-                            print("      - AVPlayerItem状态: 未知状态")
+                            debugVideoLog("      - AVPlayerItem状态: 未知状态")
                         }
                     }
                 case "loadedTimeRanges":
                     if let item = object as? AVPlayerItem {
-                        print("   📊 加载时间范围变化: \(item.loadedTimeRanges)")
+                        debugVideoLog("   📊 加载时间范围变化: \(item.loadedTimeRanges)")
                     }
                 case "playbackBufferEmpty":
                     if let item = object as? AVPlayerItem {
-                        print("   🔄 缓冲区空状态: \(item.isPlaybackBufferEmpty)")
+                        debugVideoLog("   🔄 缓冲区空状态: \(item.isPlaybackBufferEmpty)")
                     }
                 case "playbackLikelyToKeepUp":
                     if let item = object as? AVPlayerItem {
-                        print("   ⚡ 播放准备就绪: \(item.isPlaybackLikelyToKeepUp)")
+                        debugVideoLog("   ⚡ 播放准备就绪: \(item.isPlaybackLikelyToKeepUp)")
                     }
                 default:
-                    print("   ❓ 未处理的keyPath: \(keyPath)")
+                    debugVideoLog("   ❓ 未处理的keyPath: \(keyPath)")
                 }
             }
             
@@ -303,20 +310,20 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
         }
         
         private func handleStatusChange() {
-            print("🎯 进入handleStatusChange: \(videoName)")
+            debugVideoLog("🎯 进入handleStatusChange: \(videoName)")
             
             guard let player = self.player else {
-                print("❌ player为nil")
+                debugVideoLog("❌ player为nil")
                 return
             }
             
             guard let playerLayer = self.playerLayer else {
-                print("❌ playerLayer为nil")
+                debugVideoLog("❌ playerLayer为nil")
                 return
             }
             
             if hasShownVideo {
-                print("⏭️ 视频已经显示过，跳过: \(videoName)")
+                debugVideoLog("⏭️ 视频已经显示过，跳过: \(videoName)")
                 return
             }
             
@@ -324,77 +331,77 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
             let itemReady = player.currentItem?.status == .readyToPlay
             let itemExists = player.currentItem != nil
             
-            print("📺 详细状态检查: \(videoName)")
-            print("   - player存在: \(player)")
-            print("   - playerLayer存在: \(playerLayer)")
-            print("   - hasShownVideo: \(hasShownVideo)")
-            print("   - playerReady: \(playerReady) (状态: \(player.status.rawValue))")
-            print("   - itemExists: \(itemExists)")
-            print("   - itemReady: \(itemReady) (状态: \(player.currentItem?.status.rawValue ?? -999))")
+            debugVideoLog("📺 详细状态检查: \(videoName)")
+            debugVideoLog("   - player存在: \(player)")
+            debugVideoLog("   - playerLayer存在: \(playerLayer)")
+            debugVideoLog("   - hasShownVideo: \(hasShownVideo)")
+            debugVideoLog("   - playerReady: \(playerReady) (状态: \(player.status.rawValue))")
+            debugVideoLog("   - itemExists: \(itemExists)")
+            debugVideoLog("   - itemReady: \(itemReady) (状态: \(player.currentItem?.status.rawValue ?? -999))")
             
             if let currentItem = player.currentItem {
-                print("   - 当前播放项目详情:")
-                print("     - 视频大小: \(currentItem.presentationSize)")
-                print("     - 持续时间: \(currentItem.duration)")
-                print("     - 缓冲区空: \(currentItem.isPlaybackBufferEmpty)")
-                print("     - 准备播放: \(currentItem.isPlaybackLikelyToKeepUp)")
-                print("     - 加载时间范围: \(currentItem.loadedTimeRanges.count)")
+                debugVideoLog("   - 当前播放项目详情:")
+                debugVideoLog("     - 视频大小: \(currentItem.presentationSize)")
+                debugVideoLog("     - 持续时间: \(currentItem.duration)")
+                debugVideoLog("     - 缓冲区空: \(currentItem.isPlaybackBufferEmpty)")
+                debugVideoLog("     - 准备播放: \(currentItem.isPlaybackLikelyToKeepUp)")
+                debugVideoLog("     - 加载时间范围: \(currentItem.loadedTimeRanges.count)")
                 
                 if let error = currentItem.error {
-                    print("     - 播放项目错误: \(error.localizedDescription)")
+                    debugVideoLog("     - 播放项目错误: \(error.localizedDescription)")
                 }
             }
             
             if let playerError = player.error {
-                print("   - 播放器错误: \(playerError.localizedDescription)")
+                debugVideoLog("   - 播放器错误: \(playerError.localizedDescription)")
             }
             
-            print("   - 当前playerLayer opacity: \(playerLayer.opacity)")
-            print("   - playerLayer frame: \(playerLayer.frame)")
+            debugVideoLog("   - 当前playerLayer opacity: \(playerLayer.opacity)")
+            debugVideoLog("   - playerLayer frame: \(playerLayer.frame)")
             
             if playerReady && itemReady {
                 hasShownVideo = true
-                print("🎉 视频准备就绪，开始显示: \(videoName)")
+                debugVideoLog("🎉 视频准备就绪，开始显示: \(videoName)")
                 
                 // 调用回调通知视频准备就绪
-                print("📞 调用onVideoReady回调")
+                debugVideoLog("📞 调用onVideoReady回调")
                 onVideoReady?()
                 
                 // 使用CATransaction确保平滑过渡
                 CATransaction.begin()
                 CATransaction.setAnimationDuration(0.3)
                 CATransaction.setCompletionBlock {
-                    print("🎬 CATransaction完成，开始播放: \(self.videoName)")
+                    debugVideoLog("🎬 CATransaction完成，开始播放: \(self.videoName)")
                     player.play()
-                    print("▶️ 播放器play()调用完成")
+                    debugVideoLog("▶️ 播放器play()调用完成")
                     
                     // 检查播放状态
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        print("🔍 播放状态检查:")
-                        print("   - 播放器rate: \(player.rate)")
-                        print("   - 播放器timeControlStatus: \(player.timeControlStatus.rawValue)")
+                        debugVideoLog("🔍 播放状态检查:")
+                        debugVideoLog("   - 播放器rate: \(player.rate)")
+                        debugVideoLog("   - 播放器timeControlStatus: \(player.timeControlStatus.rawValue)")
                         if let currentTime = player.currentItem?.currentTime() {
-                            print("   - 当前播放时间: \(CMTimeGetSeconds(currentTime))")
+                            debugVideoLog("   - 当前播放时间: \(CMTimeGetSeconds(currentTime))")
                         }
                     }
                 }
                 
-                print("🌟 设置playerLayer opacity为1.0")
+                debugVideoLog("🌟 设置playerLayer opacity为1.0")
                 playerLayer.opacity = 1.0
                 CATransaction.commit()
-                print("✅ CATransaction提交完成")
+                debugVideoLog("✅ CATransaction提交完成")
             } else {
-                print("⏳ 视频还未准备好: playerReady=\(playerReady), itemReady=\(itemReady)")
+                debugVideoLog("⏳ 视频还未准备好: playerReady=\(playerReady), itemReady=\(itemReady)")
             }
         }
         
         deinit {
-            print("🧹 清理视频播放器: \(videoName)")
+            debugVideoLog("🧹 清理视频播放器: \(videoName)")
             
             // 移除播放器观察者
             if let player = player {
                 player.removeObserver(self, forKeyPath: "status")
-                print("   ✅ 移除播放器状态观察者")
+                debugVideoLog("   ✅ 移除播放器状态观察者")
             }
             
             // 移除播放项目观察者
@@ -403,18 +410,18 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
                 currentItem.removeObserver(self, forKeyPath: "loadedTimeRanges")
                 currentItem.removeObserver(self, forKeyPath: "playbackBufferEmpty")
                 currentItem.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
-                print("   ✅ 移除播放项目观察者")
+                debugVideoLog("   ✅ 移除播放项目观察者")
             }
             
             // 移除通知观察者
             NotificationCenter.default.removeObserver(self)
-            print("   ✅ 移除通知观察者")
+            debugVideoLog("   ✅ 移除通知观察者")
             
             // 停止播放器
             player?.pause()
             player = nil
             playerLayer = nil
-            print("   ✅ 播放器清理完成")
+            debugVideoLog("   ✅ 播放器清理完成")
         }
     }
 }
@@ -661,7 +668,7 @@ struct VPNConnectionButton: View {
                                             videoExtension: "mov",
                                             delayLoop: vm.connectionStatus == .connecting,
                                             onVideoReady: {
-                                                print("🐸 按钮中的视频准备就绪")
+                                                debugVideoLog("🐸 按钮中的视频准备就绪")
                                                 withAnimation(.easeOut(duration: 0.3)) {
                                                     isVideoReady = true
                                                 }

@@ -13,6 +13,7 @@ var globalConfigPath: URL? = nil
 class TunnelConnectionHandler {
     
     var applyNetworkSettings: ((NEPacketTunnelNetworkSettings, @escaping (Error?) -> Void) -> Void)?
+    var proxyFailureHandler: ((Error) -> Void)?
     
     func initializeNetworkTunnel() async throws {
         logOS("=== Starting Tunnel Connection ===")
@@ -25,7 +26,7 @@ class TunnelConnectionHandler {
     
     private func setupNetworkInfrastructure() async throws {
         let tunnelSettings = buildNetworkConfiguration()
-        applyNetworkInfrastructure(tunnelSettings)
+        try await applyNetworkInfrastructure(tunnelSettings)
     }
     
     private func buildNetworkConfiguration() -> NEPacketTunnelNetworkSettings {
@@ -46,12 +47,25 @@ class TunnelConnectionHandler {
         return NEDNSSettings(servers: ["8.8.8.8", "114.114.114.114"])
     }
     
-    private func applyNetworkInfrastructure(_ tunnelSettings: NEPacketTunnelNetworkSettings) {
-        self.applyNetworkSettings?(tunnelSettings) { error in
-            if error != nil {
-                logOS("Network settings application failed: \(error?.localizedDescription ?? "Unknown error")")
-            } else {
-                logOS("Network settings applied successfully")
+    private func applyNetworkInfrastructure(_ tunnelSettings: NEPacketTunnelNetworkSettings) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            guard let applyNetworkSettings = self.applyNetworkSettings else {
+                continuation.resume(throwing: NSError(
+                    domain: "TunnelConnectionHandler",
+                    code: 2,
+                    userInfo: [NSLocalizedDescriptionKey: "Network settings callback is missing"]
+                ))
+                return
+            }
+            
+            applyNetworkSettings(tunnelSettings) { error in
+                if let error = error {
+                    logOS("Network settings application failed: \(error.localizedDescription)")
+                    continuation.resume(throwing: error)
+                } else {
+                    logOS("Network settings applied successfully")
+                    continuation.resume()
+                }
             }
         }
     }
@@ -89,15 +103,35 @@ class TunnelConnectionHandler {
     private func enableSocksInfrastructure() throws {
         let socksConfigPath = NetworkConfigProcessor.generateSocksConfigurationPath()
         logOS("SOCKS config path: \(socksConfigPath)")
+        guard let fileDescriptor = NetworkProxyHandler.tunnelFileDescriptor else {
+            logOS("Failed to get tunnel file descriptor before starting SOCKS proxy")
+            throw NSError(
+                domain: "TunnelConnectionHandler",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to get tunnel file descriptor"]
+            )
+        }
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            NetworkProxyHandler.activateProxyService(withConfig: socksConfigPath)
-            logOS("SOCKS proxy activated")
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            logOS("SOCKS proxy activation started")
+            let result = NetworkProxyHandler.activateProxyService(withConfig: socksConfigPath, fileDescriptor: fileDescriptor)
+            if result != 0 {
+                let error = NSError(
+                    domain: "TunnelConnectionHandler",
+                    code: Int(result),
+                    userInfo: [NSLocalizedDescriptionKey: "SOCKS proxy failed to start"]
+                )
+                logOS("SOCKS proxy activation failed with result: \(result)")
+                self?.proxyFailureHandler?(error)
+            } else {
+                logOS("SOCKS proxy service exited")
+            }
         }
     }
     
     func shutdownNetworkInfrastructure() {
         logOS("=== Terminating Tunnel Connection ===")
+        NetworkProxyHandler.deactivateProxyService()
         CGoStopPotatochips()
         logOS("Xray service stopped")
     }

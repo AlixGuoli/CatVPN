@@ -157,8 +157,7 @@ class ReportCat {
             return
         }
         
-        //let request = URLRequest(url: url, timeoutInterval: TimeInterval(ReportCat.TIMEOUT))
-        let request = URLRequest(url: url)
+        let request = URLRequest(url: url, timeoutInterval: TimeInterval(ReportCat.TIMEOUT))
         let startTime = Date()
         logDebug("ReportCat: Request start ** start time: \(startTime)")
         
@@ -168,7 +167,10 @@ class ReportCat {
             let endTime = Date()
             let duration = endTime.timeIntervalSince(startTime)
             
-            let httpResponse = response as! HTTPURLResponse
+            guard let httpResponse = response as? HTTPURLResponse else {
+                logDebug("ReportCat: Non-HTTP response ** url: \(url) ** duration: \(String(format: "%.2f", duration))s")
+                return
+            }
             if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
                 logDebug("ReportCat: Request success ** url: \(url) ** status: \(httpResponse.statusCode) ** duration: \(String(format: "%.2f", duration))s")
             } else {
