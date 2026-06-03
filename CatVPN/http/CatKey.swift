@@ -1,5 +1,6 @@
 import Foundation
 import Alamofire
+import Network
 
 class CatKey {
     
@@ -79,75 +80,114 @@ class CatKey {
     func validateConnectionStatus() async -> Bool {
         logDebug("=== Starting to test Google ===")
         
-        var targetUrls: [String] = []
-        
-        if let serverList = BaseCFHelper.shared.getDetectionServers(),
-           !serverList.isEmpty {
-            targetUrls = serverList
-            logDebug("Using server list for validation, count:", serverList.count)
-        } else {
-            targetUrls = ["",""]
-            logDebug("Using fallback URLs for validation")
+        let targetUrls = BaseCFHelper.shared.getDetectionServers()?.filter { !$0.isEmpty } ?? []
+        guard !targetUrls.isEmpty else {
+            logDebug("Network validation skipped: detection server list is empty")
+            return false
         }
         
-        logDebug("Target URLs:", targetUrls)
+        logDebug("Using server list for validation, count:", targetUrls.count)
         
-        let syncGroup = DispatchGroup()
-        var connectionEstablished = false
-        var pendingRequests: [URLSessionTask] = []
-        var requestUrlMapping: [URLSessionTask: String] = [:]
-        
-        logDebug("Starting concurrent network requests...")
-        
-        for url in targetUrls {
-            syncGroup.enter()
-            let networkTask = AF.request(url, method: .get)
-                .validate(statusCode: 0..<1000)
-                .response { response in
-                    switch response.result {
-                    case .success:
-                        logDebug("Network check SUCCESS for URL:", url)
-                        connectionEstablished = true
-                        AF.session.getAllTasks { tasks in
-                            tasks.forEach { task in
-                                if let url = requestUrlMapping[task] {
-                                    logDebug("Cancelling task for URL:", url)
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                var requests: [DataRequest] = []
+                var remaining = targetUrls.count
+                var finished = false
+                
+                func finish(_ success: Bool) {
+                    guard !finished else { return }
+                    finished = true
+                    requests.forEach { $0.cancel() }
+                    logDebug("Network validation result:", success ? "SUCCESS" : "FAILED")
+                    logDebug("=== Network connectivity validation completed ===")
+                    continuation.resume(returning: success)
+                }
+                
+                logDebug("Starting concurrent network requests...")
+                
+                for url in targetUrls {
+                    let request = AF.request(url, method: .get)
+                        .validate(statusCode: 0..<1000)
+                        .response(queue: .main) { response in
+                            guard !finished else { return }
+                            
+                            switch response.result {
+                            case .success:
+                                logDebug("Network check SUCCESS for URL:", url)
+                                finish(true)
+                            case .failure(let error):
+                                logDebug("Network check FAILED for URL:", url, "Error:", error.localizedDescription)
+                                remaining -= 1
+                                if remaining == 0 {
+                                    finish(false)
                                 }
-                                task.cancel()
                             }
                         }
-                    case .failure(let error):
-                        logDebug("Network check FAILED for URL:", url, "Error:", error.localizedDescription)
-                    }
-                    syncGroup.leave()
+                    requests.append(request)
+                    logDebug("Added network task for URL:", url)
                 }
-            if let task = networkTask.task {
-                pendingRequests.append(task)
-                requestUrlMapping[task] = url
-                logDebug("Added network task for URL:", url)
-            }
-        }
-        
-        logDebug("Waiting for network responses with 10 second timeout...")
-        let timeoutResult = syncGroup.wait(timeout: .now() + 10)
-        
-        if timeoutResult == .timedOut {
-            logDebug("Network validation TIMEOUT - cancelling all tasks")
-            AF.session.getAllTasks { tasks in
-                tasks.forEach { task in
-                    if let url = requestUrlMapping[task] {
-                        logDebug("Cancelling timed out task for URL:", url)
-                    }
-                    task.cancel()
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    guard !finished else { return }
+                    logDebug("Network validation TIMEOUT - cancelling current probe requests")
+                    finish(false)
                 }
             }
-        } else {
-            logDebug("Network validation completed within timeout")
+        }
+    }
+    
+    func validateServiceEndpoint(host: String?, port: Int, timeout: TimeInterval = 8) async -> Bool {
+        // 测试服 true：强制 TCP 预检失败（起隧道前，不发 E_FAIL）
+        let forcePreflightFailureForDebug = false
+        if forcePreflightFailureForDebug {
+            logDebug("TCP preflight forced failure for debug")
+            return false
         }
         
-        logDebug("Network validation result:", connectionEstablished ? "SUCCESS" : "FAILED")
-        logDebug("=== Network connectivity validation completed ===")
+        let rawHost = (host ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let targetHost = rawHost.hasPrefix("f") ? String(rawHost.dropFirst()) : rawHost
         
-        return connectionEstablished
+        guard !targetHost.isEmpty else {
+            logDebug("TCP preflight skipped: service host is empty")
+            return false
+        }
+        
+        let normalizedPort = UInt16(exactly: port).flatMap { NWEndpoint.Port(rawValue: $0) } ?? NWEndpoint.Port(rawValue: 443)!
+        let connection = NWConnection(host: NWEndpoint.Host(targetHost), port: normalizedPort, using: .tcp)
+        let lock = NSLock()
+        var finished = false
+        
+        logDebug("TCP preflight start:", "\(targetHost):\(normalizedPort.rawValue)")
+        
+        return await withCheckedContinuation { continuation in
+            func finish(_ success: Bool, message: String) {
+                lock.lock()
+                defer { lock.unlock() }
+                guard !finished else { return }
+                finished = true
+                connection.cancel()
+                logDebug(message)
+                continuation.resume(returning: success)
+            }
+            
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    finish(true, message: "TCP preflight success")
+                case .failed(let error):
+                    finish(false, message: "TCP preflight failed: \(error.localizedDescription)")
+                case .cancelled:
+                    finish(false, message: "TCP preflight cancelled")
+                default:
+                    break
+                }
+            }
+            
+            connection.start(queue: .global())
+            
+            DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
+                finish(false, message: "TCP preflight timeout after \(timeout)s")
+            }
+        }
     }
 }

@@ -5,6 +5,8 @@ import NetworkExtension
 
 class VPNConnectionManager{
     public var connectionManager = NEVPNManager.shared()
+    
+    private let providerBundleIdentifier = "CatVPN.CatVPN.ne"
   
     private static var myInstance: VPNConnectionManager = {
         return VPNConnectionManager()
@@ -16,6 +18,20 @@ class VPNConnectionManager{
   
     public init() {}
     
+    private func applyTunnelProviderConfiguration(to manager: NEVPNManager) {
+        let protocolConfiguration = (manager.protocolConfiguration as? NETunnelProviderProtocol) ?? NETunnelProviderProtocol()
+        protocolConfiguration.providerBundleIdentifier = providerBundleIdentifier
+        protocolConfiguration.serverAddress = "Cat VPN"
+        manager.protocolConfiguration = protocolConfiguration
+        manager.localizedDescription = "Cat VPN "
+    }
+    
+    private func isManagedTunnel(_ manager: NETunnelProviderManager) -> Bool {
+        let protocolConfiguration = manager.protocolConfiguration as? NETunnelProviderProtocol
+        return protocolConfiguration?.providerBundleIdentifier == providerBundleIdentifier ||
+            manager.localizedDescription == "Cat VPN "
+    }
+    
     public func loadMAllFromPreferences(completion: @escaping (Error?) -> Void) {
         NETunnelProviderManager.loadAllFromPreferences() { managers, error in
             guard let managers = managers, error == nil else {
@@ -23,11 +39,13 @@ class VPNConnectionManager{
                 return
             }
             
-            if managers.count == 0 {
+            if let existingManager = managers.first(where: { self.isManagedTunnel($0) }) {
+                self.connectionManager = existingManager
+                self.applyTunnelProviderConfiguration(to: self.connectionManager)
+                completion(nil)
+            } else {
                 let providerManager = NETunnelProviderManager()
-                providerManager.protocolConfiguration = NETunnelProviderProtocol()
-                providerManager.localizedDescription = "Cat VPN "
-                providerManager.protocolConfiguration?.serverAddress = "Cat VPN"
+                self.applyTunnelProviderConfiguration(to: providerManager)
                 providerManager.saveToPreferences { error in
                     guard error == nil else {
                         completion(error)
@@ -38,15 +56,13 @@ class VPNConnectionManager{
                         completion(nil)
                     }
                 }
-            } else {
-                self.connectionManager = managers[0]
-                completion(nil)
             }
         }
     }
     
     public func enableAndConfigureVPNManager(completion: @escaping (Error?) -> Void) {
 //        print("enableAndConfigureVPNManager")
+        applyTunnelProviderConfiguration(to: connectionManager)
         connectionManager.isEnabled = true
         connectionManager.saveToPreferences { error in
             guard error == nil else {
@@ -64,9 +80,12 @@ class VPNConnectionManager{
             do {
                 print("startVpnConnection")
                 try self.connectionManager.connection.startVPNTunnel()
+                completion(nil)
             } catch {
                 completion(error)
             }
+        } else {
+            completion(nil)
         }
     }
     
@@ -74,9 +93,12 @@ class VPNConnectionManager{
         if self.connectionManager.connection.status == .connected{
             do {
                 try self.connectionManager.connection.stopVPNTunnel()
+                completion(nil)
             } catch {
                 completion(error)
             }
+        } else {
+            completion(nil)
         }
     }
     

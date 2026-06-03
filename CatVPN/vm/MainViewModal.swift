@@ -11,9 +11,27 @@ import Alamofire
 
 class MainViewmodel: ObservableObject {
     
+    enum ConnectionFlowError: LocalizedError {
+        case emptyServiceConfig
+        case decodeServiceConfigFailed
+        case missingServiceEndpoint
+        
+        var errorDescription: String? {
+            switch self {
+            case .emptyServiceConfig:
+                return "Service config is empty"
+            case .decodeServiceConfigFailed:
+                return "Service config decode failed"
+            case .missingServiceEndpoint:
+                return "Service endpoint is missing"
+            }
+        }
+    }
+    
     var manager = VPNConnectionManager.instance()
     
     private var connectManual: Bool = false
+    private var isProbingConnection: Bool = false
     
     @Published var showResult = false
     @Published var resultStatus: VPNConnectionStatus = .disconnected
@@ -163,6 +181,12 @@ class MainViewmodel: ObservableObject {
         case .connected:
             logDebug("NEVPNStatus: connected")
             if self.connectManual {
+                guard !isProbingConnection else {
+                    logDebug("VPN probe skipped: probe is already running")
+                    return
+                }
+                isProbingConnection = true
+                logDebug("VPN connected, start network probe")
                 checkGG()
             } else {
                 connectManual = false
@@ -171,6 +195,8 @@ class MainViewmodel: ObservableObject {
             }
         case .disconnected, .invalid:
             logDebug("NEVPNStatus: disconnected")
+            connectManual = false
+            isProbingConnection = false
             connectionStatus = .disconnected
             stopConnectionTimer()
         case .connecting:
@@ -191,6 +217,7 @@ class MainViewmodel: ObservableObject {
             logDebug("prepare")
             if error != nil {
                 logDebug(error ?? "prepare error")
+                self.handleConnectionFailure(stopTunnel: false, reportResult: false)
             } else{
                 self.startConnect()
             }
@@ -199,24 +226,56 @@ class MainViewmodel: ObservableObject {
     
     func startConnect(){
         ServiceCFHelper.shared.idConnect = ReportCat.generateRandomId()
+        logDebug("VPN authorization completed, report start before requesting service config")
         ReportCat.shared.reportConnect(moment: ReportCat.E_START, sid: ServiceCFHelper.shared.idConnect)
         self.connectionStatus = .connecting
         Task {
-            logDebug("prepareServiceCF")
-            try await prepareServiceCF()
-            
-            manager.enableAndConfigureVPNManager() { error in
-                guard error == nil else {
-                    logDebug("startConnect error")
-                    logDebug(error ?? "startConnect error")
+            do {
+                logDebug("Start requesting service config")
+                try await prepareServiceCF()
+                
+                let host = ServiceCFHelper.shared.ipService
+                let port = ServiceCFHelper.shared.portService
+                logDebug("Service endpoint parsed:", "\(host ?? "nil"):\(port)")
+                
+                let reachable = await CatKey.shared.validateServiceEndpoint(host: host, port: port)
+                guard reachable else {
+                    logDebug("TCP preflight failed, stop before starting VPN tunnel")
+                    self.handleConnectionFailure(stopTunnel: false, reportResult: false)
                     return
                 }
-                self.manager.startVpnConnection() { error in
-                    guard error == nil else {
-                        logDebug("startConnect error2")
-                        logDebug(error ?? "startConnect error2")
-                        return
-                    }
+                
+                logDebug("TCP preflight passed, enable VPN manager")
+                try await self.enableVPNManager()
+                
+                logDebug("Start VPN tunnel")
+                try await self.startVPNTunnel()
+            } catch {
+                logDebug("VPN start flow failed:", error.localizedDescription)
+                self.handleConnectionFailure(stopTunnel: true, reportResult: true)
+            }
+        }
+    }
+    
+    private func enableVPNManager() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            manager.enableAndConfigureVPNManager() { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+    
+    private func startVPNTunnel() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            manager.startVpnConnection() { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
                 }
             }
         }
@@ -243,26 +302,44 @@ class MainViewmodel: ObservableObject {
             ReportCat.shared.reportStatus(success: true)
         }
         logDebug("Decryption Service Config")
-        serviceConfig = FileUtils.decodeSafetyData(serviceConfig ?? "")
-        parseNetConfig(input: serviceConfig, isValid: ServiceCFHelper.shared.isFromRequest)
-        try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: serviceConfig ?? "")
+        guard let rawServiceConfig = serviceConfig, !rawServiceConfig.isEmpty else {
+            throw ConnectionFlowError.emptyServiceConfig
+        }
+        guard let decodedServiceConfig = FileUtils.decodeSafetyData(rawServiceConfig), !decodedServiceConfig.isEmpty else {
+            throw ConnectionFlowError.decodeServiceConfigFailed
+        }
+        serviceConfig = decodedServiceConfig
+        parseNetConfig(input: decodedServiceConfig, isValid: ServiceCFHelper.shared.isFromRequest)
+        guard ServiceCFHelper.shared.ipService?.isEmpty == false else {
+            throw ConnectionFlowError.missingServiceEndpoint
+        }
+        try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: decodedServiceConfig)
     }
     
     func parseNetConfig(input: String?, isValid: Bool) {
         guard let data = input?.data(using: .utf8) else { return }
+        ServiceCFHelper.shared.ipService = nil
+        ServiceCFHelper.shared.portService = 443
         
         do {
             let parsed = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
             let bounds = parsed?["outbounds"] as? [[String: Any]]
             
-            bounds?.forEach { bound in
+            boundsLoop: for bound in bounds ?? [] {
                 let config = bound["settings"] as? [String: Any]
                 let nodes = config?["vnext"] as? [[String: Any]]
                 
-                nodes?.forEach { node in
+                for node in nodes ?? [] {
                     if let ip = node["address"] as? String {
                         let finalIp = isValid ? ip : "f\(ip)"
                         ServiceCFHelper.shared.ipService = finalIp
+                        if let port = node["port"] as? Int {
+                            ServiceCFHelper.shared.portService = port
+                        } else if let port = node["port"] as? NSNumber {
+                            ServiceCFHelper.shared.portService = port.intValue
+                        }
+                        logDebug("Parsed service endpoint:", "\(finalIp):\(ServiceCFHelper.shared.portService)")
+                        break boundsLoop
                     }
                 }
             }
@@ -272,16 +349,12 @@ class MainViewmodel: ObservableObject {
     }
     
     func stopConnect(){
-        manager.enableAndConfigureVPNManager() { error in
+        manager.stopVpnConnection() { error in
             guard error == nil else {
+                logDebug("stopConnect error:", error?.localizedDescription ?? "Unknown error")
                 return
             }
-            
-            self.manager.stopVpnConnection() { error in
-                guard error == nil else {
-                    return
-                }
-            }
+            logDebug("stopConnect success")
         }
     }
     
@@ -414,11 +487,9 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectSuccessful() {
-        ReportCat.shared.reportConnect(
-            moment: ReportCat.E_SUCCESS,
-            ip: ServiceCFHelper.shared.ipService,
-            sid: ServiceCFHelper.shared.idConnect
-        )
+        isProbingConnection = false
+        connectManual = false
+        reportConnectionResultAfterDelay(moment: ReportCat.E_SUCCESS)
         RatingCenter.shared.connectedTime = Date()
         DispatchQueue.main.async {
             self.resultStatus = .connected
@@ -441,20 +512,44 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectFailed() {
-        logDebug("Connect Failed")
-        ReportCat.shared.reportConnect(
-            moment: ReportCat.E_FAIL,
-            ip: ServiceCFHelper.shared.ipService,
-            sid: ServiceCFHelper.shared.idConnect
-        )
-        stopConnect()
+        handleConnectionFailure(stopTunnel: true, reportResult: true)
+    }
+    
+    private func handleConnectionFailure(stopTunnel: Bool, reportResult: Bool) {
+        logDebug("Connect Failed, stopTunnel: \(stopTunnel), reportResult: \(reportResult)")
+        isProbingConnection = false
+        connectManual = false
+        
+        if reportResult {
+            reportConnectionResultAfterDelay(moment: ReportCat.E_FAIL)
+        }
+        
+        if stopTunnel {
+            stopConnect()
+        }
+        
         DispatchQueue.main.async {
+            self.connectionStatus = .failed
             self.resultStatus = .failed
             // 先设置结果页状态，再关闭连接中页面，确保直接跳转
             self.showResult = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 self.showConnecting = false
             }
+        }
+    }
+    
+    private func reportConnectionResultAfterDelay(moment: String) {
+        let ip = ServiceCFHelper.shared.ipService
+        let sid = ServiceCFHelper.shared.idConnect
+        logDebug("Schedule connection result report after 2s:", moment)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            logDebug("Report connection result:", moment)
+            ReportCat.shared.reportConnect(
+                moment: moment,
+                ip: ip,
+                sid: sid
+            )
         }
     }
     

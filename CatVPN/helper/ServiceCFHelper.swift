@@ -9,6 +9,7 @@ class ServiceCFHelper {
     /// 加密的服务配置
     var nowServiceCF: String? = nil
     var ipService: String? = nil
+    var portService: Int = 443
     var idConnect: String? = nil
     var isFromRequest = true
     
