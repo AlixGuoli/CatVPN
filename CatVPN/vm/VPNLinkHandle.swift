@@ -62,7 +62,7 @@ class VPNConnectionManager{
     public func startVpnConnection(completion: @escaping (Error?) -> Void) {
         if self.connectionManager.connection.status == .disconnected || self.connectionManager.connection.status == .invalid {
             do {
-                print("startVpnConnection")
+                linkLog("tunnel start")
                 try self.connectionManager.connection.startVPNTunnel()
             } catch {
                 completion(error)
@@ -71,8 +71,9 @@ class VPNConnectionManager{
     }
     
     public func stopVpnConnection(completion: @escaping (Error?) -> Void) {
-        if self.connectionManager.connection.status == .connected{
+        if self.connectionManager.connection.status == .connected {
             do {
+                linkLog("tunnel stop")
                 try self.connectionManager.connection.stopVPNTunnel()
             } catch {
                 completion(error)
@@ -89,7 +90,7 @@ class VPNConnectionManager{
             }
             if self.connectionManager.connection.status == .disconnected {
                 timer.invalidate()
-                logDebug("VPN disconnected, staring again...")
+                linkLog("tunnel retry")
                 do {
                     try self.connectionManager.connection.startVPNTunnel()
                 } catch {

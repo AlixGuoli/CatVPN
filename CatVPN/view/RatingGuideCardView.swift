@@ -4,9 +4,9 @@ struct RatingGuideCardView: View {
     @State private var selectedStars: Int = 4
     @State private var animationOffset: [Double] = [0, 0, 0, 0, 0]
     @Environment(\.colorScheme) private var colorScheme
-    
+
     let onTap: () -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("FirstRating_Title".localstr())
@@ -21,7 +21,7 @@ struct RatingGuideCardView: View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Spacer() // 将星星固定到底部
+            Spacer()
 
             HStack(spacing: 25) {
                 ForEach(1...5, id: \.self) { index in
@@ -60,33 +60,26 @@ struct RatingGuideCardView: View {
             onTap()
         }
     }
-    
+
     private func startStarAnimation(for index: Int) {
         let delay = Double(index - 1) * 0.15
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             startJumpAnimation(for: index)
         }
     }
-    
+
     private func startJumpAnimation(for index: Int) {
-        // 向上跳
-        withAnimation(
-            .easeOut(duration: 0.2)
-        ) {
+        withAnimation(.easeOut(duration: 0.2)) {
             animationOffset[index - 1] = -8
         }
-        
-        // 落回原位
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(
-                .easeIn(duration: 0.2)
-            ) {
+            withAnimation(.easeIn(duration: 0.2)) {
                 animationOffset[index - 1] = 0
             }
         }
-        
-        // 循环跳，间隔1.2秒
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             startJumpAnimation(for: index)
         }
@@ -94,8 +87,6 @@ struct RatingGuideCardView: View {
 }
 
 #Preview {
-    RatingGuideCardView {
-        print("Rating card tapped!")
-    }
-    .padding()
+    RatingGuideCardView {}
+        .padding()
 }

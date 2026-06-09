@@ -198,3 +198,7 @@
 "ServiceUnavailable_Close" = "Schließen";
 "ServiceUnavailable_EmailNotAvailable" = "E-Mail nicht verfügbar";
 "ServiceUnavailable_EmailNotAvailableMessage" = "Bitte konfigurieren Sie ein E-Mail-Konto in den Einstellungen oder kontaktieren Sie uns unter rocketfreevpn@gmail.com";
+
+// Server selection
+"Server_Change_Blocked_Title" = "Zuerst trennen";
+"Server_Change_Blocked_Message" = "Bitte trennen Sie die Verbindung, bevor Sie den Server wechseln.";

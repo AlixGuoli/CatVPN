@@ -8,14 +8,11 @@
 import SwiftUI
 import AppTrackingTransparency
 import AdSupport
-import StoreKit
-
 struct VPNMainView: View {
-    
-    @StateObject var adsManager = AdsUtils()
     
     @EnvironmentObject var mainViewModel: MainViewmodel
     @State private var showServerSelection = false
+    @State private var showServerChangeBlockedAlert = false
     @State private var showPrivacyGuide = false
     @State private var showPrivacyPopup = false
     @State private var pulseAnimation = false
@@ -79,7 +76,6 @@ struct VPNMainView: View {
                                 
                                 // 主连接按钮
                                 VPNConnectionButton()
-                                    .environmentObject(adsManager)
                                     .environmentObject(mainViewModel)
                                     .padding(.vertical, 25)
                                 
@@ -112,23 +108,17 @@ struct VPNMainView: View {
                     DisconnectConfirmView(
                         onConfirm: {
                             mainViewModel.isShowDisconnect = false
-                            mainViewModel.isShowRate = RatingCenter.shared.isOverTriggerTime()
-                            if !mainViewModel.isShowRate {
-                                mainViewModel.resultStatus = .disconnected
-                                mainViewModel.showResult = true
-                                
-                                if ADSCenter.shared.isAllAdReady() {
-                                    logDebug("Delay 3s *** stopConnect")
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                        logDebug("Delay 3s finish *** stopConnect")
-                                        mainViewModel.stopConnect()
-                                    }
-                                } else {
-                                    logDebug("Now *** stopConnect")
+                            mainViewModel.resultStatus = .disconnected
+                            mainViewModel.showResult = true
+
+                            if ForgeHub.shared.hasInventory() {
+                                cvLog("disconnect stop delayed 3s")
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    cvLog("disconnect stop now")
                                     mainViewModel.stopConnect()
                                 }
                             } else {
-                                logDebug("Show Rate *** stopConnect")
+                                cvLog("disconnect stop immediate")
                                 mainViewModel.stopConnect()
                             }
                         },
@@ -139,40 +129,28 @@ struct VPNMainView: View {
                 }
             }
             .onAppear {
-                /// 测试服 重置评分数据
-                //RatingCenter.shared.resetAllData()
                 if mainViewModel.isPrivacyAgreed {
                     mainViewModel.regainVPN()
                 }
                 startAllAnimations()
                 checkPrivacyPopup()
-                ADSCenter.shared.prepareAllAd(moment: AdMoment.foreground)
             }
             .onChange(of: mainViewModel.connectionStatus) { newValue in
-                logDebug("~~~~~ View connectionStatus: \(mainViewModel.connectionStatus)")
+                linkLog("ui status=\(mainViewModel.connectionStatus)")
             }
             .onChange(of: mainViewModel.showResult) { newValue in
                 if newValue {
                     if mainViewModel.resultStatus == .connected {
-                        showAd(moment: AdMoment.connect)
+                        showAd(moment: "connect")
                     } else if mainViewModel.resultStatus == .disconnected {
-                        showAd(moment: AdMoment.disconnect)
+                        showAd(moment: "disconnect")
                     } else if mainViewModel.resultStatus == .failed {
                         // 仅"不可用"导致的失败才展示广告，且不是中国地区
-                        if mainViewModel.isServiceUnavailable && CatKey.getCountryCode() != "cn" {
-                            showAd(moment: AdMoment.connect)
+                            if mainViewModel.isServiceUnavailable && CatKey.getCountryCode() != "cn" {
+                            showAd(moment: "connect")
                         }
                     }
                 }
-            }
-            .navigationDestination(isPresented: $mainViewModel.isShowRate) {
-                RatingView { star in
-                    RatingCenter.shared.submit(star: star)
-                    // 所有评分都使用系统评价
-                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                        SKStoreReviewController.requestReview(in: scene)
-                    }
-                }.environmentObject(mainViewModel)
             }
             .navigationDestination(isPresented: $mainViewModel.showConnecting) {
                 ConnectingView()
@@ -197,6 +175,11 @@ struct VPNMainView: View {
             .navigationDestination(isPresented: $showSystemInfo) {
                 SystemInfoView()
             }
+            .alert("Server_Change_Blocked_Title".localstr(), isPresented: $showServerChangeBlockedAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Server_Change_Blocked_Message".localstr())
+            }
             .overlay(
                 showPrivacyPopup ?
                 PrivacyPopupView(isPresented: $showPrivacyPopup) {
@@ -211,40 +194,26 @@ struct VPNMainView: View {
     
     private func showAd(moment: String? = nil) {
         DispatchQueue.main.asyncAfter(deadline: .now()) {
-            let adCenter = ADSCenter.shared
-            
-            // 不可用状态下只展示 Yandex 广告
-            if mainViewModel.isServiceUnavailable {
-                if adCenter.isYanBannerReady() {
-                    logDebug("MainView ** Showing Yandex Banner ad (restricted mode)")
-                    adCenter.showYanBannerFromRoot()
-                } else if adCenter.isYanIntReady() {
-                    logDebug("MainView ** Showing Yandex Int ad (restricted mode)")
-                    adCenter.showYanIntFromRoot()
-                } else {
-                    logDebug("MainView ** No Yandex ads available in restricted mode")
-                }
-                return
-            }
-            
-            // 正常状态下：Admob > Yandex Banner > Yandex Int
-            if adCenter.isAllAdReady() {
-                if adCenter.isAdmobReady() {
-                    logDebug("MainView ** Showing Admob ad from MainView")
-                    adCenter.showAdmobIntFromRoot(moment: moment)
-                   
-                } else if adCenter.isYanBannerReady() {
-                    logDebug("MainView ** Showing Yandex Banner ad from MainView")
-                    adCenter.showYanBannerFromRoot()
-                    
-                } else if adCenter.isYanIntReady() {
-                    logDebug("MainView ** Showing Yandex Int ad from MainView")
-                    adCenter.showYanIntFromRoot()
-                }
+            let forge = ForgeHub.shared
+            if forge.hasInventory() {
+                adLog("show int moment=\(moment ?? "-") em=\(forge.isMediationMode)")
+                forge.presentFullscreen()
             } else {
-                logDebug("MainView ** No ads available, will close at natural 3s timeout")
+                adLog("show skip no inventory moment=\(moment ?? "-")")
             }
         }
+    }
+
+    private func openServerSelection() {
+        guard mainViewModel.connectionStatus != .connected else {
+            showServerChangeBlockedAlert = true
+            return
+        }
+        guard mainViewModel.connectionStatus != .connecting else { return }
+
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        showServerSelection = true
     }
     
     // 检查是否需要显示隐私弹窗
@@ -263,15 +232,15 @@ struct VPNMainView: View {
                 // 不管结果如何，都不处理，只是请求权限
                 switch status {
                 case .authorized:
-                    logDebug("用户已授权，IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
+                    cvLog("att authorized idfa=\(ASIdentifierManager.shared().advertisingIdentifier)")
                 case .denied:
-                    logDebug("用户拒绝了追踪请求")
+                    cvLog("att denied")
                 case .notDetermined:
-                    logDebug("用户尚未做出选择")
+                    cvLog("att not determined")
                 case .restricted:
-                    logDebug("追踪受限")
+                    cvLog("att restricted")
                 @unknown default:
-                    logDebug("未知状态")
+                    cvLog("att unknown")
                 }
             }
         }
@@ -591,11 +560,7 @@ struct VPNMainView: View {
     // 毛玻璃效果的服务器信息卡片
     private var glassyServerInfoCard: some View {
         Button(action: {
-            if mainViewModel.connectionStatus != .connecting {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
-                showServerSelection = true
-            }
+            openServerSelection()
         }) {
             HStack {
                 HStack(spacing: 16) {
@@ -913,7 +878,7 @@ struct VPNMainView: View {
                         icon: "server.rack",
                         title: "Servers".localstr(),
                         color: .green,
-                        action: { showServerSelection = true }
+                        action: { openServerSelection() }
                     )
                     .frame(maxWidth: .infinity)
                     

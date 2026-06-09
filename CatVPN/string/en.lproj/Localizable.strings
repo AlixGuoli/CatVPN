@@ -200,3 +200,7 @@
 "ServiceUnavailable_Close" = "Close";
 "ServiceUnavailable_EmailNotAvailable" = "Email Not Available";
 "ServiceUnavailable_EmailNotAvailableMessage" = "Please configure an email account in Settings or contact us at rocketfreevpn@gmail.com";
+
+// Server selection
+"Server_Change_Blocked_Title" = "Disconnect First";
+"Server_Change_Blocked_Message" = "Please disconnect before changing servers.";

@@ -170,8 +170,7 @@ struct ConnectingView: View {
                 }
                 
                 Spacer()
-                
-                // 评分引导卡片
+
                 RatingGuideCardView {
                     openReviewPage()
                 }
@@ -183,10 +182,7 @@ struct ConnectingView: View {
         .navigationBarBackButtonHidden()
         .onAppear {
             startAnimations()
-            // 只有在服务可用时才启动实际连接
-            if BaseCFHelper.shared.isServiceAvailable() {
-                startConnection()
-            }
+            startConnection()
         }
     }
     
@@ -206,10 +202,9 @@ struct ConnectingView: View {
         // 启动实际连接
         mainViewModel.prepare()
     }
-    
+
     private func openReviewPage() {
-        let reviewURL = "https://apps.apple.com/app/id6748526674?action=write-review"
-        if let url = URL(string: reviewURL) {
+        if let url = URL(string: AppLinks.appStoreReview) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }

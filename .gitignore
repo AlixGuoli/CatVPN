@@ -1,1 +1,22 @@
+# macOS
+.DS_Store
+
+# CocoaPods
 Pods/
+
+# Xcode user state (keep Podfile.lock committed)
+*.xcuserstate
+**/xcuserdata/
+
+# Build artifacts
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/

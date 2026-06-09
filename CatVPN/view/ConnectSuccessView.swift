@@ -43,24 +43,23 @@ struct ConnectSuccessView: View {
                     }
                 
                 Spacer()
-                
+
                 ratingGuideCard
                     .padding(.bottom, 30)
             }
         }
         .navigationBarBackButtonHidden()
         .onAppear {
-            ADSCenter.shared.prepareAllAd(moment: AdMoment.foreground)
+            ForgeHub.shared.warmInventory(tag: "foreground")
         }
     }
     
-    // 评分引导卡片（替换底部关闭按钮）
     private var ratingGuideCard: some View {
         RatingGuideCardView {
             openReviewPage()
         }
     }
-    
+
     private var btnTopClose: some View {
         Button(action: {
             dismiss()
@@ -182,10 +181,8 @@ struct ConnectSuccessView: View {
     
     private func shareApp() {
         // App Store 链接
-        let appStoreURL = "https://apps.apple.com/app/id6748526674"
-        
         let activityVC = UIActivityViewController(
-            activityItems: [appStoreURL],
+            activityItems: [AppLinks.appStore],
             applicationActivities: nil
         )
         
@@ -197,20 +194,16 @@ struct ConnectSuccessView: View {
     }
     
     private func joinTelegramChannel() {
-        let channelURL = BaseCFHelper.shared.getTgLink()
-        
-        if let url = URL(string: channelURL) {
+        if let url = URL(string: AppLinks.telegram) {
             UIApplication.shared.open(url)
         }
     }
-    
+
     private func openReviewPage() {
-        let reviewURL = "https://apps.apple.com/app/id6748526674?action=write-review"
-        if let url = URL(string: reviewURL) {
+        if let url = URL(string: AppLinks.appStoreReview) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
-    
     
 }
 

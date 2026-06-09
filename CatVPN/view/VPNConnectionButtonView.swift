@@ -421,8 +421,6 @@ struct AlphaVideoPlayerView: UIViewRepresentable {
 
 struct VPNConnectionButton: View {
     
-    @EnvironmentObject var adsManager: AdsUtils
-    
     @EnvironmentObject var vm: MainViewmodel
     
     @State private var animationScale: CGFloat = 1.0
@@ -805,7 +803,6 @@ struct VPNConnectionButton: View {
     VStack {
         VPNConnectionButton()
             .environmentObject(MainViewmodel())
-            //.environmentObject(AdsUtils())
     }
     .padding()
     .background(

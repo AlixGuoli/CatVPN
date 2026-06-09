@@ -184,7 +184,7 @@ struct ServiceUnavailableView: View {
     }
     
     private func contactSupport() {
-        logDebug("Contact support tapped")
+        cvLog("contact support tapped")
         
         // 检查设备是否支持发送邮件
         if EmailView.canSendEmail() {
@@ -208,9 +208,7 @@ struct ServiceUnavailableView: View {
     }
     
     private func joinTelegramChannel() {
-        let channelURL = BaseCFHelper.shared.getTgLink()
-        
-        if let url = URL(string: channelURL) {
+        if let url = URL(string: AppLinks.telegram) {
             UIApplication.shared.open(url)
         }
     }

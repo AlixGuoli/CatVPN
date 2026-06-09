@@ -2,15 +2,13 @@
 //  YanIntCenter.swift
 //  CatVPN
 //
-//  Created by Stephen Schaaf on 2025/8/7.
-//
+
 import Foundation
 import YandexMobileAds
 
 class YanIntCenter: NSObject {
     
     private var currentAd: InterstitialAd?
-    private var displayingAd: InterstitialAd?
     private var adKeyList: [String] = []
     private var isLoadingAd = false
     private var loadBeginTime: Date? = nil
@@ -27,16 +25,14 @@ class YanIntCenter: NSObject {
         return loader
     }()
     
-    // MARK: - 广告配置和展示
-    
     func setupAdKeys() {
-        let yandexIntKey = AdCFHelper.shared.getYandexIntKey()
+        let yandexIntKey = VaultCache.getYandexIntKey()
         if !yandexIntKey.isEmpty {
             self.adKeyList = yandexIntKey.components(separatedBy: ";").filter { !$0.isEmpty }
-            logDebug("~~ADSCenter YanInt ads keys from AdCFHelper: \(adKeyList)")
+            adLog("yandex keys=\(adKeyList)")
         } else {
             self.adKeyList = []
-            logDebug("~~ADSCenter YanInt no keys found in AdCFHelper")
+            adLog("yandex keys empty")
         }
     }
     
@@ -45,7 +41,6 @@ class YanIntCenter: NSObject {
             onAdClosed?()
             return
         }
-        let adKeyId = currentAd.adInfo?.adUnitId ?? ""
         currentAd.show(from: controller)
     }
     
@@ -53,26 +48,18 @@ class YanIntCenter: NSObject {
         return currentAd != nil
     }
     
-    func getCurrentAd() -> InterstitialAd? {
-        return isReady() ? currentAd : nil
-    }
-    
     func clearAd() {
         currentAd = nil
-        logDebug("~~ADSCenter YanInt clearAd")
+        adLog("yandex clear")
     }
     
-    // MARK: - 广告加载管理
-    
     func beginAdLoading(moment: String? = nil) {
-        logDebug("~~ADSCenter YanInt beginAdLoading ** Current connect status: \(GlobalStatus.shared.connectStatus)")
+        adLog("yandex load start vpn=\(GlobalStatus.shared.connectStatus)")
         if canBeginLoading() {
-            // 先从 AdCFHelper 获取最新的广告密钥
             setupAdKeys()
             currentKeyIndex = 0
             guard adKeyList.count > currentKeyIndex else { return }
             
-            logDebug("~~ADSCenter YanInt beginAdLoading ** Start")
             isLoadingAd = true
             loadBeginTime = Date()
             Task {
@@ -81,16 +68,14 @@ class YanIntCenter: NSObject {
         }
     }
     
-    func reloadAd(moment: String? = nil) {
+    func reloadAd() {
         currentAd = nil
-        beginAdLoading(moment: moment)
+        beginAdLoading()
     }
-    
-    // MARK: - 私有方法
     
     private func loadAdRecursively(index: Int, moment: String? = nil) async {
         let adKey = adKeyList[index]
-        logDebug("~~ADSCenter YanInt loadAdRecursively ** Start ** adkey: \(adKey) (index: \(index))")
+        adLog("yandex load try key=\(adKey) idx=\(index)")
         
         let config = AdRequestConfiguration(adUnitID: adKey)
         adLoader.loadAd(with: config)
@@ -125,11 +110,10 @@ class YanIntCenter: NSObject {
     }
 }
 
-// MARK: - Yandex Delegate
 extension YanIntCenter: InterstitialAdLoaderDelegate, InterstitialAdDelegate {
     
     func interstitialAdLoader(_ adLoader: InterstitialAdLoader, didLoad interstitialAd: InterstitialAd) {
-        logDebug("~~ADSCenter YanInt loadAdRecursively ** Success AdKey: \(interstitialAd.adInfo?.adUnitId ?? "")")
+        adLog("yandex load ok unit=\(interstitialAd.adInfo?.adUnitId ?? "")")
         isLoadingAd = false
         currentAd = interstitialAd
         currentAd?.delegate = self
@@ -137,31 +121,29 @@ extension YanIntCenter: InterstitialAdLoaderDelegate, InterstitialAdDelegate {
     }
     
     func interstitialAdLoader(_ adLoader: InterstitialAdLoader, didFailToLoadWithError error: AdRequestError) {
-        logDebug("~~ADSCenter !!! YanInt loadAdRecursively failed adKey: \(error.adUnitId ?? "") error: \(error.error.localizedDescription)")
+        adLog("yandex load fail unit=\(error.adUnitId ?? "") err=\(error.error.localizedDescription)")
         loadNextAd()
     }
     
     func interstitialAd(_ interstitialAd: InterstitialAd, didFailToShowWithError error: Error) {
-        logDebug("~~ADSCenter YanInt show failed: \(error.localizedDescription)")
+        adLog("yandex show fail err=\(error.localizedDescription)")
         reloadAd()
     }
     
     func interstitialAdDidShow(_ interstitialAd: InterstitialAd) {
-        ADSCenter.shared.isShowingAd = true
-        logDebug("~~ADSCenter YanInt ad shown: \(interstitialAd.adInfo?.adUnitId ?? "")")
+        ForgeHub.shared.isPresenting = true
+        adLog("yandex shown unit=\(interstitialAd.adInfo?.adUnitId ?? "")")
     }
     
     func interstitialAdDidDismiss(_ interstitialAd: InterstitialAd) {
         onAdClosed?()
         reloadAd()
-        ADSCenter.shared.isShowingAd = false
+        ForgeHub.shared.isPresenting = false
     }
     
     func interstitialAdDidClick(_ interstitialAd: InterstitialAd) {
         onAdClicked?()
     }
     
-    func interstitialAd(_ interstitialAd: InterstitialAd, didTrackImpressionWith impressionData: ImpressionData?) {
-        // Handle impression tracking if needed
-    }
-} 
+    func interstitialAd(_ interstitialAd: InterstitialAd, didTrackImpressionWith impressionData: ImpressionData?) {}
+}

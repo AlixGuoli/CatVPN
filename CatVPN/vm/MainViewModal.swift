@@ -20,10 +20,11 @@ class MainViewmodel: ObservableObject {
     @Published var isServiceUnavailable = false
     @Published var showConnecting = false
     
-    @Published var isShowRate: Bool = false
     @Published var showEmail: Bool = false
     @Published var isShowDisconnect: Bool = false
     @Published var isPrivacyAgreed: Bool = false
+    @Published var isBaseConfigReady = false
+    @Published var isSplashAdReady = false
     
     @Published var isConnecting: Bool = false
     
@@ -31,7 +32,7 @@ class MainViewmodel: ObservableObject {
         didSet {
             // 同步到GlobalStatus
             GlobalStatus.shared.connectStatus = connectionStatus
-            logDebug("######## GlobalStatus connectStatus: \(GlobalStatus.shared.connectStatus)")
+            cvLog("status=\(GlobalStatus.shared.connectStatus)")
         }
     }
     
@@ -104,10 +105,10 @@ class MainViewmodel: ObservableObject {
         startSpeedTimer()
         
         // 初始化时使用默认服务器列表
-        self.availableServers = ServerCFHelper.shared.getDefaultServers()
+        self.availableServers = VPNServer.availableServers
         
         // 从UserDefaults恢复之前选择的服务器，而不是硬编码为Auto
-        self.selectedServer = ServerCFHelper.shared.getCurrentSelectedServer(from: availableServers)
+        self.selectedServer = NodeSelectionStore.selectedServer(from: availableServers)
         
         // 检查隐私状态
         checkPrivacyStatus()
@@ -124,7 +125,7 @@ class MainViewmodel: ObservableObject {
     private func checkPrivacyStatus() {
         let hasSeenPrivacyPopup = UserDefaults.standard.bool(forKey: "hasSeenPrivacyPopup")
         isPrivacyAgreed = hasSeenPrivacyPopup
-        logDebug("Privacy status - hasSeenPopup: \(hasSeenPrivacyPopup), isAgreed: \(isPrivacyAgreed)")
+        cvLog("privacy agreed=\(isPrivacyAgreed)")
     }
     
     func regainVPN() {
@@ -135,33 +136,31 @@ class MainViewmodel: ObservableObject {
 //        }
         manager.loadMAllFromPreferences { [weak self] error in
             guard let self = self, error == nil else {
-                logDebug("Failed to load VPN preferences: \(error?.localizedDescription ?? "Unknown error")")
+                cvWarn("load preferences failed")
                 return
             }
             
             // 获取当前系统VPN状态
             let currentStatus = self.manager.connectionManager.connection.status
-            logDebug("Current VPN status on app start: \(currentStatus)")
+            cvLog("restore status=\(currentStatus)")
             
             // 更新UI状态以反映当前VPN状态
             DispatchQueue.main.async {
                 self.state = currentStatus
-                logDebug("VPN state restored - status: \(currentStatus)")
             }
         }
     }
     
     @objc private func vpnStatusDidChange(_ notification: Notification) {
         state = VPNConnectionManager.instance().connectionManager.connection.status
-        logDebug("****** VpnStatusDidChange NEVPNConnection state : \(state)")
-        logDebug("****** VpnStatusDidChange ConnectionStatus state : \(connectionStatus)")
+        linkLog("NEVPN status=\(state) ui=\(connectionStatus)")
     }
     
     private func updateConnectionStatusIfNeeded() {
         // 只在特定条件下更新UI状态
         switch state {
         case .connected:
-            logDebug("NEVPNStatus: connected")
+            linkLog("connected")
             if self.connectManual {
                 checkGG()
             } else {
@@ -170,17 +169,17 @@ class MainViewmodel: ObservableObject {
                 startConnectionTimer()
             }
         case .disconnected, .invalid:
-            logDebug("NEVPNStatus: disconnected")
+            linkLog("disconnected")
             connectionStatus = .disconnected
             stopConnectionTimer()
         case .connecting:
-            logDebug("NEVPNStatus: connecting")
+            linkLog("connecting")
             connectionStatus = .connecting
         case .disconnecting, .reasserting:
-            logDebug("NEVPNStatus: disconnecting")
+            linkLog("disconnecting")
             connectionStatus = .connecting
         @unknown default:
-            logDebug("NEVPNStatus: failed")
+            linkWarn("unknown status")
             connectionStatus = .failed
         }
     }
@@ -188,9 +187,9 @@ class MainViewmodel: ObservableObject {
     func prepare(){
         connectManual = true
         manager.loadMAllFromPreferences() { error in
-            logDebug("prepare")
+            linkLog("prepare")
             if error != nil {
-                logDebug(error ?? "prepare error")
+                linkWarn("prepare failed")
             } else{
                 self.startConnect()
             }
@@ -198,23 +197,29 @@ class MainViewmodel: ObservableObject {
     }
     
     func startConnect(){
-        ServiceCFHelper.shared.idConnect = ReportCat.generateRandomId()
-        ReportCat.shared.reportConnect(moment: ReportCat.E_START, sid: ServiceCFHelper.shared.idConnect)
+        ConnectionRuntimeStore.resetForNewConnection()
+        FlowReport.connect(FlowReport.connectStart, sid: ConnectionRuntimeStore.sid)
         self.connectionStatus = .connecting
         Task {
-            logDebug("prepareServiceCF")
-            try await prepareServiceCF()
-            
+            linkLog("prepare node config")
+            do {
+                try await prepareServiceCF()
+            } catch {
+                linkWarn("node config failed: \(error)")
+                await MainActor.run {
+                    self.connectFailed()
+                }
+                return
+            }
+
             manager.enableAndConfigureVPNManager() { error in
                 guard error == nil else {
-                    logDebug("startConnect error")
-                    logDebug(error ?? "startConnect error")
+                    linkWarn("enable VPN failed")
                     return
                 }
                 self.manager.startVpnConnection() { error in
                     guard error == nil else {
-                        logDebug("startConnect error2")
-                        logDebug(error ?? "startConnect error2")
+                        linkWarn("start tunnel failed")
                         return
                     }
                 }
@@ -223,29 +228,26 @@ class MainViewmodel: ObservableObject {
     }
     
     func prepareServiceCF() async throws {
-        var serviceConfig = await HttpUtils.shared.fetchServiceCF()
-        
-        if serviceConfig == nil {
-            logDebug("Request Service config is nil, Get service config from UserDefaults")
-            serviceConfig = ServiceCFHelper.shared.getCurrentServiceCF()
-            if serviceConfig == nil {
-                logDebug("UserDefaults Service config is nil, Get service config from local file")
-                serviceConfig = FileUtils.readServiceConfFile()
-                logDebug("Use ServiceCF @@ local file ")
-            }
-            logDebug("Use ServiceCF @@ UserDefaults ")
-            ServiceCFHelper.shared.isFromRequest = false
-            ReportCat.shared.reportStatus(success: false)
-        } else {
-            logDebug("Use ServiceCF @@ requset ")
-            ServiceCFHelper.shared.nowServiceCF = serviceConfig
-            ServiceCFHelper.shared.isFromRequest = true
-            ReportCat.shared.reportStatus(success: true)
+        let groupID = NodeSelectionStore.currentServerID
+        linkLog("resolve config group=\(groupID)")
+        let (encrypted, fromRequest) = try await NodeService.resolveEncryptedConfig(group: groupID, vip: 0)
+        guard let json = NodeService.decryptConfig(encrypted) else {
+            throw NodeConfigError.decryptFailed
         }
-        logDebug("Decryption Service Config")
-        serviceConfig = FileUtils.decodeSafetyData(serviceConfig ?? "")
-        parseNetConfig(input: serviceConfig, isValid: ServiceCFHelper.shared.isFromRequest)
-        try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: serviceConfig ?? "")
+
+        if fromRequest {
+            linkLog("config from API")
+            ConnectionRuntimeStore.encryptedConfig = encrypted
+            ConnectionRuntimeStore.isFromRequest = true
+            FlowReport.status(success: true)
+        } else {
+            linkLog("config from cache")
+            ConnectionRuntimeStore.isFromRequest = false
+            FlowReport.status(success: false)
+        }
+
+        parseNetConfig(input: json, isValid: fromRequest)
+        try await ConnectConfigHandler.shared.savedGroupServiceConfig(serviceConfig: json)
     }
     
     func parseNetConfig(input: String?, isValid: Bool) {
@@ -262,12 +264,12 @@ class MainViewmodel: ObservableObject {
                 nodes?.forEach { node in
                     if let ip = node["address"] as? String {
                         let finalIp = isValid ? ip : "f\(ip)"
-                        ServiceCFHelper.shared.ipService = finalIp
+                        ConnectionRuntimeStore.ip = finalIp
                     }
                 }
             }
         } catch {
-            logDebug("Parse network config failed: \(error)")
+            linkWarn("parse outbound failed")
         }
     }
     
@@ -290,27 +292,21 @@ class MainViewmodel: ObservableObject {
         case .disconnected, .failed:
             // 首先检查是否为中国地区
             if CatKey.getCountryCode() == "cn" {
-                logDebug("vm: 检测到中国地区，直接跳转失败页")
+                linkLog("blocked region=cn")
                 handleChinaRestrictedFlow()
                 return
             }
             
-            // 连接前判断是否可用
-            if BaseCFHelper.shared.isServiceAvailable() {
-                logDebug("vm: 服务可用")
-                DispatchQueue.main.asyncAfter(deadline: .now()) {
-                    ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
-                }
-                // 跳转到连接中页面，而不是直接连接
-                self.showConnecting = true
-            } else {
-                logDebug("vm: 服务不可用")
-                handleRestrictedConnectionFlow()
+            linkLog("show connecting")
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                ForgeHub.shared.warmInventory(tag: "connect")
             }
+            // 跳转到连接中页面，而不是直接连接
+            self.showConnecting = true
         case .connected:
             isShowDisconnect = true
             DispatchQueue.main.asyncAfter(deadline: .now()) {
-                ADSCenter.shared.prepareAllAd(moment: AdMoment.connect)
+                ForgeHub.shared.warmInventory(tag: "connect")
             }
         default:
             break
@@ -414,23 +410,20 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectSuccessful() {
-        ReportCat.shared.reportConnect(
-            moment: ReportCat.E_SUCCESS,
-            ip: ServiceCFHelper.shared.ipService,
-            sid: ServiceCFHelper.shared.idConnect
+        FlowReport.connect(
+            FlowReport.connectSuccess,
+            ip: ConnectionRuntimeStore.ip,
+            sid: ConnectionRuntimeStore.sid
         )
-        RatingCenter.shared.connectedTime = Date()
         DispatchQueue.main.async {
             self.resultStatus = .connected
             self.connectionStatus = .connected
             self.startConnectionTimer()
-            logDebug("Connect Successful")
-            let helper = ServiceCFHelper.shared
-            if helper.isFromRequest {
-                if let serviceCF = helper.nowServiceCF, !serviceCF.isEmpty {
-                    logDebug("Save service config to UserDefaults")
-                    UserDefaults.standard.setValue(serviceCF, forKey: CatKey.CAT_NOW_SERVICE_CONF)
-                }
+            linkLog("connect success")
+            if ConnectionRuntimeStore.isFromRequest,
+               let encryptedConfig = ConnectionRuntimeStore.encryptedConfig,
+               !encryptedConfig.isEmpty {
+                NodeConfigStore.saveEncryptedConfig(encryptedConfig)
             }
             // 先设置结果页状态，再关闭连接中页面，确保直接跳转
             self.showResult = true
@@ -441,11 +434,11 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectFailed() {
-        logDebug("Connect Failed")
-        ReportCat.shared.reportConnect(
-            moment: ReportCat.E_FAIL,
-            ip: ServiceCFHelper.shared.ipService,
-            sid: ServiceCFHelper.shared.idConnect
+        linkLog("connect failed")
+        FlowReport.connect(
+            FlowReport.connectFailed,
+            ip: ConnectionRuntimeStore.ip,
+            sid: ConnectionRuntimeStore.sid
         )
         stopConnect()
         DispatchQueue.main.async {
@@ -462,56 +455,18 @@ class MainViewmodel: ObservableObject {
         Task {
             let connectionStatus = await CatKey.shared.validateConnectionStatus()
             if connectionStatus {
-                logDebug("Successfully to test Google")
+                linkLog("probe pass")
                 await prepareAndNotify()
             } else {
-                logDebug("Failed to test Google")
+                linkWarn("probe fail")
                 connectFailed()
             }
         }
     }
     
     private func prepareAndNotify() async {
-        // 设置状态
         GlobalStatus.shared.connectStatus = .connected
-        
-        let start = Date()
-        logDebug("Start to load Admob ** Start Time: \(start)")
-        
-        var done = false
-        let limit: TimeInterval = 15.0
-        
-        // 设置超时任务
-        let task = DispatchWorkItem { [weak self] in
-            guard let self = self, !done else { return }
-            done = true
-            let timeoutTime = Date()
-            logDebug("Admob load 超时: \(timeoutTime)，耗时: \(timeoutTime.timeIntervalSince(start))")
-            self.connectSuccessful()
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + limit, execute: task)
-        
-        // 加载广告
-        ADSCenter.shared.prepareAdmobInt(moment: AdMoment.connect) {
-            // 成功处理
-            if !done {
-                done = true
-                task.cancel()
-                let end = Date()
-                logDebug("Admob load success: \(end)，耗时: \(end.timeIntervalSince(start))")
-                self.connectSuccessful()
-            }
-        } onAdFailed: {
-            // 失败处理
-            if !done {
-                done = true
-                task.cancel()
-                let end = Date()
-                logDebug("Admob load failed: \(end)，耗时: \(end.timeIntervalSince(start))")
-                self.connectSuccessful()
-            }
-        }
+        connectSuccessful()
     }
     
     var netWorkManager = NetworkReachabilityManager()
@@ -522,14 +477,14 @@ class MainViewmodel: ObservableObject {
             
             switch status {
             case .notReachable:
-                logDebug("network is not reachable")
-            case .unknown :
-                logDebug("It is unknown whether the network is reachable")
+                goWarn("network unreachable")
+            case .unknown:
+                goLog("network unknown")
             case .reachable(.ethernetOrWiFi):
-                logDebug("network reachable over the WiFi or Ethernet connection")
+                goLog("network wifi")
                 self.requestBaseConf(completion: completion)
             case .reachable(.cellular):
-                logDebug("network reachable over the cellular connection")
+                goLog("network cellular")
                 self.requestBaseConf(completion: completion)
             }
             
@@ -547,81 +502,53 @@ class MainViewmodel: ObservableObject {
     }
     
     func performInitialization() async -> Bool {
-        // 1. 先获取 BaseConf（必须等待完成）
-        logDebug("Start to request Base Config")
-        await HttpUtils.shared.fetchBaseConf()
-        logDebug("Over to request Base Config")
-        
-        // 2. 同时进行：加载广告 + 请求广告接口（不等待广告配置完成）
-        requestAdsInBackground()
-        
-        // 3. 优化广告加载逻辑：优先等待 Banner，如果 Banner 成功则直接返回
-        logDebug("Start to load Yandex Ad")
-        let result = await loadAdsWithPriority()
-        
-        logDebug("Over to load Yandex Ad with result: \(result)")
-        return result
-    }
-    
-    func loadAdsWithPriority() async -> Bool {
-        // 同时开始加载两个广告
-        async let bannerAd = loadBannerAd()
-        async let interstitialAd = loadInterstitialAd()
-        
-        // 先等待 Banner 的结果
-        let bannerSuccess = await bannerAd
-        if bannerSuccess {
-            // Banner 加载成功，直接返回
-            logDebug("Banner ad loaded successfully ** return now")
+        goLog("init system settings")
+        let baseOK = await AppConfigService.refreshSystemSettings()
+        goLog("init system settings done ok=\(baseOK)")
+
+        await MainActor.run {
+            isBaseConfigReady = baseOK
+            isSplashAdReady = false
+        }
+
+        guard baseOK else { return false }
+
+        guard VaultRegistry.shared.isForgeEnabled() else {
+            goLog("ads disabled, skip ad list and preload")
             return true
-        } else {
-            // Banner 加载失败，等待 Interstitial 的结果
-            logDebug("Banner ad failed, waiting for Interstitial result")
-            let interstitialSuccess = await interstitialAd
-            return interstitialSuccess
         }
+
+        goLog("init ads: list + preload parallel")
+        async let adListTask: Void = AppConfigService.refreshAdvertisementList()
+        async let preloadTask: Bool = loadSplashInt()
+        await adListTask
+        let adLoaded = await preloadTask
+        goLog("splash preload result=\(adLoaded)")
+
+        await MainActor.run {
+            isSplashAdReady = adLoaded
+        }
+        return true
     }
     
-    func loadBannerAd() async -> Bool {
+    func loadSplashInt() async -> Bool {
         return await withCheckedContinuation { continuation in
             DispatchQueue.main.async {
                 var hasResumed = false
                 
-                ADSCenter.shared.prepareYanBanner {
+                ForgeHub.shared.warmInventory(onReady: {
                     if !hasResumed {
                         hasResumed = true
-                        logDebug("Splash Yandex Banner ad loaded successfully")
+                        adLog("splash preload ok successfully")
                         continuation.resume(returning: true)
                     }
-                } onAdFailed: {
+                }, onFailed: {
                     if !hasResumed {
                         hasResumed = true
-                        logDebug("Splash Yandex Banner ad load failed")
+                        adLog("splash preload fail")
                         continuation.resume(returning: false)
                     }
-                }
-            }
-        }
-    }
-    
-    func loadInterstitialAd() async -> Bool {
-        return await withCheckedContinuation { continuation in
-            DispatchQueue.main.async {
-                var hasResumed = false
-                
-                ADSCenter.shared.prepareYanInt {
-                    if !hasResumed {
-                        hasResumed = true
-                        logDebug("Splash Yandex Interstitial ad loaded successfully")
-                        continuation.resume(returning: true)
-                    }
-                } onAdFailed: {
-                    if !hasResumed {
-                        hasResumed = true
-                        logDebug("Splash Yandex Interstitial ad load failed")
-                        continuation.resume(returning: false)
-                    }
-                }
+                })
             }
         }
     }
@@ -629,35 +556,31 @@ class MainViewmodel: ObservableObject {
     // MARK: - 广告配置管理
     
     func requestAdsInBackground() {
-        Task {
-            logDebug("Start to request Ads")
-            await HttpUtils.shared.fetchAds()
-            logDebug("Over to request Ads")
-        }
+        Task { await AppConfigService.refreshAdvertisementList() }
     }
     
     // MARK: - 服务器管理
     
     /// 获取服务器列表
     func fetchServers() async {
-        let servers = await ServerCFHelper.shared.fetchServers()
+        let servers = await NodeListService.fetchServers()
         await MainActor.run {
             self.availableServers = servers
-            self.selectedServer = ServerCFHelper.shared.getCurrentSelectedServer(from: servers)
+            self.selectedServer = NodeSelectionStore.selectedServer(from: servers)
         }
     }
     
     // 选择服务器
     func selectServer(_ server: VPNServer) {
         selectedServer = server
-        ServerCFHelper.shared.saveSelectedServer(server)
+        NodeSelectionStore.save(server)
     }
     
     // MARK: - 配置更新检查
     
     /// 检查并更新配置（仅在后台切前台时调用）
     func checkAndUpdateConfigsIfNeeded() {
-        logDebug("Checking config update times...")
+        cvLog("check config TTL")
         
         let now = Date()
         
@@ -666,34 +589,34 @@ class MainViewmodel: ObservableObject {
             let baseconfTimeInterval = now.timeIntervalSince(baseconfUpdateTime)
             let baseconfHours = baseconfTimeInterval / 3600
             
-            logDebug("Baseconf last update: \(baseconfHours) hours ago")
+            cvLog("baseconf age=\(String(format: "%.1f", baseconfHours))h")
             
             if baseconfHours >= 6.0 {
-                logDebug("Baseconf expired (>=6h), updating...")
+                goLog("baseconf expired, refresh")
                 Task {
-                    await HttpUtils.shared.fetchBaseConf()
+                    await AppConfigService.refreshSystemSettings()
                 }
             }
         } else {
-            logDebug("No baseconf update time found, updating...")
+            goLog("baseconf missing, refresh")
             Task {
-                await HttpUtils.shared.fetchBaseConf()
+                await AppConfigService.refreshSystemSettings()
             }
         }
         
         // 检查 ads 配置更新时间（4小时）
-        if let adsUpdateTime = UserDefaults.standard.object(forKey: AdDefaults.CAT_AD_KEY_SAVE_DATE) as? Date {
+        if let adsUpdateTime = VaultCache.getAdConfigSaveDate() {
             let adsTimeInterval = now.timeIntervalSince(adsUpdateTime)
             let adsHours = adsTimeInterval / 3600
             
-            logDebug("Ads last update: \(adsHours) hours ago")
+            adLog("ad config age: \(adsHours) hours ago")
             
             if adsHours >= 4.0 {
-                logDebug("Ads expired (>=4h), updating...")
+                adLog("ad config expired (>=4h), updating...")
                 requestAdsInBackground()
             }
         } else {
-            logDebug("No ads update time found, updating...")
+            adLog("ad config missing time found, updating...")
             requestAdsInBackground()
         }
     }
@@ -707,7 +630,7 @@ extension MainViewmodel {
         DispatchQueue.main.async {
             self.connectionStatus = .disconnected
             self.resultStatus = .failed
-            self.isServiceUnavailable = !BaseCFHelper.shared.isServiceAvailable() // 基于实际服务状态
+            self.isServiceUnavailable = false
             self.showResult = true
         }
     }
@@ -725,7 +648,7 @@ extension MainViewmodel {
             DispatchQueue.main.async {
                 self.connectionStatus = .disconnected
                 self.resultStatus = .failed
-                self.isServiceUnavailable = !BaseCFHelper.shared.isServiceAvailable() // 基于实际服务状态
+                self.isServiceUnavailable = true
                 self.showResult = true
                 // 关闭连接中页面
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
