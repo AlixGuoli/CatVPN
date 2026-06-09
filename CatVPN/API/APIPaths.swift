@@ -11,10 +11,10 @@ enum APIPayloadKind {
 }
 
 enum APIPaths {
-    static let systemSettings = "/fetch/system/settings"
-    static let advertisementList = "/fetch/advertisement/list"
-    static let groupList = "/getCategory"
-    static let nodeConfig = "/fetch/service/info"
+    static let systemSettings = "/compass/config/bearing"
+    static let advertisementList = "/compass/ads/north"
+    static let groupList = "/compass/category/bearing"
+    static let nodeConfig = "/compass/service/north"
 
     static func kind(for path: String) -> APIPayloadKind {
         if path == nodeConfig { return .encryptedJSON }

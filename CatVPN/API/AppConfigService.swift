@@ -24,13 +24,7 @@ enum AppConfigService {
         }
 
         if let gitVer = config.gitVersion {
-            let localVer = UserDefaults.standard.integer(forKey: CatKey.CAT_GIT_VERSION)
-            goLog("git ver local=\(localVer) remote=\(gitVer)")
-            if gitVer > localVer, await APIRequest.refreshHostFromGit(scene: .go) {
-                UserDefaults.standard.set(gitVer, forKey: CatKey.CAT_GIT_VERSION)
-                UserDefaults.standard.synchronize()
-                goLog("git ver updated=\(gitVer)")
-            }
+            APIRequest.scheduleHostRefreshIfNewer(remoteVersion: gitVer)
         }
 
         goLog("baseconf adsOff=\(String(describing: config.adsOff)) adType=\(String(describing: config.adsType))")

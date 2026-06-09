@@ -18,12 +18,21 @@ struct HostConfig: Equatable {
 
 enum HostBootstrap {
 
-    // MARK: - Embedded cipher (from legacy hostConf.local)
+    // MARK: - Embedded cipher
 
+    /// Active seed (test). Swap `a`/`b`/`c` from `ProductionHostCipher` for release.
     private enum EmbeddedHostCipher {
-        static let a = "R4f4s82GUEJb3mdR2S2iMXAkasdzeGlTUYwfJy3DOLhx9+otJ1BBQJNpAdq2Zj4H91SUwypkGG3g/mZP3ASOqr4dYHuDu2rEWjgUkZjg2/KlHs27kvLkjT739JCUZ4SxlWhnG7vWN9wJDqadqzl9m8vURWU4AmrcMNSdVtZVTJD7dcRrfz5J4toGy+uW+P4Zvi4UmuhnSz9KtjTctmoooe5/Xrps7ScyiPgjOhh3HP/Mu/yRP82e1scy+BJIION6rZEouRjHQFXlbzbfggw5RCIoQLbqIAxNmfsAMNMugIR0OjQ5cGq+b7+Sifo9y1TnnnHT2UJhe4rxsLVf/JPUGg=="
-        static let b = "d262f9fbd9add18d50993222"
-        static let c = "7d6c2d23591175936293a84e040e547f"
+        static let a = "1Bl6iTEEJIggAmCsE4HgvtnXrqfhyOUP4vL5nIlTAdWk2E44zK73gY3O/v7e74JcQuEPeop8ZTS485Zny87d6W0bdNpy2oP6UxyEobMoLm0SI4VpBz5ab8QPvRTF+GvLh1Yn5egjhZv8WaaVA9ttDdut3MryiPiUzVqdi2YCuhW5vIvq36sqNdXpoAIhKhUV7e2zX26iQwyqwcXMrqiJE2yt36LZ2gD0FajWr9vx/cvxNe1cvFEBV9dF3w7Xpfv1f0ODHRXQ5BGGRF/g7QLBCnvhE9MiJwCiY/wEi0Aip/1rM2O7Oqex5Ueed+FDBkaOWQikpuj1TMCa/Ksg"
+        static let b = "73a4641d32a21cba0b5fe46d"
+        static let c = "a6f2759a1f4cb957f9a90ce1e2871e4e"
+        static var line: String { [a, b, c].joined(separator: ",") }
+    }
+
+    /// Production seed (love.silkbrightpetal.baby). Not active until swapped in above.
+    private enum ProductionHostCipher {
+        static let a = "f+a5lGy2I+cI2Npr7gVzNXEih7vwoFkrX3YA+Mc/GgfdR64UVQl4nT8ExnUxp406MotFzh5bMB/sMLmwRcN1cBYW4SoxEQyjvjpo5tlSYymXJblkg+tqtumk6gS8eSKaB42Bph1OYe/uP+KqfQwWC2Sbo+nvy8T3UFNz+zi5ZEHjLF3y5LTjQA6CKgslkcMnJajUz+4ZINRViP00nPxckl3nIRqUdMM1U859Fo2f3Addw1lHq3XJnzmt02yTSF6N4P+Z+bFxC13U9Roc+Y6fGPN8Bocn3+Z6XXVHH1iMt1y8L4UyrxdzqQDzfIxfKuZN+N9zPklzVyiSpwwoSjL/a+u2htDEBQ=="
+        static let b = "e80d8abb1b2fc722899729ea"
+        static let c = "7b2abdc5e14274b2938e6bd635e80490"
         static var line: String { [a, b, c].joined(separator: ",") }
     }
 
@@ -85,7 +94,9 @@ enum HostBootstrap {
         guard !hosts.isEmpty else { return nil }
         return HostConfig(
             hosts: hosts,
-            gitURLs: api["git"] as? [String] ?? [],
+            gitURLs: (api["git"] as? [String] ?? [])
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty },
             gReport: api["greport"] as? String,
             connReport: api["connreport"] as? String,
             json: json

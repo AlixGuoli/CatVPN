@@ -71,6 +71,25 @@ enum APIRequest {
         return nil
     }
 
+    /// After baseconf: refresh host from git in background; does not block callers.
+    static func scheduleHostRefreshIfNewer(remoteVersion: Int) {
+        let localVer = UserDefaults.standard.integer(forKey: CatKey.CAT_GIT_VERSION)
+        goLog("git ver local=\(localVer) remote=\(remoteVersion)")
+        guard remoteVersion > localVer else { return }
+
+        let targetVer = remoteVersion
+        Task {
+            goLog("git refresh scheduled (background)")
+            if await refreshHostFromGit(scene: .go) {
+                UserDefaults.standard.set(targetVer, forKey: CatKey.CAT_GIT_VERSION)
+                UserDefaults.standard.synchronize()
+                goLog("git ver updated=\(targetVer)")
+            } else {
+                goWarn("git refresh failed ver=\(targetVer)")
+            }
+        }
+    }
+
     static func refreshHostFromGit(scene: CVLogScene = .go) async -> Bool {
         cvLog(scene, "git refresh from UD")
         if let cfg = HostBootstrap.activeConfig() {
@@ -91,14 +110,20 @@ enum APIRequest {
     }
 
     private static func importGit(_ url: String, scene: CVLogScene) async -> Bool {
-        guard let raw = await httpGET(url, scene: scene), !raw.isEmpty else {
-            cvWarn(scene, "git fetch failed url=\(url)")
+        let gitURL = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw = await httpGET(gitURL, scene: scene) else {
+            cvWarn(scene, "git fetch failed url=\(gitURL)")
+            return false
+        }
+        let cipher = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cipher.isEmpty else {
+            cvWarn(scene, "git fetch empty url=\(gitURL)")
             return false
         }
 
-        cvLog(scene, "git fetch ok cipher=\(raw)")
+        cvLog(scene, "git fetch ok cipher=\(cipher)")
 
-        guard let json = APICrypto.decryptPayload(raw, scene: scene) else {
+        guard let json = APICrypto.decryptPayload(cipher, scene: scene) else {
             cvWarn(scene, "git decrypt failed")
             return false
         }
