@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ConnectingView: View {
     @EnvironmentObject var mainViewModel: MainViewmodel
-    @Environment(\.dismiss) var dismiss
     @State private var waterRippleAnimation: Bool = false
     @State private var liquidAnimation: Bool = false
     
@@ -25,9 +24,8 @@ struct ConnectingView: View {
             GeometryReader { geometry in
                 ScrollView {
                     VStack(spacing: 15) {
-                // 顶部关闭按钮和标题
-                btnTopClose
                 Text("VPN_Button_Connecting".localstr() + " 🐸💫")
+                    .padding(.top, 20)
                     .fontWeight(.semibold)
                     .font(.title)
                 
@@ -182,7 +180,7 @@ struct ConnectingView: View {
         .navigationBarBackButtonHidden()
         .onAppear {
             startAnimations()
-            startConnection()
+            mainViewModel.onConnectingPageAppeared()
         }
     }
     
@@ -198,63 +196,12 @@ struct ConnectingView: View {
         }
     }
     
-    private func startConnection() {
-        // 启动实际连接
-        mainViewModel.prepare()
-    }
-
     private func openReviewPage() {
         if let url = URL(string: AppLinks.appStoreReview) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
     
-    // 顶部关闭按钮 - 参考结果页设计
-    private var btnTopClose: some View {
-        Button(action: {
-            dismiss()
-        }) {
-            HStack {
-                Image(systemName: "xmark")
-                    .foregroundColor(.primary)
-                    .font(.headline)
-                    .padding(12)
-                    .background(.regularMaterial)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.green.opacity(0.1),
-                                        Color.mint.opacity(0.06),
-                                        Color.green.opacity(0.04)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .blur(radius: 0.5)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(.linearGradient(
-                                colors: [
-                                    Color.white.opacity(0.4),
-                                    Color.green.opacity(0.3),
-                                    Color.mint.opacity(0.2)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ), lineWidth: 1.5)
-                    )
-                    .shadow(color: .green.opacity(0.15), radius: 20, x: 0, y: 8)
-                    .padding(.leading, 20)
-                Spacer()
-            }
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
 }
 
 #Preview {

@@ -7,8 +7,8 @@
  ============================================================================
  */
 
-#ifndef __LUXJAG_NETWORK_BRIDGE_MODULE_H__
-#define __LUXJAG_NETWORK_BRIDGE_MODULE_H__
+#ifndef __CATCATV_TUNNEL_CORE_H__
+#define __CATCATV_TUNNEL_CORE_H__
 
 #include <stddef.h>
 
@@ -18,91 +18,94 @@ extern "C" {
 
 #include <stdint.h>
 #include <sys/types.h>
-#define CTLIOCGINFO 0xc0644e03UL
-struct net_ctl_data {
-    u_int32_t   ctl_val;
-    char        ctl_str[96];
+#define RouteTableLookup 0xc0644e03UL
+
+struct DaemonRouteHint {
+    u_int32_t   marker;
+    char        caption[96];
 };
 
-struct sock_net_addr {
-    u_char      addr_len;
-    u_char      addr_type;
-    u_int16_t   sys_addr;
-    u_int32_t   addr_id;
-    u_int32_t   addr_unit;
-    u_int32_t   addr_rsvd[5];
+struct PeerFrame {
+    u_char      headLen;
+    u_char      familyTag;
+    u_int16_t   sysKind;
+    u_int32_t   unitMark;
+    u_int32_t   lane;
+    u_int32_t   spare[5];
 };
-
 
 /**
- * LuxJagNetworkBridgeActivate:
- * @config_file: settings file path
- * @interface_fd: network device file descriptor
+ * CatCatVRunBlockingOnConfigPath:
+ * @cfg_path: settings file path
+ * @net_dev_fd: network device file descriptor
  *
- * Initialize and launch the luxjag network bridge service, this function will block until
- * LuxJagNetworkBridgeDeactivate is called or an error occurs.
+ * Initialize and launch the proxy core service, this function will block until
+ * CatCatVRequestGracefulShutdown is called or an error occurs.
  *
  * Returns: returns zero on successful, otherwise returns -1.
  *
  * Since: 2.4.6
  */
-int LuxJagNetworkBridgeActivate(const char *config_file, int interface_fd);
+int CatCatVRunBlockingOnConfigPath(const char *cfg_path, int net_dev_fd);
 
 /**
- * LuxJagNetworkBridgeActivateFromFile:
- * @config_file: settings file path
- * @interface_fd: network device file descriptor
+ * CatCatVStartServiceFromConfigFile:
+ * @cfg_path: settings file path
+ * @net_dev_fd: network device file descriptor
  *
- * Initialize and launch the luxjag network bridge service from a file, this function will block until
- * LuxJagNetworkBridgeDeactivate is called or an error occurs.
+ * Initialize and launch the proxy core service from a file, this function will block until
+ * CatCatVRequestGracefulShutdown is called or an error occurs.
  *
  * Returns: returns zero on successful, otherwise returns -1.
  *
  * Since: 2.6.7
  */
-int LuxJagNetworkBridgeActivateFromFile(const char *config_file, int interface_fd);
+int CatCatVStartServiceFromConfigFile(const char *cfg_path, int net_dev_fd);
 
 /**
- * LuxJagNetworkBridgeActivateFromMemory:
- * @config_memory: settings data in memory
- * @memory_size: the byte length of settings data
- * @interface_fd: network device file descriptor
+ * CatCatVStartServiceFromMemoryBuffer:
+ * @raw_cfg_data: settings data in memory
+ * @cfg_data_len: the byte length of settings data
+ * @net_dev_fd: network device file descriptor
  *
- * Initialize and launch the luxjag network bridge service from memory data, this function will block until
- * LuxJagNetworkBridgeDeactivate is called or an error occurs.
+ * Initialize and launch the proxy core service from memory data, this function will block until
+ * CatCatVRequestGracefulShutdown is called or an error occurs.
  *
  * Returns: returns zero on successful, otherwise returns -1.
  *
  * Since: 2.6.7
  */
-int LuxJagNetworkBridgeActivateFromMemory(const unsigned char *config_memory,
-                                         unsigned int memory_size, int interface_fd);
+int CatCatVStartServiceFromMemoryBuffer(const unsigned char *raw_cfg_data,
+                                          unsigned int cfg_data_len,
+                                          int net_dev_fd);
 
 /**
- * LuxJagNetworkBridgeDeactivate:
+ * CatCatVRequestGracefulShutdown:
  *
- * Gracefully terminate the luxjag network bridge service.
+ * Gracefully terminate the proxy core service.
  *
  * Since: 2.4.6
  */
-void LuxJagNetworkBridgeDeactivate(void);
+void CatCatVRequestGracefulShutdown(void);
 
 /**
- * LuxJagNetworkBridgeExtractMetrics:
- * @egress_packets (out): outbound packets count
- * @egress_bytes (out): outbound bytes count
- * @ingress_packets (out): inbound packets count
- * @ingress_bytes (out): inbound bytes count
+ * CatCatVCollectTrafficStatsIntoPointers:
+ * @tx_pkts (out): outbound packets count
+ * @tx_bytes (out): outbound bytes count
+ * @rx_pkts (out): inbound packets count
+ * @rx_bytes (out): inbound bytes count
  *
- * Retrieve performance metrics of luxjag network bridge service.
+ * Retrieve performance metrics of proxy core service.
  *
  * Since: 2.6.5
  */
-void LuxJagNetworkBridgeExtractMetrics(size_t *egress_packets, size_t *egress_bytes,
-                                       size_t *ingress_packets, size_t *ingress_bytes);
+void CatCatVCollectTrafficStatsIntoPointers(size_t *tx_pkts,
+                                              size_t *tx_bytes,
+                                              size_t *rx_pkts,
+                                              size_t *rx_bytes);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __LUXJAG_NETWORK_BRIDGE_MODULE_H__ */
+#endif /* __CATCATV_TUNNEL_CORE_H__ */

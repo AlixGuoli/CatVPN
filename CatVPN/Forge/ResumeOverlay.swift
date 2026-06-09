@@ -33,8 +33,8 @@ enum ResumeOverlay {
             return .none
         }
 
-        if vm.connectionStatus == .connecting {
-            adLog("splash skip vpn connecting")
+        if vm.showConnecting || vm.connectionStatus == .connecting {
+            adLog("splash skip vpn connecting page=\(vm.showConnecting)")
             return .none
         }
 

@@ -62,6 +62,8 @@ class MainViewmodel: ObservableObject {
     private var previousUploadBytes: UInt64 = 0
     private var previousDownloadBytes: UInt64 = 0
     private var lastSpeedUpdateTime = Date()
+    private var connectingPageTimeoutTask: Task<Void, Never>?
+    private static let connectingPageTimeoutSeconds: UInt64 = 40
     
     var buttonText: String {
         switch state {
@@ -116,6 +118,7 @@ class MainViewmodel: ObservableObject {
     
     deinit{
         NotificationCenter.default.removeObserver(self)
+        cancelConnectingPageTimeout()
         stopConnectionTimer()
         stopSpeedTimer()
     }
@@ -129,24 +132,14 @@ class MainViewmodel: ObservableObject {
     }
     
     func regainVPN() {
-//        manager.loadMAllFromPreferences { error in
-//            if error != nil {
-//                
-//            }
-//        }
-        manager.loadMAllFromPreferences { [weak self] error in
-            guard let self = self, error == nil else {
-                cvWarn("load preferences failed")
+        manager.restoreExistingManagerIfAny { [weak self] status in
+            guard let self, let status else {
+                cvLog("restore skip no profile")
                 return
             }
-            
-            // 获取当前系统VPN状态
-            let currentStatus = self.manager.connectionManager.connection.status
-            cvLog("restore status=\(currentStatus)")
-            
-            // 更新UI状态以反映当前VPN状态
+            cvLog("restore status=\(status)")
             DispatchQueue.main.async {
-                self.state = currentStatus
+                self.state = status
             }
         }
     }
@@ -184,16 +177,37 @@ class MainViewmodel: ObservableObject {
         }
     }
     
-    func prepare(){
+    func onConnectingPageAppeared() {
+        startConnectingPageTimeout()
+        beginConnectFromConnectingPage()
+    }
+
+    private func beginConnectFromConnectingPage() {
         connectManual = true
-        manager.loadMAllFromPreferences() { error in
-            linkLog("prepare")
-            if error != nil {
-                linkWarn("prepare failed")
-            } else{
-                self.startConnect()
-            }
+        startConnect()
+    }
+
+    private func startConnectingPageTimeout() {
+        cancelConnectingPageTimeout()
+        connectingPageTimeoutTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: Self.connectingPageTimeoutSeconds * 1_000_000_000)
+            guard !Task.isCancelled, showConnecting else { return }
+            linkWarn("connecting page timeout 40s")
+            dismissConnectingPageOnly()
         }
+    }
+
+    private func cancelConnectingPageTimeout() {
+        connectingPageTimeoutTask?.cancel()
+        connectingPageTimeoutTask = nil
+    }
+
+    /// Closes the connecting overlay only; does not drive connection result UI.
+    func dismissConnectingPageOnly() {
+        cancelConnectingPageTimeout()
+        connectManual = false
+        showConnecting = false
+        linkLog("connecting page closed")
     }
     
     func startConnect(){
@@ -297,12 +311,22 @@ class MainViewmodel: ObservableObject {
                 return
             }
             
-            linkLog("show connecting")
+            linkLog("connect tap, request vpn permission")
             DispatchQueue.main.asyncAfter(deadline: .now()) {
                 ForgeHub.shared.warmInventory(tag: "connect")
             }
-            // 跳转到连接中页面，而不是直接连接
-            self.showConnecting = true
+            manager.ensureVPNPermission { [weak self] error in
+                guard let self else { return }
+                DispatchQueue.main.async {
+                    if error != nil {
+                        linkWarn("vpn permission failed")
+                        self.connectionStatus = .disconnected
+                        return
+                    }
+                    linkLog("vpn permission ok, show connecting page")
+                    self.showConnecting = true
+                }
+            }
         case .connected:
             isShowDisconnect = true
             DispatchQueue.main.asyncAfter(deadline: .now()) {
@@ -410,6 +434,7 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectSuccessful() {
+        cancelConnectingPageTimeout()
         FlowReport.connect(
             FlowReport.connectSuccess,
             ip: ConnectionRuntimeStore.ip,
@@ -434,6 +459,7 @@ class MainViewmodel: ObservableObject {
     }
     
     func connectFailed() {
+        cancelConnectingPageTimeout()
         linkLog("connect failed")
         FlowReport.connect(
             FlowReport.connectFailed,

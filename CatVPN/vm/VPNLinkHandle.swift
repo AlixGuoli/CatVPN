@@ -16,7 +16,24 @@ class VPNConnectionManager{
   
     public init() {}
     
-    public func loadMAllFromPreferences(completion: @escaping (Error?) -> Void) {
+    /// Restore existing profile only; never creates config or triggers permission UI.
+    public func restoreExistingManagerIfAny(completion: @escaping (NEVPNStatus?) -> Void) {
+        NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            guard error == nil, let managers, !managers.isEmpty else {
+                completion(nil)
+                return
+            }
+            self.connectionManager = managers[0]
+            completion(managers[0].connection.status)
+        }
+    }
+
+    /// Create profile if needed; saveToPreferences may show system VPN permission UI.
+    public func ensureVPNPermission(completion: @escaping (Error?) -> Void) {
+        loadMAllFromPreferences(completion: completion)
+    }
+
+    private func loadMAllFromPreferences(completion: @escaping (Error?) -> Void) {
         NETunnelProviderManager.loadAllFromPreferences() { managers, error in
             guard let managers = managers, error == nil else {
                 completion(error)
