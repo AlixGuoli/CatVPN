@@ -19,7 +19,7 @@ struct HostConfig: Equatable {
 enum HostBootstrap {
 
     // MARK: - Embedded cipher
-
+    /// 测试服 域名配置
     /// Active seed (test). Swap `a`/`b`/`c` from `ProductionHostCipher` for release.
     private enum EmbeddedHostCipher {
         static let a = "1Bl6iTEEJIggAmCsE4HgvtnXrqfhyOUP4vL5nIlTAdWk2E44zK73gY3O/v7e74JcQuEPeop8ZTS485Zny87d6W0bdNpy2oP6UxyEobMoLm0SI4VpBz5ab8QPvRTF+GvLh1Yn5egjhZv8WaaVA9ttDdut3MryiPiUzVqdi2YCuhW5vIvq36sqNdXpoAIhKhUV7e2zX26iQwyqwcXMrqiJE2yt36LZ2gD0FajWr9vx/cvxNe1cvFEBV9dF3w7Xpfv1f0ODHRXQ5BGGRF/g7QLBCnvhE9MiJwCiY/wEi0Aip/1rM2O7Oqex5Ueed+FDBkaOWQikpuj1TMCa/Ksg"
