@@ -728,7 +728,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = net2/net2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 6JW2G9TQP7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = net2/Info.plist;
@@ -745,12 +745,7 @@
 					"$(PROJECT_DIR)/net2",
 				);
 				MARKETING_VERSION = 1.0.3;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/net2/libCatCatV.a",
-					"$(PROJECT_DIR)/net2/libhev-socks5-tunnel.a",
-					"-lresolv",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.ne;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -771,7 +766,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = net2/net2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 6JW2G9TQP7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = net2/Info.plist;
@@ -788,12 +783,7 @@
 					"$(PROJECT_DIR)/net2",
 				);
 				MARKETING_VERSION = 1.0.3;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/net2/libCatCatV.a",
-					"$(PROJECT_DIR)/net2/libhev-socks5-tunnel.a",
-					"-lresolv",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = CatVPN.CatVPN.ne;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

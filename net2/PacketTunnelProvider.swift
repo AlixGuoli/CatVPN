@@ -1,41 +1,23 @@
 import NetworkExtension
 
-// Track: lane (xray) — set `TunnelTrack.usesNutsTunnel = false` in main app.
+// Track: nuts — set `TunnelTrack.usesNutsTunnel = true` in main app.
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
 
-  // MARK: - Nuts track
-  //private var shellHost: ShellHost?
-
-  // MARK: - Lane track
-  private var laneHost: LaneHost?
+  private var shellHost: ShellHost?
 
   override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
-    guard LaunchGate.permits() else {
-      cancelTunnelWithError(LaunchGate.denial())
-      return
-    }
-
-    let host = LaneHost()
-    host.bind(on: self)
+    let host = ShellHost()
+    host.bind(on: self, packetFlow: packetFlow)
     host.start()
-    laneHost = host
+    shellHost = host
     completionHandler(nil)
-
-    // Nuts track:
-    //let host = ShellHost()
-    //host.bind(on: self, packetFlow: packetFlow)
-    //host.start()
-    //shellHost = host
-    //completionHandler(nil)
   }
 
   override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
-    laneHost?.teardown()
-    laneHost = nil
+    shellHost?.teardown()
+    shellHost = nil
     completionHandler()
-
-    // Nuts: shellHost?.teardown(); shellHost = nil
   }
 
   override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
@@ -47,26 +29,5 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
   }
 
   override func wake() {
-  }
-}
-
-// MARK: - Cold-start window (lane track only)
-
-private enum LaunchGate {
-
-  static func permits() -> Bool {
-    guard let suite = UserDefaults(suiteName: ServiceDefaults.targetGroup),
-          let anchor = suite.object(forKey: ServiceDefaults.targetDate) as? Date else {
-      return false
-    }
-    return Date().timeIntervalSince(anchor) < 10
-  }
-
-  static func denial() -> NSError {
-    NSError(
-      domain: "com.cat.extension.gate",
-      code: 1,
-      userInfo: ["reason": "window elapsed"]
-    )
   }
 }
