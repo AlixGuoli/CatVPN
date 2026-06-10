@@ -26,28 +26,28 @@ enum VaultCache {
     static func getYandexIntKey() -> String {
         _ = bootstrapped
         /// 测试服
-        return "demo-banner-yandex"
-        return UserDefaults.standard.string(forKey: Keys.yandexInt) ?? "R-M-16910303-3"
+        //return "aa;bb;demo-banner-yandex"
+        return UserDefaults.standard.string(forKey: Keys.yandexInt) ?? "R-M-19374584-4;R-M-19374584-3;R-M-19374584-2"
     }
 
     static func getYandexEMIntKey() -> String {
         _ = bootstrapped
         /// 测试服
-        return "demo-banner-yandex"
+        //return "demo-banner-yandex"
         return UserDefaults.standard.string(forKey: Keys.yandexEMInt) ?? "R-M-19374584-1"
     }
 
     static func getAdsOff() -> Bool {
         _ = bootstrapped
         /// 测试服
-        return true
+        //return true
         return UserDefaults.standard.bool(forKey: Keys.isOff)
     }
 
     static func getAdsType() -> String? {
         _ = bootstrapped
         /// 测试服
-        return "y;a"
+        //return "y;a"
         return UserDefaults.standard.string(forKey: Keys.type)
     }
 

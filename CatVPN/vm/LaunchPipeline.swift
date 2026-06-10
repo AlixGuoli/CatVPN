@@ -61,15 +61,20 @@ final class LaunchPipeline {
             return true
         }
 
-        goLog("init ads: list + preload parallel")
-        async let adListTask: Void = AppConfigService.refreshAdvertisementList()
-        async let preloadTask: Bool = loadSplashInt()
-        await adListTask
-        let adLoaded = await preloadTask
-        goLog("splash preload result=\(adLoaded)")
-
-        await MainActor.run {
-            owner?.isSplashAdReady = adLoaded
+        if AdBootstrap.isAdStackUnlocked {
+            goLog("init ads: list + preload parallel")
+            async let adListTask: Void = AppConfigService.refreshAdvertisementList()
+            async let preloadTask: Bool = loadSplashInt()
+            await adListTask
+            let adLoaded = await preloadTask
+            goLog("splash preload result=\(adLoaded)")
+            await MainActor.run {
+                owner?.isSplashAdReady = adLoaded
+            }
+        } else {
+            goLog("init ads: fetch list")
+            await AppConfigService.refreshAdvertisementList()
+            goLog("ads preload wait att")
         }
         return true
     }
@@ -92,6 +97,26 @@ final class LaunchPipeline {
                         continuation.resume(returning: false)
                     }
                 })
+            }
+        }
+    }
+
+    func bootstrapAdsAfterATTUnlock() {
+        guard AdBootstrap.isAdStackUnlocked else { return }
+        Task {
+            guard owner?.isBaseConfigReady == true else {
+                goLog("bootstrap ads skip baseconf not ready")
+                return
+            }
+            guard VaultRegistry.shared.isForgeEnabled() else {
+                goLog("bootstrap ads skip gate closed")
+                return
+            }
+            goLog("bootstrap ads preload after att")
+            let adLoaded = await loadSplashInt()
+            goLog("bootstrap ads preload result=\(adLoaded)")
+            await MainActor.run {
+                owner?.isSplashAdReady = adLoaded
             }
         }
     }

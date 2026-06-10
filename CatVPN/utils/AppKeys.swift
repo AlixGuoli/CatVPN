@@ -48,6 +48,8 @@ class CatKey {
     }
 
     static func getBundleID() -> String {
+        // 测试服
+        //return "admobon"
         return Bundle.main.bundleIdentifier ?? "CatVPN.CatVPN"
     }
 

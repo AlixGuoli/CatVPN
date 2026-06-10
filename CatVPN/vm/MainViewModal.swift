@@ -16,6 +16,7 @@ class MainViewmodel: ObservableObject {
     @Published var resultStatus: VPNConnectionStatus = .disconnected
     @Published var isServiceUnavailable = false
     @Published var showConnecting = false
+    @Published var showNoNetworkAlert = false
 
     @Published var showEmail: Bool = false
     @Published var isShowDisconnect: Bool = false
@@ -194,6 +195,10 @@ class MainViewmodel: ObservableObject {
 
     func checkAndUpdateConfigsIfNeeded() {
         launchPipeline.checkAndUpdateConfigsIfNeeded()
+    }
+
+    func bootstrapAdsAfterATTUnlock() {
+        launchPipeline.bootstrapAdsAfterATTUnlock()
     }
 
     func fetchServers() async {

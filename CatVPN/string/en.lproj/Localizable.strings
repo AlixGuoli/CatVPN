@@ -185,6 +185,10 @@
 "Language" = "Language";
 "Region" = "Region";
 "App Version" = "App Version";
+"Copy" = "Copy";
+"Copied" = "Copied";
+"No_Network_Title" = "No Internet Connection";
+"No_Network_Message" = "Please check your network and try again.";
 
 // VPNMainView - 快速操作新增
 "System Info" = "System Info";

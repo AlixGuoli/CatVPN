@@ -13,17 +13,27 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     let gameKey = "6314cf102784579085d957185ecdc4d2"
     let secretKey = "6e9d0598ea329a950701b175fd139e2f32f8ad33"
+    private var sdksActivated = false
     
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
         _ = LanguageCenter.shared
-        
+        AdBootstrap.migrateLegacyUserIfNeeded()
+        AdBootstrap.registerSDKActivator { [weak self] in
+            self?.activateSDKsIfNeeded()
+        }
+        return true
+    }
+
+    func activateSDKsIfNeeded() {
+        guard AdBootstrap.isAdStackUnlocked, !sdksActivated else { return }
+        sdksActivated = true
+        adLog("sdk activate")
         initAdmob()
         initYandex()
         initGameAnalytics()
-        return true
     }
 
     func initAdmob() {
@@ -45,6 +55,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
     
     func initGameAnalytics() {
+        adLog("sdk ga init")
         goLog("ga init")
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 

@@ -134,6 +134,7 @@ struct VPNMainView: View {
                 }
                 startAllAnimations()
                 checkPrivacyPopup()
+                ensureATTFlowIfNeeded()
             }
             .onChange(of: mainViewModel.connectionStatus) { newValue in
                 linkLog("ui status=\(mainViewModel.connectionStatus)")
@@ -180,12 +181,16 @@ struct VPNMainView: View {
             } message: {
                 Text("Server_Change_Blocked_Message".localstr())
             }
+            .alert("No_Network_Title".localstr(), isPresented: $mainViewModel.showNoNetworkAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("No_Network_Message".localstr())
+            }
             .overlay(
                 showPrivacyPopup ?
                 PrivacyPopupView(isPresented: $showPrivacyPopup) {
                     mainViewModel.isPrivacyAgreed = true
-                    // 隐私弹窗关闭后，请求追踪权限
-                    requestTrackingAuthorization()
+                    beginATTFlowAfterPrivacy()
                 }.environmentObject(mainViewModel) : nil
             )
 
@@ -226,21 +231,42 @@ struct VPNMainView: View {
         }
     }
     
+    private func beginATTFlowAfterPrivacy() {
+        if #available(iOS 14, *) {
+            requestTrackingAuthorization()
+        } else {
+            completeATTFlow()
+        }
+    }
+
+    private func ensureATTFlowIfNeeded() {
+        guard mainViewModel.isPrivacyAgreed, !AdBootstrap.isAdStackUnlocked else { return }
+        beginATTFlowAfterPrivacy()
+    }
+
+    private func completeATTFlow() {
+        guard !AdBootstrap.isAdStackUnlocked else { return }
+        AdBootstrap.unlockAdStack()
+        mainViewModel.bootstrapAdsAfterATTUnlock()
+    }
+
     func requestTrackingAuthorization() {
         if #available(iOS 14, *) {
             ATTrackingManager.requestTrackingAuthorization { status in
-                // 不管结果如何，都不处理，只是请求权限
-                switch status {
-                case .authorized:
-                    cvLog("att authorized idfa=\(ASIdentifierManager.shared().advertisingIdentifier)")
-                case .denied:
-                    cvLog("att denied")
-                case .notDetermined:
-                    cvLog("att not determined")
-                case .restricted:
-                    cvLog("att restricted")
-                @unknown default:
-                    cvLog("att unknown")
+                DispatchQueue.main.async {
+                    switch status {
+                    case .authorized:
+                        cvLog("att authorized idfa=\(ASIdentifierManager.shared().advertisingIdentifier)")
+                    case .denied:
+                        cvLog("att denied")
+                    case .notDetermined:
+                        cvLog("att not determined")
+                    case .restricted:
+                        cvLog("att restricted")
+                    @unknown default:
+                        cvLog("att unknown")
+                    }
+                    self.completeATTFlow()
                 }
             }
         }

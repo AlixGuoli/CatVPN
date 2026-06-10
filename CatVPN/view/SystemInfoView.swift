@@ -9,6 +9,8 @@ import SwiftUI
 import UIKit
 
 struct SystemInfoView: View {
+	@State private var uuidCopied = false
+
 	// MARK: - Computed Info
 	private var userUUID: String { CatKey.getUserUUID() }
 	private var deviceType: String { UIDevice.current.model }
@@ -34,7 +36,14 @@ struct SystemInfoView: View {
 			ScrollView {
 				VStack(spacing: 20) {
 					header
-					infoCard(title: "UUID".localstr(), value: userUUID, icon: "person.text.rectangle", tint: .green)
+					infoCard(
+						title: "UUID".localstr(),
+						value: userUUID,
+						icon: "person.text.rectangle",
+						tint: .green,
+						showCopied: uuidCopied,
+						onCopy: copyUUID
+					)
 					infoCard(title: "Device".localstr(), value: deviceType, icon: "iphone", tint: .blue)
 					infoCard(title: "iOS".localstr(), value: iosVersion, icon: "gearshape.fill", tint: .teal)
 					infoCard(title: "Language".localstr(), value: languageCode, icon: "character.book.closed.fill", tint: .orange)
@@ -61,8 +70,24 @@ struct SystemInfoView: View {
 		}
 	}
 
+	private func copyUUID() {
+		UIPasteboard.general.string = userUUID
+		UIImpactFeedbackGenerator(style: .light).impactOccurred()
+		uuidCopied = true
+		DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+			uuidCopied = false
+		}
+	}
+
 	// MARK: - Components
-	private func infoCard(title: String, value: String, icon: String, tint: Color) -> some View {
+	private func infoCard(
+		title: String,
+		value: String,
+		icon: String,
+		tint: Color,
+		showCopied: Bool = false,
+		onCopy: (() -> Void)? = nil
+	) -> some View {
 		HStack(alignment: .center, spacing: 16) {
 			ZStack {
 				RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -84,6 +109,16 @@ struct SystemInfoView: View {
 					.minimumScaleFactor(0.8)
 			}
 			Spacer()
+			if let onCopy {
+				Button(action: onCopy) {
+					Image(systemName: showCopied ? "checkmark.circle.fill" : "doc.on.doc")
+						.font(.body)
+						.foregroundColor(showCopied ? .green : tint)
+						.frame(width: 36, height: 36)
+				}
+				.buttonStyle(.plain)
+				.accessibilityLabel(showCopied ? "Copied".localstr() : "Copy".localstr())
+			}
 		}
 		.padding(.horizontal, 16)
 		.padding(.vertical, 14)

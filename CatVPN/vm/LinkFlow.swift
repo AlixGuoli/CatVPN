@@ -85,6 +85,14 @@ final class LinkFlow {
         guard let owner else { return }
         switch owner.connectionStatus {
         case .disconnected, .failed:
+            guard LinkReachability.isOnline else {
+                linkWarn("connect blocked no network")
+                DispatchQueue.main.async {
+                    owner.showNoNetworkAlert = true
+                }
+                return
+            }
+
             if CatKey.getCountryCode() == "cn" {
                 linkLog("blocked region=cn")
                 handleChinaRestrictedFlow()

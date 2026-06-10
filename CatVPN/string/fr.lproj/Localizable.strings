@@ -181,6 +181,10 @@
 "Language" = "Langue";
 "Region" = "Région";
 "App Version" = "Version de l'app";
+"Copy" = "Copier";
+"Copied" = "Copié";
+"No_Network_Title" = "Pas de connexion Internet";
+"No_Network_Message" = "Veuillez vérifier votre réseau et réessayer.";
 
 // VPNMainView - Actions rapides (nouveau)
 "System Info" = "Informations système";

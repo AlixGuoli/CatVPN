@@ -19,20 +19,19 @@ struct HostConfig: Equatable {
 enum HostBootstrap {
 
     // MARK: - Embedded cipher
-    /// 测试服 域名配置
-    /// Active seed (test). Swap `a`/`b`/`c` from `ProductionHostCipher` for release.
+    /// Active seed (production). Swap `a`/`b`/`c` from `TestHostCipher` for local git-refresh tests.
     private enum EmbeddedHostCipher {
-        static let a = "1Bl6iTEEJIggAmCsE4HgvtnXrqfhyOUP4vL5nIlTAdWk2E44zK73gY3O/v7e74JcQuEPeop8ZTS485Zny87d6W0bdNpy2oP6UxyEobMoLm0SI4VpBz5ab8QPvRTF+GvLh1Yn5egjhZv8WaaVA9ttDdut3MryiPiUzVqdi2YCuhW5vIvq36sqNdXpoAIhKhUV7e2zX26iQwyqwcXMrqiJE2yt36LZ2gD0FajWr9vx/cvxNe1cvFEBV9dF3w7Xpfv1f0ODHRXQ5BGGRF/g7QLBCnvhE9MiJwCiY/wEi0Aip/1rM2O7Oqex5Ueed+FDBkaOWQikpuj1TMCa/Ksg"
-        static let b = "73a4641d32a21cba0b5fe46d"
-        static let c = "a6f2759a1f4cb957f9a90ce1e2871e4e"
-        static var line: String { [a, b, c].joined(separator: ",") }
-    }
-
-    /// Production seed (love.silkbrightpetal.baby). Not active until swapped in above.
-    private enum ProductionHostCipher {
         static let a = "f+a5lGy2I+cI2Npr7gVzNXEih7vwoFkrX3YA+Mc/GgfdR64UVQl4nT8ExnUxp406MotFzh5bMB/sMLmwRcN1cBYW4SoxEQyjvjpo5tlSYymXJblkg+tqtumk6gS8eSKaB42Bph1OYe/uP+KqfQwWC2Sbo+nvy8T3UFNz+zi5ZEHjLF3y5LTjQA6CKgslkcMnJajUz+4ZINRViP00nPxckl3nIRqUdMM1U859Fo2f3Addw1lHq3XJnzmt02yTSF6N4P+Z+bFxC13U9Roc+Y6fGPN8Bocn3+Z6XXVHH1iMt1y8L4UyrxdzqQDzfIxfKuZN+N9zPklzVyiSpwwoSjL/a+u2htDEBQ=="
         static let b = "e80d8abb1b2fc722899729ea"
         static let c = "7b2abdc5e14274b2938e6bd635e80490"
+        static var line: String { [a, b, c].joined(separator: ",") }
+    }
+
+    /// Test seed (wrong blob for git-refresh validation). Not active.
+    private enum TestHostCipher {
+        static let a = "XFc/lvYN93zIZfG9Xkpl97syGPTJNjilIZSL8dgjwPq7Zj02N/FUwKiYfOYIhDj08k0uOlTjRDtwaiQ2DWA01oi92l26NOFRoU3+frVtpxZ2w/Iqsv2xixbjiNdIoShwb7+NiooKrNzXYwJ9MzadSfcrFAXIahMX2vE2lI90QcEfcTHtt4Bnd5b/tYaZo4/h/FIFR7Jial+/AFcc+n13/iwKw5dVEQYp/ZLyLRpMlYr16YRg8CoVkesLPTsyMHPSOudzF1bgkk6BUDbr2kE3UTonaDzcXeSkbK4Y0f/LeRtxZyqsC3gA9JEuBGRRvfvz"
+        static let b = "92fab3e6d3816682d87e98b5"
+        static let c = "aca4b7b57340e5bcb6d5a405a2e75edf"
         static var line: String { [a, b, c].joined(separator: ",") }
     }
 

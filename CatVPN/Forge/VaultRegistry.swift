@@ -60,6 +60,10 @@ class VaultRegistry {
 
     func warmInventory(tag: String? = nil) {
         adLog("preload all moment=\(tag ?? "-")")
+        guard AdBootstrap.isAdStackUnlocked else {
+            adLog("preload skip att")
+            return
+        }
         guard isForgeOpen, isIntOpen else {
             adLog("preload skip gate closed")
             return
@@ -73,6 +77,11 @@ class VaultRegistry {
     }
 
     func warmInventory(onReady: (() -> Void)? = nil, onFailed: (() -> Void)? = nil) {
+        guard AdBootstrap.isAdStackUnlocked else {
+            adLog("preload skip att")
+            onFailed?()
+            return
+        }
         guard isForgeOpen, isIntOpen else {
             onFailed?()
             return
