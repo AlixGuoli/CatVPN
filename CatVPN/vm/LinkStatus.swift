@@ -54,10 +54,15 @@ final class LinkStatus {
 
         switch owner.state {
         case .connected:
-            linkLog("connected manual=\(connectManual) probing=\(isProbing)")
+            linkLog("connected manual=\(connectManual) probing=\(isProbing) probeRequired=\(TunnelTrack.requiresLinkProbe)")
             if connectManual {
-                guard beginProbeIfNeeded() else { return }
-                owner.checkGG()
+                if TunnelTrack.requiresLinkProbe {
+                    guard beginProbeIfNeeded() else { return }
+                    owner.checkGG()
+                } else {
+                    connectManual = false
+                    owner.connectSuccessful()
+                }
             } else {
                 connectManual = false
                 owner.connectionStatus = .connected

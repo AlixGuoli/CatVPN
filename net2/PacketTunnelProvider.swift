@@ -1,76 +1,72 @@
 import NetworkExtension
 
+// Track: lane (xray) — set `TunnelTrack.usesNutsTunnel = false` in main app.
+
 class PacketTunnelProvider: NEPacketTunnelProvider {
 
-    // MARK: - Nuts track
-    //private var networkHandler: NetworkProtocolHandler?
+  // MARK: - Nuts track
+  //private var shellHost: ShellHost?
 
-    // MARK: - Lane track
-    private var laneHost: LaneHost?
+  // MARK: - Lane track
+  private var laneHost: LaneHost?
 
-    override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
-        // Nuts: startSecureTunnelManager()
-
-        guard LaunchGate.permits() else {
-            cancelTunnelWithError(LaunchGate.denial())
-            return
-        }
-
-        let host = LaneHost()
-        host.bind(on: self)
-        host.start()
-        laneHost = host
-
-        completionHandler(nil)
+  override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+    guard LaunchGate.permits() else {
+      cancelTunnelWithError(LaunchGate.denial())
+      return
     }
 
-    override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
-        // Nuts: networkHandler?.terminatePacketTunnelConnection()
-        laneHost?.teardown()
-        laneHost = nil
-        completionHandler()
-    }
+    let host = LaneHost()
+    host.bind(on: self)
+    host.start()
+    laneHost = host
+    completionHandler(nil)
 
-    override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
-        completionHandler?(messageData)
-    }
+    // Nuts track:
+    //let host = ShellHost()
+    //host.bind(on: self, packetFlow: packetFlow)
+    //host.start()
+    //shellHost = host
+    //completionHandler(nil)
+  }
 
-    override func sleep(completionHandler: @escaping () -> Void) {
-        completionHandler()
-    }
+  override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
+    laneHost?.teardown()
+    laneHost = nil
+    completionHandler()
 
-    override func wake() {
-    }
+    // Nuts: shellHost?.teardown(); shellHost = nil
+  }
 
-    // MARK: - Nuts track
-//    func startSecureTunnelManager() {
-//        if networkHandler == nil {
-//            networkHandler = NetworkProtocolHandler(packetFlow: packetFlow)
-//        }
-//        networkHandler?.networkConfigurationHandler = { [weak self] settings, completion in
-//            self?.setTunnelNetworkSettings(settings, completionHandler: completion)
-//        }
-//        networkHandler?.initializeConnectionSequence()
-//    }
+  override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
+    completionHandler?(messageData)
+  }
+
+  override func sleep(completionHandler: @escaping () -> Void) {
+    completionHandler()
+  }
+
+  override func wake() {
+  }
 }
 
-// MARK: - Cold-start window (shared by lane track; reuse for Nuts if needed)
+// MARK: - Cold-start window (lane track only)
 
 private enum LaunchGate {
 
-    static func permits() -> Bool {
-        guard let suite = UserDefaults(suiteName: ServiceDefaults.targetGroup),
-              let anchor = suite.object(forKey: ServiceDefaults.targetDate) as? Date else {
-            return false
-        }
-        return Date().timeIntervalSince(anchor) < 10
+  static func permits() -> Bool {
+    guard let suite = UserDefaults(suiteName: ServiceDefaults.targetGroup),
+          let anchor = suite.object(forKey: ServiceDefaults.targetDate) as? Date else {
+      return false
     }
+    return Date().timeIntervalSince(anchor) < 10
+  }
 
-    static func denial() -> NSError {
-        NSError(
-            domain: "com.cat.extension.gate",
-            code: 1,
-            userInfo: ["reason": "window elapsed"]
-        )
-    }
+  static func denial() -> NSError {
+    NSError(
+      domain: "com.cat.extension.gate",
+      code: 1,
+      userInfo: ["reason": "window elapsed"]
+    )
+  }
 }

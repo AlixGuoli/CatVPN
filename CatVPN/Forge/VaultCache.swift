@@ -40,7 +40,7 @@ enum VaultCache {
     static func getAdsOff() -> Bool {
         _ = bootstrapped
         /// 测试服
-        //return true
+        return true
         return UserDefaults.standard.bool(forKey: Keys.isOff)
     }
 
